@@ -1,0 +1,3 @@
+.gitingnore
+/node_modules
+/config/secureConfig.js

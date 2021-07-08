@@ -1,0 +1,28 @@
+{
+  "name": "culturespotserver",
+  "version": "1.0.0",
+  "description": "Simple social medai site to demonstrate developing abbilites of creator",
+  "main": "server.js",
+  "scripts": {
+    "test": "jest",
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "jwt",
+    "graphql"
+  ],
+  "author": "DanielCsonka",
+  "license": "ISC",
+  "dependencies": {
+    "apollo-server": "^2.25.2",
+    "graphql": "^15.5.1"
+  },
+  "devDependencies": {
+    "jest": "^27.0.6",
+    "nodemon": "^2.0.9"
+  },
+  "jest": {}
+}
