@@ -14,6 +14,9 @@ module.exports = gql`
     }
     type Query {
         testquery: String!
-        login(username: String!, password: String!): User!
+    }
+    type Mutation {
+        login(email: String!, password: String!): User!
+        registration(email: String!, password: String!, passwordconf: String!): User!
     }
 `;
