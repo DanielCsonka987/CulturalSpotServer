@@ -22,19 +22,50 @@ module.exports.loginRevise = ( email, pwdText )=>{
     return result.error? result : values;
 }
 
+module.exports.registerRevise = (email, pwdText, pwdTextConf, uname)=>{
+    const values = {
+        email: email.trim(),
+        username: uname.trim(),
+        pwdText
+    }
+    const result = {
+        error: false,
+        field: [],
+        issue: []
+    }
+    if(isThereProblemWithEmail(values.email)){
+        result.error = true;
+        result.field.push('email');
+        result.issue.push('This email is not acceptable!')
+    }
+    if(isThereProblemWithPassword(values.pwdText)){
+        result.error = true;
+        result.field.push('password');
+        result.issue.push('This password is not acceptable!')
+    }
+    if(values.pwdText !== pwdTextConf){
+        result.error = true;
+        result.field.push('passwordconf');
+        result.issue.push('This password conformation is not proper!')
+    }
+    if(isThereProblemWithUsername(values.username)){
+        result.error = true;
+        result.field.push('username');
+        result.issue.push('This username is not acceptable!')
+    }
+    return result.error? result : values;
+}
+
 module.exports.resetPasswordReqireStep1Revise = (email)=>{
 
 }
 
-module.exports.accountProcessRevise = (token)=>{
+
+module.exports.postRevise = (postContent)=>{
 
 }
 
-module.exports.postRevise = (token, postContent)=>{
-
-}
-
-module.exports.commentRevise = (token, commentContent)=>{
+module.exports.commentRevise = (commentContent)=>{
 
 }
 
@@ -64,4 +95,16 @@ function isThereProblemWithPassword(pwdText){
         return true;
     }
     return !analyzer.test(pwdText)
+}
+
+function isThereProblemWithUsername(unameText){
+    const pattern = '[a-zA-Z0-9_ ]{4,}';
+    const analyzer = new RegExp(pattern)
+    if(!unameText){
+        return true;
+    }
+    if(unameText.length > 50){
+        return true
+    } 
+    return !analyzer.test(unameText)
 }
