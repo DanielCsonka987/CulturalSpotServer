@@ -26,6 +26,7 @@ module.exports = gql`
         username: String!
         token: String!
         registeredAt: String!
+        lastLoggedAt: String!
     }
     type ProfileProcess {
         id: String!

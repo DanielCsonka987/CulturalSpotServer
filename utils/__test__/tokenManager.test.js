@@ -96,14 +96,14 @@ describe('Token verification tests', ()=>{
         const result = await tokenVerify(token)
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
-            expect.arrayContaining([ 'userid', 'email', 'expired', 'error' ])
+            expect.arrayContaining([ 'id', 'email', 'isExpired', 'error', 'exp', 'iat' ])
         )
         expect(typeof result.error).toBe('boolean')
         expect(result.error).toBeFalsy()
-        expect(typeof result.expired).toBe('boolean')
-        expect(result.expired).toBeFalsy()
+        expect(typeof result.isExpired).toBe('boolean')
+        expect(result.isExpired).toBeFalsy()
 
-        expect(result.userid).toBe('001')
+        expect(result.id).toBe('001')
         expect(result.email).toBe('stg@testing.uk')
     })
 
@@ -116,16 +116,16 @@ describe('Token verification tests', ()=>{
         const result = await tokenVerify(badToken)
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
-            expect.arrayContaining([ 'userid', 'email', 'expired', 'error' ])
+            expect.arrayContaining([ 'isExpired', 'error' ])
         )
 
         expect(typeof result.error).toBe('object')
         expect(result.error.name).toBe('JsonWebTokenError')
         expect(result.error.message).toBe('jwt malformed')
 
-        expect(result.expired).toBeFalsy()
-        expect(result.userid).toBe('')
-        expect(result.email).toBe('')
+        expect(result.isExpired).toBeFalsy()
+        expect(result.id).toBe(undefined)
+        expect(result.email).toBe(undefined)
     })
 
     it('Token direct modified', async ()=>{
@@ -139,11 +139,11 @@ describe('Token verification tests', ()=>{
         const result = await tokenVerify(badToken)
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
-            expect.arrayContaining([ 'userid', 'email', 'expired', 'error' ])
+            expect.arrayContaining([ 'isExpired', 'error' ])
         )
         expect(typeof result.error).toBe('object')
-        expect(result.expired).toBeFalsy()
-        expect(result.userid).toBe('')
-        expect(result.email).toBe('')
+        expect(result.isExpired).toBeFalsy()
+        expect(result.id).toBe(undefined)
+        expect(result.email).toBe(undefined)
     })
 })

@@ -34,9 +34,7 @@ module.exports = {
     tokenVerify: (tokenText)=>{ 
         return jwt.verify(tokenText, TOKEN_SECRET, (err, decoded)=>{
             const results = {
-                userid: '',
-                email: '',
-                expired: false,
+                isExpired: false,
                 error: false,
             }
             if(err){
@@ -48,13 +46,11 @@ module.exports = {
             const actTime = new Number(actTimeSecText).valueOf()
             const expTime = new Number(decoded.exp)
             if(actTime > expTime){
-                results.expired = true;
+                results.isExpired = true;
                 return results;
             }
 
-            results.userid = decoded.id;
-            results.email = decoded.email;
-            return results;
+            return Object.assign(results, decoded);
         })
     }
 }

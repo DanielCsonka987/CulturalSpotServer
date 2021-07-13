@@ -5,7 +5,8 @@ const ProfileSchema = new mongoose.Schema({
     pwdHash: String,
     username: String,
     registeredAt: String,
-    resetIdentif: String
+    lastLoggedAt: String,
+    resetPwdToken: String
 })
 
 module.exports = mongoose.model('profiles', ProfileSchema)
