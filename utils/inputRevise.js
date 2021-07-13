@@ -1,5 +1,5 @@
 
-module.exports.loginRevise = ( email, pwdText )=>{
+module.exports.loginInputRevise = ( email, pwdText )=>{
     const values = {
         email: email.trim(), 
         pwdText
@@ -22,7 +22,7 @@ module.exports.loginRevise = ( email, pwdText )=>{
     return result.error? result : values;
 }
 
-module.exports.registerRevise = (email, pwdText, pwdTextConf, uname)=>{
+module.exports.registerInputRevise = (email, pwdText, pwdTextConf, uname)=>{
     const values = {
         email: email.trim(),
         username: uname.trim(),
@@ -56,16 +56,65 @@ module.exports.registerRevise = (email, pwdText, pwdTextConf, uname)=>{
     return result.error? result : values;
 }
 
-module.exports.resetPasswordReqireStep1Revise = (email)=>{
+module.exports.resetPwdInputRevise = (email)=>{
 
 }
 
+module.exports.changePwdInputRevise = (pwdTextOld, pwdTextNew, pwdTextConf )=>{
+    const values = {
+        pwdTextOld,
+        pwdTextNew
+    }
+    const result = {
+        error: false,
+        field: [],
+        issue: []
+    }
+    if(isThereProblemWithPassword(values.pwdTextOld)){
+        result.error = true;
+        result.field.push('oldpassword');
+        result.issue.push('The old password is not acceptable!')
+    }
+    if(isThereProblemWithPassword(values.pwdTextNew)){
+        result.error = true;
+        result.field.push('newpassword');
+        result.issue.push('The new password is not acceptable!')
+    }
+    if(values.pwdTextNew !== pwdTextConf){
+        result.error = true;
+        result.field.push('passwordconf');
+        result.issue.push('The new password conformation is not proper!')
+    }
+    return result.error? result : values;
+}
 
-module.exports.postRevise = (postContent)=>{
+module.exports.deleteAccInputRevise = (pwdTextOld, pwdTextConf)=>{
+    const values = {
+        pwdTextOld
+    }
+    const result = {
+        error: false,
+        field: [],
+        issue: []
+    }
+    if(isThereProblemWithPassword(values.pwdTextOld)){
+        result.error = true;
+        result.field.push('password');
+        result.issue.push('The password is not acceptable!')
+    }
+    if(values.pwdTextOld !== pwdTextConf){
+        result.error = true;
+        result.field.push('passwordconf');
+        result.issue.push('The password conformation is not proper!')
+    }
+    return result.error? result : values;
+}
+
+module.exports.postInputRevise = (postContent)=>{
 
 }
 
-module.exports.commentRevise = (commentContent)=>{
+module.exports.commentInputRevise = (commentContent)=>{
 
 }
 

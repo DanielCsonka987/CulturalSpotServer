@@ -1,4 +1,4 @@
-const { loginRevise } = require('../inputRevise')
+const { loginInputRevise } = require('../inputRevise')
 
 describe('Revision testing, login', ()=>{
     const inputs = [
@@ -26,7 +26,7 @@ describe('Revision testing, login', ()=>{
     it('Login 1 - correct, user@gmail.com', ()=>{
         const actValues = inputs[0]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -38,7 +38,7 @@ describe('Revision testing, login', ()=>{
     it('Login 2 - correct, user@gmail.com with some padding', ()=>{
         const actValues = inputs[1]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -50,7 +50,7 @@ describe('Revision testing, login', ()=>{
     it('Login 3 - correct, user.name@gmail.com', ()=>{
         const actValues = inputs[2]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -62,7 +62,7 @@ describe('Revision testing, login', ()=>{
     it('Login 4 - correct, user.1name@gmail.com', ()=>{
         const actValues = inputs[3]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -74,7 +74,7 @@ describe('Revision testing, login', ()=>{
     it('Login 5 - correct, user_name@gmail.com', ()=>{
         const actValues = inputs[4]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -86,7 +86,7 @@ describe('Revision testing, login', ()=>{
     it('Login 6 - email issue, usergmail.com', ()=>{
         const actValues = inputs[5]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -102,7 +102,7 @@ describe('Revision testing, login', ()=>{
     it('Login 7 - email issue, @gmail.com', ()=>{
         const actValues = inputs[6]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
             expect(error).toBeTruthy()
             expect(Array.isArray(field)).toBeTruthy()
@@ -119,7 +119,7 @@ describe('Revision testing, login', ()=>{
     it('Login 8 - email issue, user@.com', ()=>{
         const actValues = inputs[7]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -136,7 +136,7 @@ describe('Revision testing, login', ()=>{
     it('Login 9 - email issue, user@gmail', ()=>{
         const actValues = inputs[8]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -152,7 +152,7 @@ describe('Revision testing, login', ()=>{
     it('Login 10 - email issue, user@gmailcom', ()=>{
         const actValues = inputs[9]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -168,7 +168,7 @@ describe('Revision testing, login', ()=>{
     it('Login 11 - email issue, user.here@gmailcom', ()=>{
         const actValues = inputs[10]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -184,7 +184,7 @@ describe('Revision testing, login', ()=>{
     it('Login 12 - email issue, us@gmail.com', ()=>{
         const actValues = inputs[11]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -200,7 +200,7 @@ describe('Revision testing, login', ()=>{
     it('Login 13 - email issue, user@g.com', ()=>{
         const actValues = inputs[12]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -216,7 +216,7 @@ describe('Revision testing, login', ()=>{
     it('Login 14 - email issue, user@gmail.c', ()=>{
         const actValues = inputs[13]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -232,7 +232,7 @@ describe('Revision testing, login', ()=>{
     it('Login 15 - email issue, none', ()=>{
         const actValues = inputs[14]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -248,7 +248,7 @@ describe('Revision testing, login', ()=>{
     it('Login 16 - password issue, none', ()=>{
         const actValues = inputs[15]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -264,7 +264,7 @@ describe('Revision testing, login', ()=>{
     it('Login 17 - email and password issue, none', ()=>{
         const actValues = inputs[16]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBeTruthy()
         expect(Array.isArray(field)).toBeTruthy()
@@ -282,7 +282,7 @@ describe('Revision testing, login', ()=>{
     it('Login 18 - correct, user@gmail.uk', ()=>{
         const actValues = inputs[17]
         const { error, field, issue, email, pwdText } 
-            = loginRevise(actValues.email, actValues.password)
+            = loginInputRevise(actValues.email, actValues.password)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)

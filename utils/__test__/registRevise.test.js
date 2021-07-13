@@ -1,4 +1,4 @@
-const { registerRevise } = require('../inputRevise')
+const { registerInputRevise } = require('../inputRevise')
 
 describe('Registration tests', ()=>{
     const inputs = [
@@ -12,7 +12,7 @@ describe('Registration tests', ()=>{
     ]
     it('Correct reg input', ()=>{
         const actInput = inputs[0]
-        const { error, field, issue, email, pwdText } = registerRevise(
+        const { error, field, issue, email, pwdText } = registerInputRevise(
             actInput.email,
             actInput.password,
             actInput.passwordconf,
@@ -26,7 +26,7 @@ describe('Registration tests', ()=>{
     })
     it('No proper conformation', ()=>{
         const actInput = inputs[1]
-        const { error, field, issue, email, pwdText } = registerRevise(
+        const { error, field, issue, email, pwdText } = registerInputRevise(
             actInput.email,
             actInput.password,
             actInput.passwordconf,
@@ -45,7 +45,7 @@ describe('Registration tests', ()=>{
     })
     it('No proper email', ()=>{
         const actInput = inputs[2]
-        const { error, field, issue, email, pwdText } = registerRevise(
+        const { error, field, issue, email, pwdText } = registerInputRevise(
             actInput.email,
             actInput.password,
             actInput.passwordconf,
@@ -64,7 +64,7 @@ describe('Registration tests', ()=>{
     })
     it('No proper password', ()=>{
         const actInput = inputs[3]
-        const { error, field, issue, email, pwdText } = registerRevise(
+        const { error, field, issue, email, pwdText } = registerInputRevise(
             actInput.email,
             actInput.password,
             actInput.passwordconf,
@@ -85,7 +85,7 @@ describe('Registration tests', ()=>{
     })
     it('Not acceptable username, too short', ()=>{
         const actInput = inputs[4]
-        const { error, field, issue, email, pwdText } = registerRevise(
+        const { error, field, issue, email, pwdText } = registerInputRevise(
             actInput.email,
             actInput.password,
             actInput.passwordconf,
@@ -104,7 +104,7 @@ describe('Registration tests', ()=>{
     })
     it('Not acceptable username, too long', ()=>{
         const actInput = inputs[5]
-        const { error, field, issue, email, pwdText } = registerRevise(
+        const { error, field, issue, email, pwdText } = registerInputRevise(
             actInput.email,
             actInput.password,
             actInput.passwordconf,
@@ -123,7 +123,7 @@ describe('Registration tests', ()=>{
     })
     it('Empty fields', ()=>{
         const actInput = inputs[6]
-        const { error, field, issue, email, pwdText } = registerRevise(
+        const { error, field, issue, email, pwdText } = registerInputRevise(
             actInput.email,
             actInput.password,
             actInput.passwordconf,
