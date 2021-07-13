@@ -28,6 +28,7 @@ module.exports = gql`
         registeredAt: String!
     }
     type ProfileProcess {
+        id: String!
         processResult: Boolean!
         resultText: String!
     }

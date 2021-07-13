@@ -57,7 +57,37 @@ module.exports.registerInputRevise = (email, pwdText, pwdTextConf, uname)=>{
 }
 
 module.exports.resetPwdInputRevise = (email)=>{
+    const values = {
+        email: email.trim()
+    }
+    const result = {
+        error: false,
+        field: [],
+        issue: []
+    }
+    if(isThereProblemWithEmail(values.email)){
+        result.error = true;
+        result.field.push('email');
+        result.issue.push('This email is not acceptable!')
+    }
+    return result.error? result : values;
+}
 
+module.exports.updateAccDetInputRevise = (uname)=>{
+    const values = {
+        username: uname.trim()
+    }
+    const result = {
+        error: false,
+        field: [],
+        issue: []
+    }
+    if(isThereProblemWithUsername(values.username)){
+        result.error = true;
+        result.field.push('username');
+        result.issue.push('This username is not acceptable!')
+    }
+    return result.error? result : values;
 }
 
 module.exports.changePwdInputRevise = (pwdTextOld, pwdTextNew, pwdTextConf )=>{
@@ -138,7 +168,7 @@ function isThereProblemWithEmail(emailText){
 }
 
 function isThereProblemWithPassword(pwdText){
-    const pattern = '[a-zA-Z0-9]{6,}';
+    const pattern = '.{6,}';
     const analyzer = new RegExp(pattern)
     if(!pwdText){
         return true;

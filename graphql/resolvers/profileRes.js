@@ -1,39 +1,40 @@
 const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server')
 
+
 const { tokenEncoder, tokenInputRevise, tokenVerify } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
-    changePwdInputRevise, deleteAccInputRevise } = require('../../utils/inputRevise')
+    changePwdInputRevise, deleteAccInputRevise,
+    updateAccDetInputRevise, resetPwdInputRevise } = require('../../utils/inputRevise')
 const ProfileModel = require('../../models/ProfileModel')
 
 async function tokenEvaluation(context){
 
     const tokenReport = tokenInputRevise(context.req)
     if(tokenReport.missing){
-        return new AuthenticationError('Login to use the service!', { general: 'Missing token!' })
+        throw new AuthenticationError('Login to use the service!', { general: 'Missing token!' })
     }
     const tokenDetails = await tokenVerify(tokenReport.takenText);
     if(tokenDetails.error){
-        return new ApolloError('Server error occured!', tokenDetails.error)
+        throw new ApolloError('Server error occured!', tokenDetails.error)
     }
     if(tokenDetails.expired){
-        return new AuthenticationError('Login to use the service!', { general: 'Expired token!' })
+        throw new AuthenticationError('Login to use the service!', { general: 'Expired token!' })
     }
     return tokenDetails;
 }
 
-async function passwordMatchingAttempt(userModel, pwdTextOld){
-    if(!userModel){
-        return new ApolloError('Server error occured!', { general: 'No user found in DB by Token id' })
+async function passwordsMatching(user, pwdText){
+    if(!user){
+        throw new AuthenticationError('Wrong password!', { general: 'No account found!'})
     }
-    const pwdReport = await matchTextHashPwd(pwdTextOld, userModel.pwdHash)
+    const pwdReport = await matchTextHashPwd(pwdText, user.pwdHash)
     if(pwdReport.error){
-        return new ApolloError('Server error occured!', pwdReport.error)
+        throw new UserInputError('Login error!', pwdReport.error )
     }
     if(!pwdReport.match){
-        return new AuthenticationError('Wrong password!', { general: 'Password input faild in hash matching!' })
+        throw new AuthenticationError('Wrong password!', { general: 'No match with account!' })
     }
-    return
 }
 
 module.exports = {
@@ -47,14 +48,14 @@ module.exports = {
 
             const user = await ProfileModel.findOne({ email })
             if(!user){
-                return new AuthenticationError('Wrong username or password!', { general: 'No account found!'})
+                return new AuthenticationError('Wrong email or password!', { general: 'No account found!'})
             }
             const pwdReport = await matchTextHashPwd(pwdText, user.pwdHash)
             if(pwdReport.error){
                 return new UserInputError('Login error!', pwdReport.error )
             }
             if(!pwdReport.match){
-                return new AuthenticationError('Wrong username or password!')
+                return new AuthenticationError('Wrong email or password!', { general: 'Wrong password!' })
             }
 
             return {
@@ -109,7 +110,23 @@ module.exports = {
         },
 
         async resetPassword(_, args){
+            const { error, field, issue, email } = resetPwdInputRevise( args.username )
+
+            if(error){
+                return new UserInputError('Validation error!', { field, issue })
+            }
+
+            const userToReset = Profile.findOne({ email })
+            if(!userToReset){
+                return new UserInputError('No such email in system!')
+            }
+
+            const specIdentif = new Date.getTime().toString() + userToReset._id.toString() 
+
+
+
             return {
+                id: '',
                 resultText: 'Password reseted!',
                 processResult: true
             }
@@ -129,6 +146,9 @@ module.exports = {
 
             //old password revsision
             const userToChangePwd = await ProfileModel.findOne({ _id: tokenExtract.userid })
+            await passwordsMatching(userToChangePwd, pwdTextOld)
+
+            /*
             if(!userToChangePwd){
                 return new ApolloError('Server error occured!', { general: 'No user found in DB by Token id' })
             }
@@ -139,7 +159,7 @@ module.exports = {
             if(!pwdReport.match){
                 return new AuthenticationError('Wrong password!', { general: 'Password input faild in hash matching!' })
             }
-
+            */
             //process execution
             const newPwdHashing = await encryptPwd(pwdTextNew);
             if(newPwdHashing.error){
@@ -152,13 +172,33 @@ module.exports = {
                 return new ApolloError('Server error occured', { general: 'Pwd persistence error!' })
             }
             return {
+                id: tokenExtract.userid,
                 resultText: 'Your password changed!',
                 processResult: true
             }
         },
 
-        async changeAccountDatas(_, args){
+        async changeAccountDatas(_, args, context){
+            const { error, field, issue, username} = updateAccDetInputRevise(
+                args.username
+            )
+            if(error){
+                return new UserInputError('Account details changing', { field, issue })
+            }
+
+            const tokenExtract = await tokenEvaluation(context)
+            const userToUpdate = await ProfileModel.findOne({ _id: tokenExtract.userid})
+            if(!userToUpdate){
+                return new ApolloError('No user found', { general: 'No target of Token id' })
+            }
+            userToUpdate.username = username
+            try{
+                await userToUpdate.save()
+            }catch(err){
+                return new ApolloError('Server error occured', err)
+            }
             return {
+                id: tokenExtract.userid,
                 resultText: 'Account datas changed!',
                 processResult: true
             }
@@ -170,22 +210,33 @@ module.exports = {
                 args.delAccountInput.passwordconf
             )
             if(error){
-                return new UserInputError('Password changing', { field, issue })
+                return new UserInputError('Delete account passwords', { field, issue })
             }
 
             const tokenExtract = await tokenEvaluation(context)
-
-            //old password revsision
             const userToDelete = await ProfileModel.findOne({ _id: tokenExtract.userid })
-            await passwordMatchingAttempt(userToDelete, pwdTextOld)
 
+            await passwordsMatching(userToDelete, pwdTextOld)
+            /*
+            if(!userToDelete){
+                return new ApolloError('Server error occured!', { general: 'No user found in DB by Token id' })
+            }
+            const pwdReport = await matchTextHashPwd(pwdTextOld, userToDelete.pwdHash)
+            if(pwdReport.error){
+                return new ApolloError('Server error occured!', pwdReport.error)
+            }
+            if(!pwdReport.match){
+                return new AuthenticationError('Wrong password!', { general: 'Password input faild in hash matching!' })
+            }
+            */
             await ProfileModel.deleteOne({ _id: tokenExtract.userid}, (err)=>{
                 if(err){
-                    return new ApolloError('Server error occured', { general: 'Account removal error!' })
+                    return new ApolloError('Server error occured', err)
                 }
             })
 
             return {
+                id: tokenExtract.userid,
                 resultText: 'Account deleted!',
                 processResult: true
             }
