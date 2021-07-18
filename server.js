@@ -5,6 +5,7 @@ const PORT = process.env.PORT || 4040;
 const DB_CONNECT = require('./config/dbConfig').dbLocal
 const typeDefs = require('./graphql/typeDef')
 const resolvers = require('./graphql/resolvers')
+const emailerTrsp = require('./emailer/emailerSetup')
 
 const server = new ApolloServer({
     typeDefs,
@@ -26,6 +27,10 @@ mongoose.connect(DB_CONNECT,
     return server.listen({ port: PORT })
 }).then((srvres)=>{
     console.log('Server running at ' + srvres.url)
+})
+.then(()=>{
+    emailerTrsp.setupTrsp()
+    console.log('Emailer is running')
 })
 .catch((err)=>{
     console.log('Server error occured! ', err);

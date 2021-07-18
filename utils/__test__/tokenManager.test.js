@@ -147,3 +147,65 @@ describe('Token verification tests', ()=>{
         expect(result.email).toBe(undefined)
     })
 })
+
+describe('Special key handle, email token processes', ()=>{
+    it('Encode token with external security key', ()=>{
+        const token = tokenEncoder({ id: '1234' }, '123')
+        const actTime = new Date().getTime().toString().slice(0, 10)
+        const theTimeSec = new Number(actTime)
+        expect(typeof token).toBe('string')
+
+        jwt.verify(token, '123', (err, decoded)=>{
+            expect(err).toBe(null)
+
+            expect(typeof decoded).toBe('object')
+            expect(Object.keys(decoded)).toEqual(
+                expect.arrayContaining(['iat', 'exp', 'id'])
+            )
+            expect(decoded.id).toBe('1234')
+            expect(decoded.exp).toEqual(theTimeSec + 3600)
+        })
+    })
+
+    it('Verify token with external security key', async ()=>{
+        const theToken = jwt.sign({ mark: 'abcd' }, '123', { expiresIn: '1m' })
+
+        const result = await tokenVerify(theToken, '123')
+        expect(typeof result).toBe('object')
+        expect(Object.keys(result)).toEqual(
+            expect.arrayContaining(['iat', 'exp', 'isExpired', 'error', 'mark'])
+        )
+        expect(typeof result.error).toBe('boolean')
+        expect(result.error).toBeFalsy()
+        expect(result.isExpired).toBeFalsy()
+        expect(result.mark).toBe('abcd')
+    })
+
+    it('Full encode and verify token with external security key', async ()=>{
+        const token = tokenEncoder({ mark: 'efgh' }, '123')
+        
+        const result = await tokenVerify(token, '123')
+        expect(typeof result).toBe('object')
+        expect(Object.keys(result)).toEqual(
+            expect.arrayContaining(['iat', 'exp', 'isExpired', 'error', 'mark'])
+        )
+        expect(typeof result.error).toBe('boolean')
+        expect(result.error).toBeFalsy()
+        expect(result.isExpired).toBeFalsy()
+        expect(result.mark).toBe('efgh')
+    })
+
+    it('Faulty encode and verify token with external security key', async ()=>{
+        const token = tokenEncoder({ mark: '0987' }, '123')
+        const actTime = new Date().getTime().toString().slice(0, 10)
+        const theTimeSec = new Number(actTime)
+        
+        const result = await tokenVerify(token, '1234')
+        expect(typeof result).toBe('object')
+        expect(Object.keys(result)).toEqual(
+            expect.arrayContaining(['isExpired', 'error'])
+        )
+        expect(typeof result.error).toBe('object')
+        expect(result.isExpired).toBeFalsy()
+    })
+})

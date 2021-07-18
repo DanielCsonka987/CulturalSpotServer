@@ -136,13 +136,15 @@ module.exports = {
             }
 
             const datingMarker = new Date().getTime()
-            userToReste.resetPwdMarker = datingMarker
+            userToReset.resetPwdMarker = datingMarker
             try{
-                userToRestet.save()
+                userToReset.save()
             }catch(err){
                 return new ApolloError('Password reset registring error occured!', err)
             }
-            const specToken = tokenEncoder({ id: userToReset._id, marker: datingMarker  })
+            const secretKeyToEncode = userToReset.pwdHash + datingMarker;
+            const specToken = tokenEncoder({ marker: datingMarker  }, secretKeyToEncode)
+            const specEmailUrl = userToReset._id + '.' + specToken; //REST GET type
 
             //Sending email with peoper static, guid text and link - that leads client side with
             //the token in the request header

@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken')
 const { TOKEN_SECRET, TOKEN_EXPIRE, TOKEN_PREFIX } = require('../config/appConfig')
 
 module.exports = {
-    tokenEncoder: (tokenInput, )=>{
-        return jwt.sign(tokenInput, TOKEN_SECRET, { expiresIn: TOKEN_EXPIRE })
+    tokenEncoder: (tokenInput, specSecureKey)=>{
+        return jwt.sign(tokenInput, specSecureKey || TOKEN_SECRET, { expiresIn: TOKEN_EXPIRE })
     },
     tokenInputRevise: (reqToVerif)=>{
         const results = {
@@ -31,8 +31,8 @@ module.exports = {
         return results;
         
     },
-    tokenVerify: (tokenText)=>{ 
-        return jwt.verify(tokenText, TOKEN_SECRET, (err, decoded)=>{
+    tokenVerify: (tokenText, specSecureKey)=>{ 
+        return jwt.verify(tokenText, specSecureKey || TOKEN_SECRET, (err, decoded)=>{
             const results = {
                 isExpired: false,
                 error: false,
