@@ -25,7 +25,7 @@ describe('Token encoding tests', ()=>{
             const actTimeSec = giveTheSecOnly(actTimeMSec)
             expect(decoded.exp).toBeGreaterThan(actTimeSec)
             const diff = decoded.exp-actTimeSec
-            expect(diff).toEqual(3600)
+            expect(diff).toBeGreaterThan(3500)
         })
         
     })

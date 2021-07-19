@@ -2,7 +2,9 @@ const { ApolloServer } = require('apollo-server')
 const mongoose = require('mongoose')
 
 const PORT = process.env.PORT || 4040;
-const DB_CONNECT = require('./config/dbConfig').dbLocal
+const DB_CONNECT = (process.env.NODE_ENV === 'production')?
+    retquire('./config/dbConfig').dbCloud
+    : require('./config/dbConfig').dbLocal
 const typeDefs = require('./graphql/typeDef')
 const resolvers = require('./graphql/resolvers')
 const emailerTrsp = require('./emailer/emailerSetup')

@@ -1,16 +1,27 @@
-const { EMAIL_TRANSPORT } = require('./secureConfig')
+const { EMAIL_TRANSPORT, EMAIL_FROM } = require('./secureConfig')
 
 module.exports = {
 
-    EMAIL_ORIGIN_ACCOUNT: '',
+    EMAIL_ORIGIN_ACCOUNT: process.env.MAIL_FROM_ACCOUNT || EMAIL_FROM,
 
-    EMAIL_CONNECTION: {
-        host: process.env.EMAIL_HOST || EMAIL_TRANSPORT.HOST,
-        port: process.env.EMAIL_PORT || EMAIL_TRANSPORT.PORT,
-        secure: true,
+    EMAIL_CONNECTION_FORTEST: {
+        host: EMAIL_TRANSPORT.HOST,
+        port: EMAIL_TRANSPORT.PORT,
         auth: {
-            user: process.env.EMAIL_UN || EMAIL_TRANSPORT.UN,
-            pass: process.env.EMAIL_PWD || EMAIL_TRANSPORT.PWD
+            user: EMAIL_TRANSPORT.UN,
+            pass: EMAIL_TRANSPORT.PWD
+        }
+    },
+
+    EMAIL_CONNECTION_PRODUCTION: { 
+        service: 'gmail',
+        auth: {
+            type: 'OAuth2',
+            user: process.env.MAIL_USER,
+            pass: process.env.MAIL_PASS,
+            clientId: process.env.OAUTH_CLIENTID,
+            clientSecret: process.env.OAUTH_CLIENT_SECRET,
+            refreshToken: process.env.OAUTH_REFRESH_TOKEN
         }
     }
 }
