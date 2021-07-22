@@ -2,7 +2,6 @@ const nodemailer = require('nodemailer')
 const path = require('path')
 const fs = require('fs')
 
-const EmailReportModel = require('../models/EmailReportModel')
 const { EMAIL_CONNECTION_FORTEST, 
     EMAIL_CONNECTION_PRODUCTION, 
     EMAIL_ORIGIN_ACCOUNT } = require('../config/emailConfig')
@@ -35,8 +34,9 @@ const emailTypes = {
     PWDRESETING: 1,
     ACCOUNTDELETE: 2
 }
+module.exports.emailType = Object.freeze(emailTypes)
 
-function emailTypeStringify(defValue){
+module.exports.emailTypeStringify = (defValue)=>{
     for (const [key, value] of Object.entries(emailTypes)) {
         if(value === defValue){
             return key.toString();
@@ -45,13 +45,11 @@ function emailTypeStringify(defValue){
     return 'UNKNOWN'
 }
 
-module.exports.emailType = Object.freeze(emailTypes)
 
 module.exports.execMailSending = async (emailToAddress, emailChonesType, inputs)=>{
     if(await verifyTrsp){
-        emailContentToSend = await assembleEmailContent(emailChonesType, inputs)
-
-        if(emailContentToSend.readyToSend){
+        try{
+            emailContentToSend = await assembleEmailContent(emailChonesType, inputs)
             const mailingRes = await theTransporter.sendMail({
                 from: EMAIL_ORIGIN_ACCOUNT,
                 to: emailToAddress,
@@ -59,130 +57,100 @@ module.exports.execMailSending = async (emailToAddress, emailChonesType, inputs)
                 text: emailContentToSend.txt,
                 html: emailContentToSend.ml
             })
-            if(mailingRes.messageId){
-                await saveEmailReportToDB(emailToAddress, emailChonesType, 
-                    emailContentToSend.integrity, mailingRes.messageId)
-            }else{
-                await saveEmailReportToDB(emailToAddress, emailChonesType, 
-                    emailContentToSend.integrity, 'errorToSending')
+            return { 
+                progress: mailingRes.messageId? 'done': 'errorAtSending', 
+                resultId: mailingRes.messageId, 
+                quality: emailContentToSend.integrity.join(';')
             }
-            return mailingRes
+        }catch(err){
+            if(err.integrity){  //only at no subject or all content missing
+                return { progress: 'errorAtAssemble', quality: err.integrity.join(';')  };
+            }
+            return { progress: 'errorOfUnknown', quality: 'none'}
         }
-        await saveEmailReportToDB(emailToAddress, emailChonesType, 
-            emailContentToSend.integrity, 'errorAtAssemble')
-        return false;
     }
-    await saveEmailReportToDB(emailToAddress, emailChonesType, ['none'], 'errorAtConnect')
-    return false;
+    return { progress: 'errorSMTPConnect', quality: 'none' };
 } 
 
-async function assembleEmailContent(emailChonesType, inputs){
-    const result = {  subj: '',   txt: '',  ml: '',
-        integrity: [], readyToSend: false
-    }
+function assembleEmailContent(emailChonesType, inputs){
+    return new Promise(async (resolve, reject)=>{
+        const result = {  subj: '',   txt: '',  ml: '',
+            integrity: [], readyToSend: false
+        }
+        let fileToLoad = '';
 
-    let fileToLoad = '';
-    switch(emailChonesType){
-        case(0):
-            result.subj = 'Your CulturalSpot registration';
-            result.integrity.push('subjReg')
-            fileToLoad = 'registration'
-            break;
-        case(1):
-            result.subj = 'NO_REPLY! CulturalSpot password resetting';
-            result.integrity.push('subjPwdReset')
-            fileToLoad = 'resetPassword'
-            break;
-        case(2):
-            result.subj = 'Your CulturalSpot account is deleted';
-            result.integrity.push('subjDel')
-            fileToLoad = 'deleteAccount'
-            break;
-        default:
-            result.integrity.push('subjDefineError')    //no file defined, ready: failed!
-            return result;
-    }
+        switch(emailChonesType){
+            case(0):
+                result.subj = 'Your CulturalSpot registration';
+                result.integrity.push('subjReg')
+                fileToLoad = 'registration'
+                break;
+            case(1):
+                result.subj = 'NO_REPLY! CulturalSpot password resetting';
+                result.integrity.push('subjPwdReset')
+                fileToLoad = 'resetPassword'
+                break;
+            case(2):
+                result.subj = 'Your CulturalSpot account is deleted';
+                result.integrity.push('subjDel')
+                fileToLoad = 'deleteAccount'
+                break;
+            default:
+                result.integrity.push('subjDefineError')    //no file defined, ready: failed!
+                reject(result)
+        }
 
-    let procInput = ''
-    if(inputs && Object.keys(inputs).includes('anch')){
-        procInput = inputs.anch
-    }
+        let anchorUrl, anchorTxt = ''
+        if(inputs && Object.keys(inputs).includes('anchUrl')){
+            anchorUrl = inputs.anchUrl;
+            anchorTxt = inputs.anchTxt
+        }
 
-    const theTxt = await getContentFromFile(fileToLoad + '.txt',  
-        procInput? 'anchor' : 'none', procInput
-    )
-    if(theTxt.integ && theTxt.content !== ''){
-        result.txt = theTxt.content
-        result.integrity.push('txtLoaded')
-    }else{
-        result.integrity.push('txtError')
-    }
-
-    const theMl = await getContentFromFile( fileToLoad + '.html', 
-        procInput? 'anchor' : 'none', procInput
-    )
-    if(theMl.integ && theMl.content !== ''){
-        result.ml = theMl.content
-        result.integrity.push('mlLoaded')
-    }else{
-        result.integrity.push('mlError')
-    }
-
-    if(!result.ml && !result.txt){ // if no a type of content, integrity shows -> ready: true
-        result.readyToSend = false;  
-    }else{
-        result.readyToSend = true;  
-    }
-    return result
-
-}
-
-async function saveEmailReportToDB(emailToAddres, emailChonesType, realContentObj,
-    smtpIdOrErrorMsg){
-
-    const newRecord = new EmailReportModel({
-        msgdate: new Date().toISOString(),
-        msgto: emailToAddres,
-        msgtype: emailTypeStringify(emailChonesType),
-        msgcontent: Object.values(realContentObj).join(';'),
-        msgresult: smtpIdOrErrorMsg
+        try{
+            const theTxt = await getContentFromFile(fileToLoad + '.txt')
+            if(anchorUrl){
+                result.txt = theTxt.replace(insertTextMarker, anchorUrl)
+            }else{
+                result.txt = theTxt
+            }
+            result.integrity.push('txtLoaded')
+        }catch(err){
+            result.integrity.push('txtError')
+        }
+        
+        try{
+            const theMl = await getContentFromFile( fileToLoad + '.html' )
+            if(anchorUrl){
+                const tagElement = `<a href="${anchorUrl}">${anchorTxt}</a>`;
+                result.ml = theMl.replace(insertHtmlMarker, tagElement)
+            }else{
+                result.ml = theMl
+            }
+            result.integrity.push('mlLoaded')
+        }catch(err){
+            result.integrity.push('mlError')
+        }
+    
+        if(!result.ml && !result.txt){ // if no a type of content, integrity shows -> ready: true
+            reject(result)
+        }
+        resolve(result)
     })
-    try{
-        await newRecord.save()
-    }catch(err){
-        console.log('Email-sending registration error: ' + err)
-    }
+
 }
 
-async function getContentFromFile(filename, insertType, inputTxt){
+async function getContentFromFile(filename){
     return new Promise((resolve, reject)=>{
         fs.readFile( path.join( __dirname, textingFolderName, filename),
             'utf8', (err, text)=>{
             if(err){
                 console.log(`File reading error \n- ${filename} - \n` + err)
-                reject({ integ: false, cont: ''});
+                reject('');
             }
-            if(insertType === 'none'){
-                resolve({ integ: true, content: text })
-            }
-            try{
-                const theContentIs = filename.includes('.html')? 'ml' : 'txt'
-                if(insertType === 'anchor' && theContentIs === 'txt'){
-                    resolve({ integ: true, content: text.replace(insertTextMarker, inputTxt) })
-                }
-                if(insertType === 'anchor' && theContentIs === 'ml'){
-                    const tagElement = `<a href="${inputTxt}">${inputTxt}</a>`;
-                    resolve({ integ: true, content: text.replace(insertHtmlMarker, tagElement) })
-                }
-
-            }catch(err){
-                console.log(`File inserting error \n- ${filename} - \n` + err)
-            }
-            reject({ integ: false, content: '' });
+            resolve(text);
         })
     }) 
 }
 
 
 module.exports.testingAssembleEmail =  assembleEmailContent
-module.exports.testingTypeStrigify = emailTypeStringify

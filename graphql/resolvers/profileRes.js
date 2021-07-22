@@ -6,7 +6,11 @@ const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
     changePwdInputRevise, deleteAccInputRevise,
     updateAccDetInputRevise, resetPwdInputRevise } = require('../../utils/inputRevise')
+const { execMailSending, emailType, emailTypeStringify } = require('../../emailer/emailerSetup')
+const extractDomainURL = require('../../utils/extractDomainURL')
+
 const ProfileModel = require('../../models/ProfileModel')
+const EmailReportModel = require('../models/EmailReportModel')
 
 async function tokenEvaluation(context){
 
@@ -36,6 +40,25 @@ async function passwordsMatching(user, pwdText){
         throw new AuthenticationError('Wrong password!', { general: 'No match with account!' })
     }
 }
+
+async function saveEmailReportToDB(emailToAddres, emailTypeTxt, emailQuality,
+    smtpIdOrErrorMsg){
+
+    const newRecord = new EmailReportModel({
+        msgdate: new Date().toISOString(),
+        msgto: emailToAddres,
+        msgtype: emailTypeTxt,
+        msgcontent: emailQuality,
+        msgresult: smtpIdOrErrorMsg
+    })
+    try{
+        await newRecord.save()
+    }catch(err){
+        console.log('Email-sending registration error: ' + err)
+    }
+}
+
+
 
 module.exports = {
     Mutation: {
@@ -123,7 +146,7 @@ module.exports = {
             }
         },
 
-        async resetPassword(_, args){
+        async resetPassword(_, args, context){
             const { error, field, issue, email } = resetPwdInputRevise( args.username )
 
             if(error){
@@ -143,13 +166,29 @@ module.exports = {
                 return new ApolloError('Password reset registring error occured!', err)
             }
             const secretKeyToEncode = userToReset.pwdHash + datingMarker;
-            const specToken = tokenEncoder({ marker: datingMarker  }, secretKeyToEncode)
-            const specEmailUrl = userToReset._id + '.' + specToken; //REST GET type
+            const createdToken = tokenEncoder({ marker: datingMarker  }, secretKeyToEncode)
+            const complexEmailToken = userToReset._id + '.' + createdToken; //REST GET type
+            const domainUrlAndPath = extractDomainURL(context.req.url) + complexEmailToken
 
-            //Sending email with peoper static, guid text and link - that leads client side with
-            //the token in the request header
-            //-> handle the unknown email target errors
-            //-> handle email sending errors
+            const CHOSEN_EMAIL_TYPE = emailType.PWDRESETING
+            const EMAIL_TYPE_TXT = emailTypeStringify(CHOSEN_EMAIL_TYPE)
+            try{
+                const sendingProc = await execMailSending(email, CHOSEN_EMAIL_TYPE, {
+                    anchUrl: domainUrlAndPath,
+                    anchTxt: complexEmailToken
+                })
+                if(sendingProc.progress === 'done'){
+                    await saveEmailReportToDB(email, EMAIL_TYPE_TXT, sendingProc.quality,
+                         sendingProc.resultId)
+                } else {
+                    await saveEmailReportToDB(email, EMAIL_TYPE_TXT, sendingProc.quality, 
+                        sendingProc.progress)
+                    return new ApolloError('Password reset email error occured!', { general: 'email stucked' })
+                }
+            }catch(err){
+                await saveEmailReportToDB(email, EMAIL_TYPE_TXT, 'none', 'errorenousResolvation')
+                return new ApolloError('Password reset email error occured!', err)
+            }
 
             return {
                 id: '',

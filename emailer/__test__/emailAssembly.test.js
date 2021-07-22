@@ -1,17 +1,17 @@
 const fs = require('fs')
 const path = require('path')
 
-const { testingAssembleEmail, emailType, testingTypeStrigify  } = require('../emailerSetup')
+const { testingAssembleEmail, emailType, emailTypeStringify  } = require('../emailerSetup')
 
 describe('Email messages processings', ()=>{
     
     it('Registration answer', async ()=>{
-        expect.assertions(10);
+        expect.assertions(8);
         const res = await testingAssembleEmail(emailType.REGISTRATION, undefined)
 
         expect(typeof res).toBe('object')
         expect(Object.keys(res)).toEqual(
-            expect.arrayContaining(['subj', 'txt', 'ml', 'integrity', 'readyToSend'])
+            expect.arrayContaining(['subj', 'txt', 'ml', 'integrity' ])
         )
         expect(typeof res.subj).toBe('string')
         expect(res.subj).toBe('Your CulturalSpot registration')
@@ -21,13 +21,10 @@ describe('Email messages processings', ()=>{
         expect(Object.values(res.integrity)).toEqual(
             ['subjReg', 'txtLoaded', 'mlLoaded' ]
         )
-        expect(typeof res.readyToSend).toBe('boolean')
-        expect(res.readyToSend).toBeTruthy()
         
         const thePath = path.join(__dirname, '..', 'emailTextingSrc', 'registration')
 
         await Promise.resolve(()=>{
-
             fs.readFile(thePath + '.txt', 'utf8', (err, data)=>{
                 expect.assertions(2);
                 expect(err).toBe(null)
@@ -35,7 +32,6 @@ describe('Email messages processings', ()=>{
             })
         })
         await Promise.resolve(()=>{
-
             fs.readFile(thePath + '.html', 'utf8', (err, data)=>{
                 expect.assertions(2);
                 expect(err).toBe(null)
@@ -46,12 +42,12 @@ describe('Email messages processings', ()=>{
     })
 
     it('Account deletion answer', async ()=>{
-        expect.assertions(10);
+        expect.assertions(8);
         const res = await testingAssembleEmail(emailType.ACCOUNTDELETE, undefined)
 
         expect(typeof res).toBe('object')
         expect(Object.keys(res)).toEqual(
-            expect.arrayContaining(['subj', 'txt', 'ml', 'integrity', 'readyToSend'])
+            expect.arrayContaining(['subj', 'txt', 'ml', 'integrity' ])
         )
         expect(typeof res.subj).toBe('string')
         expect(res.subj).toBe('Your CulturalSpot account is deleted')
@@ -61,8 +57,6 @@ describe('Email messages processings', ()=>{
         expect(Object.values(res.integrity)).toEqual(
             ['subjDel', 'txtLoaded', 'mlLoaded' ]
         )
-        expect(typeof res.readyToSend).toBe('boolean')
-        expect(res.readyToSend).toBeTruthy()
 
         const thePath = path.join(__dirname, '..', 'emailTextingSrc', 'deleteAccount')
 
@@ -86,14 +80,16 @@ describe('Email messages processings', ()=>{
     })
 
     it('Password reseting answer', async ()=>{
-        expect.assertions(10);
+        expect.assertions(8);
         const res = await testingAssembleEmail(
-            emailType.PWDRESETING, { anch: 'find_some_text' } 
+            emailType.PWDRESETING, { 
+                anchUrl: 'https://google.com/',
+                anchTxt: 'find_some_text' } 
         )
 
         expect(typeof res).toBe('object')
         expect(Object.keys(res)).toEqual(
-            expect.arrayContaining(['subj', 'txt', 'ml', 'integrity', 'readyToSend'])
+            expect.arrayContaining(['subj', 'txt', 'ml', 'integrity' ])
         )
         expect(typeof res.subj).toBe('string')
         expect(res.subj).toBe('NO_REPLY! CulturalSpot password resetting')
@@ -103,8 +99,6 @@ describe('Email messages processings', ()=>{
         expect(Object.values(res.integrity)).toEqual(
             ['subjPwdReset', 'txtLoaded', 'mlLoaded' ]
         )
-        expect(typeof res.readyToSend).toBe('boolean')
-        expect(res.readyToSend).toBeTruthy()
 
         const thePath = path.join(__dirname, '..', 'emailTextingSrc', 'resetPassword')
 
@@ -113,7 +107,7 @@ describe('Email messages processings', ()=>{
                 expect.assertions(2);
                 expect(err).toBe(null)
 
-                const final = data.replace('/*PlaceOfTheInsert*/', 'find_some_text')
+                const final = data.replace('/*PlaceOfTheInsert*/', 'https://google.com/')
                 expect(res.txt).toEqual(final)
             })
         })
@@ -122,7 +116,7 @@ describe('Email messages processings', ()=>{
                 expect.assertions(2);
                 expect(err).toBe(null)
                 
-                const tag = `<a href="find_some_text">find_some_text</a>`
+                const tag = `<a href="https://google.com/">find_some_text</a>`
                 const final = data.replace('<!-- PlaceOfTheInsert -->', tag)
                 console.log(final)
                 expect(res.ml).toEqual(final)
@@ -134,15 +128,15 @@ describe('Email messages processings', ()=>{
 
 describe('Email type stringify test', ()=>{
     it('Proper values', ()=>{
-        const res1 = testingTypeStrigify(emailType.REGISTRATION)
+        const res1 = emailTypeStringify(emailType.REGISTRATION)
         expect(res1).toBe('REGISTRATION')
-        const res2 = testingTypeStrigify(emailType.PWDRESETING)
+        const res2 = emailTypeStringify(emailType.PWDRESETING)
         expect(res2).toBe('PWDRESETING')
-        const res3 = testingTypeStrigify(emailType.ACCOUNTDELETE)
+        const res3 = emailTypeStringify(emailType.ACCOUNTDELETE)
         expect(res3).toBe('ACCOUNTDELETE')
     })
     it('Unprooper value', ()=>{
-        const res1 = testingTypeStrigify(-1)
+        const res1 = emailTypeStringify(-1)
         expect(res1).toBe('UNKNOWN')
     })
 })
