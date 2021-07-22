@@ -1,6 +1,5 @@
 const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server')
 
-
 const { tokenEncoder, tokenInputRevise, tokenVerify } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
@@ -10,7 +9,7 @@ const { execMailSending, emailType, emailTypeStringify } = require('../../emaile
 const extractDomainURL = require('../../utils/extractDomainURL')
 
 const ProfileModel = require('../../models/ProfileModel')
-const EmailReportModel = require('../models/EmailReportModel')
+const EmailReportModel = require('../../models/EmailReportModel')
 
 async function tokenEvaluation(context){
 
@@ -142,7 +141,7 @@ module.exports = {
                 email: newUser.email,
                 username: newUser.username,
                 registeredAt: newUser.registeredAt,
-                lastLoggedAt: userToLogin.lastLoggedAt
+                lastLoggedAt: newUser.lastLoggedAt
             }
         },
 
@@ -172,24 +171,24 @@ module.exports = {
 
             const CHOSEN_EMAIL_TYPE = emailType.PWDRESETING
             const EMAIL_TYPE_TXT = emailTypeStringify(CHOSEN_EMAIL_TYPE)
-            try{
-                const sendingProc = await execMailSending(email, CHOSEN_EMAIL_TYPE, {
-                    anchUrl: domainUrlAndPath,
-                    anchTxt: complexEmailToken
+
+            execMailSending(email, CHOSEN_EMAIL_TYPE, {
+                anchUrl: domainUrlAndPath,
+                anchTxt: complexEmailToken
+            }).then(async (sendingProc)=>{
+                await saveEmailReportToDB(email, EMAIL_TYPE_TXT, sendingProc.integrity,
+                    sendingProc.resultId)
                 })
-                if(sendingProc.progress === 'done'){
-                    await saveEmailReportToDB(email, EMAIL_TYPE_TXT, sendingProc.quality,
-                         sendingProc.resultId)
-                } else {
-                    await saveEmailReportToDB(email, EMAIL_TYPE_TXT, sendingProc.quality, 
+            .catch(async (err)=>{
+                if(sendingProc.progress === 'errorAtAssemble' || sendingProc.progress === 'errorAtSending'){
+                    await saveEmailReportToDB(email, EMAIL_TYPE_TXT, sendingProc.integrity, 
                         sendingProc.progress)
                     return new ApolloError('Password reset email error occured!', { general: 'email stucked' })
+                }else{
+                    await saveEmailReportToDB(email, EMAIL_TYPE_TXT, 'none', 'errorenousResolvation')
+                    return new ApolloError('Password reset email error occured!', err.err)
                 }
-            }catch(err){
-                await saveEmailReportToDB(email, EMAIL_TYPE_TXT, 'none', 'errorenousResolvation')
-                return new ApolloError('Password reset email error occured!', err)
-            }
-
+            })
             return {
                 id: '',
                 resultText: 'Password reset email is sent!',

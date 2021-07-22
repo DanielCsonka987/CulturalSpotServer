@@ -11,21 +11,33 @@ const textingFolderName = 'emailTextingSrc'
 const insertTextMarker = '/*PlaceOfTheInsert*/'
 const insertHtmlMarker = '<!-- PlaceOfTheInsert -->'
 
-module.exports.setupTrsp = ()=>{
+module.exports.setupTrsp = new Promise(async (resolve, reject)=>{
     if(process.env.NODE_ENV === 'production'){
         theTransporter = nodemailer.createTransport(EMAIL_CONNECTION_PRODUCTION)
     }else{
         theTransporter = nodemailer.createTransport(EMAIL_CONNECTION_FORTEST)
     }
-}
+    theTransporter.verify((error, success)=>{
+        if(error){  reject(error); }
+        resolve(success);
+    })
+})
 
-async function verifyTrsp(){
-    await theTransporter.verify((error, success)=>{
+module.exports.shutdown = new Promise((resolve, reject)=>{
+    theTransporter.close()
+    theTransporter.verify((error, success)=>{
+        if(error){  resolve(error); }
+        resolve(success);
+    })
+})
+
+function verifyTrsp(){
+    return theTransporter.verify((error, success)=>{
         if(error){
             console.log('Emailer has lost the connection!')
-            false;
+            return false;
         }
-        return true;
+        return success;
     })
 }
 
@@ -46,30 +58,38 @@ module.exports.emailTypeStringify = (defValue)=>{
 }
 
 
-module.exports.execMailSending = async (emailToAddress, emailChonesType, inputs)=>{
-    if(await verifyTrsp){
-        try{
-            emailContentToSend = await assembleEmailContent(emailChonesType, inputs)
-            const mailingRes = await theTransporter.sendMail({
-                from: EMAIL_ORIGIN_ACCOUNT,
-                to: emailToAddress,
-                subject: emailContentToSend.subj,
-                text: emailContentToSend.txt,
-                html: emailContentToSend.ml
+module.exports.execMailSending = (emailToAddress, emailChonesType, inputs)=>{
+    return new Promise((resolve, reject)=>{
+        theTransporter.verify(async (error, success)=>{
+            if(error) { reject({ progress: 'errorSMTPConnect', integrity: 'none' }) }
+            assembleEmailContent(emailChonesType, inputs)
+            .then(async (emailContentToSend)=>{
+                const mailingRes = await theTransporter.sendMail({
+                    from: EMAIL_ORIGIN_ACCOUNT,
+                    to: emailToAddress,
+                    subject: emailContentToSend.subj,
+                    text: emailContentToSend.txt,
+                    html: emailContentToSend.ml
+                })
+                if(mailingRes.messageId){
+                    resolve({ 
+                        progress: 'done',  resultId: mailingRes.messageId, 
+                        integrity: emailContentToSend.integrity.join(';')
+                    })
+                }
+                reject({
+                    progress: 'errorAtSending',
+                    integrity: emailContentToSend.integrity.join(';')
+                })
             })
-            return { 
-                progress: mailingRes.messageId? 'done': 'errorAtSending', 
-                resultId: mailingRes.messageId, 
-                quality: emailContentToSend.integrity.join(';')
-            }
-        }catch(err){
-            if(err.integrity){  //only at no subject or all content missing
-                return { progress: 'errorAtAssemble', quality: err.integrity.join(';')  };
-            }
-            return { progress: 'errorOfUnknown', quality: 'none'}
-        }
-    }
-    return { progress: 'errorSMTPConnect', quality: 'none' };
+            .catch(err=>{
+                if(err.integrity){  //only at no subject or all content missing
+                    reject({ progress: 'errorAtAssemble', integrity: err.integrity.join(';')  })
+                }
+                reject ({ progress: 'errorOfUnknown', err})
+            })
+        })
+    })
 } 
 
 function assembleEmailContent(emailChonesType, inputs){

@@ -4,7 +4,7 @@
   "description": "Simple social medai site to demonstrate developing abbilites of creator",
   "main": "server.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest -o",
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
@@ -26,7 +26,8 @@
   },
   "devDependencies": {
     "jest": "^27.0.6",
-    "nodemon": "^2.0.9"
+    "nodemon": "^2.0.9",
+    "supertest": "^6.1.4"
   },
   "jest": {
     "verbose": true
