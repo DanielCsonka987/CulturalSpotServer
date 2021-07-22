@@ -6,7 +6,6 @@ const { loginInputRevise, registerInputRevise,
     changePwdInputRevise, deleteAccInputRevise,
     updateAccDetInputRevise, resetPwdInputRevise } = require('../../utils/inputRevise')
 const { execMailSending, emailType, emailTypeStringify } = require('../../emailer/emailerSetup')
-const extractDomainURL = require('../../utils/extractDomainURL')
 
 const ProfileModel = require('../../models/ProfileModel')
 const EmailReportModel = require('../../models/EmailReportModel')
@@ -146,13 +145,13 @@ module.exports = {
         },
 
         async resetPassword(_, args, context){
-            const { error, field, issue, email } = resetPwdInputRevise( args.username )
+            const { error, field, issue, email } = resetPwdInputRevise( args.email )
 
             if(error){
                 return new UserInputError('Validation error!', { field, issue })
             }
 
-            const userToReset = Profile.findOne({ email })
+            const userToReset = await ProfileModel.findOne({ email: email })
             if(!userToReset){
                 return new UserInputError('No such email in system!')
             }
@@ -167,12 +166,11 @@ module.exports = {
             const secretKeyToEncode = userToReset.pwdHash + datingMarker;
             const createdToken = tokenEncoder({ marker: datingMarker  }, secretKeyToEncode)
             const complexEmailToken = userToReset._id + '.' + createdToken; //REST GET type
-            const domainUrlAndPath = extractDomainURL(context.req.url) + complexEmailToken
 
-            const CHOSEN_EMAIL_TYPE = emailType.PWDRESETING
-            const EMAIL_TYPE_TXT = emailTypeStringify(CHOSEN_EMAIL_TYPE)
+            const domainUrlAndPath = context.domain + complexEmailToken
+            const EMAIL_TYPE_TXT = emailTypeStringify(emailType.PWDRESETING)
 
-            execMailSending(email, CHOSEN_EMAIL_TYPE, {
+            execMailSending(email, emailType.PWDRESETING, {
                 anchUrl: domainUrlAndPath,
                 anchTxt: complexEmailToken
             }).then(async (sendingProc)=>{

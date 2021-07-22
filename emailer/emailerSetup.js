@@ -116,7 +116,7 @@ function assembleEmailContent(emailChonesType, inputs){
                 fileToLoad = 'deleteAccount'
                 break;
             default:
-                result.integrity.push('subjDefineError')    //no file defined, ready: failed!
+                result.integrity.push('subjDefineError')    //no file defined, failed!
                 reject(result)
         }
 
@@ -129,7 +129,7 @@ function assembleEmailContent(emailChonesType, inputs){
         try{
             const theTxt = await getContentFromFile(fileToLoad + '.txt')
             if(anchorUrl){
-                result.txt = theTxt.replace(insertTextMarker, anchorUrl)
+                result.txt = theTxt.replace(insertTextMarker, anchorUrl.toString())
             }else{
                 result.txt = theTxt
             }
@@ -154,6 +154,7 @@ function assembleEmailContent(emailChonesType, inputs){
         if(!result.ml && !result.txt){ // if no a type of content, integrity shows -> ready: true
             reject(result)
         }
+
         resolve(result)
     })
 

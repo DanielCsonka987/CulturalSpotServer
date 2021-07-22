@@ -8,11 +8,16 @@ const DB_CONNECT = (process.env.NODE_ENV === 'production')?
 const typeDefs = require('./graphql/typeDef')
 const resolvers = require('./graphql/resolvers')
 const emailerTrsp = require('./emailer/emailerSetup')
+let domain = ''
 
 const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: ({ req })=>({ req })
+    context: ({ req })=>({ 
+        req, 
+        domain
+       
+    })
 })
 const theDBConnect = ()=>{
     mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
@@ -46,6 +51,7 @@ const startServer = new Promise(async (resolve, reject)=>{
 })
 .then(async (srvres)=>{
     console.log('Server running at ' + srvres.url)
+    domain = srvres.url;
     emailerTrsp.setupTrsp.then((thing)=>{
         console.log('Email connection establised!')
     }).catch(err=>{
