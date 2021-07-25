@@ -1,4 +1,5 @@
-const { ApolloServer } = require('apollo-server')
+const { ApolloServer } = require('apollo-server-express')
+const express = require('express')
 const mongoose = require('mongoose')
 
 const PORT = process.env.PORT || 4040;
@@ -8,24 +9,36 @@ const DB_CONNECT = (process.env.NODE_ENV === 'production')?
 const typeDefs = require('./graphql/typeDef')
 const resolvers = require('./graphql/resolvers')
 const emailerTrsp = require('./emailer/emailerSetup')
-let domain = ''
+const { tokenInputRevise, tokenVerify } = require('./utils/tokenManager')
+const getDomainURL = require('./utils/defineDomainURL')
 
-const server = new ApolloServer({
+const LOCAL_DOMAIN_URL = { url: '' }
+
+const apolloSrv = new ApolloServer({
     typeDefs,
     resolvers,
-    context: ({ req })=>({ 
-        req, 
-        domain
-       
-    })
+    context: async({ req, res })=>{
+
+        const authorazRes = await tokenVerify( tokenInputRevise(req) );
+        const domainURL = getDomainURL(req, LOCAL_DOMAIN_URL)
+        return {
+            authorazRes,
+            domainURL
+        }
+    }
+
 })
+const app = express();
+//publish langing fornt-app
+app.get("/", (req, res)=>{ res.send("<h1>GET request accepted</h1>")  })
+//manage GET resetPassword request
+app.get("/resetpassword", (req, res)=>{ res.send("<h1>GET request accepted</h1>")  })
+
 const theDBConnect = ()=>{
     mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
 } 
-
-const startServer = new Promise(async (resolve, reject)=>{
+const theDBConfig = ()=>{
     let dbConnectIsRestored = true
-    theDBConnect()
     mongoose.connection
     .on('connected', ()=>{
         dbConnectIsRestored = true;
@@ -47,11 +60,17 @@ const startServer = new Promise(async (resolve, reject)=>{
         }, 5000 )
     })
     .on('reconnected', ()=>{ console.log('MongoDB connection restored!') })
-    resolve(  server.listen({ port: PORT }) )
+}
+
+const startServer = new Promise(async (resolve, reject)=>{
+    theDBConnect()
+    theDBConfig()
+    await apolloSrv.start()
+    apolloSrv.applyMiddleware({ app, path: '/graphql' })
+    resolve( app.listen({ port: PORT }) )
 })
 .then(async (srvres)=>{
-    console.log('Server running at ' + srvres.url)
-    domain = srvres.url;
+    console.log('Server is running!')
     emailerTrsp.setupTrsp.then((thing)=>{
         console.log('Email connection establised!')
     }).catch(err=>{
@@ -82,4 +101,4 @@ module.exports.startServer = Promise.resolve(async ()=>{
     await emailerTrsp.setupTrsp
 })
 
-module.exports.theServer = server
+module.exports.theServer = apolloSrv

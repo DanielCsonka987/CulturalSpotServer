@@ -3,8 +3,9 @@ const jwt = require('jsonwebtoken')
 const { TOKEN_SECRET, TOKEN_EXPIRE, TOKEN_PREFIX } = require('../config/appConfig')
 
 module.exports = {
-    tokenEncoder: (tokenInput, specSecureKey)=>{
-        return jwt.sign(tokenInput, specSecureKey || TOKEN_SECRET, { expiresIn: TOKEN_EXPIRE })
+
+    tokenHeaderCreation: (tokenItself)=>{
+        return `${TOKEN_PREFIX} ${tokenItself}`
     },
     tokenInputRevise: (reqToVerif)=>{
         const results = {
@@ -31,12 +32,19 @@ module.exports = {
         return results;
         
     },
-    tokenVerify: (tokenText, specSecureKey)=>{ 
-        return jwt.verify(tokenText, specSecureKey || TOKEN_SECRET, (err, decoded)=>{
-            const results = {
-                isExpired: false,
-                error: false,
-            }
+    tokenEncoder: (tokenInput, specSecureKey)=>{
+        return jwt.sign(tokenInput, specSecureKey || TOKEN_SECRET, { expiresIn: TOKEN_EXPIRE })
+    },
+    tokenVerify: (tokenObj, specSecureKey)=>{ 
+        const results = {
+            accesPermission: false,
+            isExpired: false,
+            error: false,
+        }
+        if(tokenObj.tokenMissing){
+            return results
+        }
+        return jwt.verify(tokenObj.takenText, specSecureKey || TOKEN_SECRET, (err, decoded)=>{
             if(err){
                 results.error = err;
                 return results
@@ -49,7 +57,7 @@ module.exports = {
                 results.isExpired = true;
                 return results;
             }
-
+            results.accesPermission = true;
             return Object.assign(results, decoded);
         })
     }

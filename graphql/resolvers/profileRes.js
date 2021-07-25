@@ -1,4 +1,4 @@
-const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server')
+const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server-express')
 
 const { tokenEncoder, tokenInputRevise, tokenVerify } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
@@ -10,20 +10,22 @@ const { execMailSending, emailType, emailTypeStringify } = require('../../emaile
 const ProfileModel = require('../../models/ProfileModel')
 const EmailReportModel = require('../../models/EmailReportModel')
 
-async function tokenEvaluation(context){
-
-    const tokenReport = tokenInputRevise(context.req)
-    if(tokenReport.missing){
-        throw new AuthenticationError('Login to use the service!', { general: 'Missing token!' })
+async function authorazEvaluation(context){
+    let reasonOfFail = ''
+    if(!context.authorazRes.accesPermission){
+        if(tokenDetails.error){
+            reasonOfFail = 'Token process error!';
+        }
+        if(tokenDetails.isExpired){
+            reasonOfFail = 'Expired token!';
+        }
+        reasonOfFail = 'Missing token!';
+        throw 
     }
-    const tokenDetails = await tokenVerify(tokenReport.takenText);
-    if(tokenDetails.error){
-        throw new ApolloError('Server error occured!', tokenDetails.error)
-    }
-    if(tokenDetails.expired){
-        throw new AuthenticationError('Login to use the service!', { general: 'Expired token!' })
-    }
-    return tokenDetails;
+    if(reasonOfFail){
+        throw new AuthenticationError('Login to use the service!', { general: reasonOfFail })
+    } 
+    return;
 }
 
 async function passwordsMatching(user, pwdText){
@@ -204,7 +206,7 @@ module.exports = {
                 return new UserInputError('Password changing', { field, issue })
             }
 
-            const tokenExtract = await tokenEvaluation(context)
+            const tokenExtract = await authorazEvaluation(context)
 
             //old password revsision
             const userToChangePwd = await ProfileModel.findOne({ _id: tokenExtract.id })
@@ -236,7 +238,7 @@ module.exports = {
                 return new UserInputError('Account details changing', { field, issue })
             }
 
-            const tokenExtract = await tokenEvaluation(context)
+            const tokenExtract = await authorazEvaluation(context)
             const userToUpdate = await ProfileModel.findOne({ _id: tokenExtract.id})
             if(!userToUpdate){
                 return new ApolloError('No user found', { general: 'No target of Token id' })
@@ -263,7 +265,7 @@ module.exports = {
                 return new UserInputError('Delete account passwords', { field, issue })
             }
 
-            const tokenExtract = await tokenEvaluation(context)
+            const tokenExtract = await authorazEvaluation(context)
             const userToDelete = await ProfileModel.findOne({ _id: tokenExtract.id })
 
             await passwordsMatching(userToDelete, pwdTextOld)

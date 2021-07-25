@@ -93,11 +93,14 @@ describe('Token verification tests', ()=>{
         const tokenContent = { id: '001', email: 'stg@testing.uk' }
         const token = jwt.sign(tokenContent, TOKEN_SECRET, { expiresIn: TOKEN_EXPIRE } )
         
-        const result = await tokenVerify(token)
+        const result = await tokenVerify( { tokenMissing: false, takenText: token})
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
-            expect.arrayContaining([ 'id', 'email', 'isExpired', 'error', 'exp', 'iat' ])
+            expect.arrayContaining([ 'id', 'email', 'accesPermission', 'isExpired', 'error', 'exp', 'iat' ])
         )
+
+        expect(typeof result.accesPermission).toBe('boolean')
+        expect(result.accesPermission).toBeTruthy()
         expect(typeof result.error).toBe('boolean')
         expect(result.error).toBeFalsy()
         expect(typeof result.isExpired).toBe('boolean')
@@ -113,16 +116,19 @@ describe('Token verification tests', ()=>{
         const badTokenParts = token.split('.')
         const badToken = badTokenParts[0] + '.' + badTokenParts[1] + badTokenParts[2]
 
-        const result = await tokenVerify(badToken)
+        const result = await tokenVerify({ tokenMissing: false, takenText: badToken})
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
-            expect.arrayContaining([ 'isExpired', 'error' ])
+            expect.arrayContaining([ 'isExpired', 'error', 'accesPermission' ])
         )
 
+        expect(typeof result.accesPermission).toBe('boolean')
+        expect(result.accesPermission).toBeFalsy()
         expect(typeof result.error).toBe('object')
         expect(result.error.name).toBe('JsonWebTokenError')
         expect(result.error.message).toBe('jwt malformed')
 
+        expect(typeof result.isExpired).toBe('boolean')
         expect(result.isExpired).toBeFalsy()
         expect(result.id).toBe(undefined)
         expect(result.email).toBe(undefined)
@@ -136,12 +142,32 @@ describe('Token verification tests', ()=>{
         const targetToAlter = tokenParts[1].slice(3, 6)
         tokenParts[1] = tokenParts[1].replace(targetToAlter, 'abcdefghijk')
         const badToken = tokenParts.join('.')
-        const result = await tokenVerify(badToken)
+        const result = await tokenVerify({ tokenMissing: false, takenText: badToken})
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
-            expect.arrayContaining([ 'isExpired', 'error' ])
+            expect.arrayContaining([ 'isExpired', 'error', 'accesPermission' ])
         )
+        expect(typeof result.accesPermission).toBe('boolean')
+        expect(result.accesPermission).toBeFalsy()
         expect(typeof result.error).toBe('object')
+        expect(typeof result.isExpired).toBe('boolean')
+        expect(result.isExpired).toBeFalsy()
+        expect(result.id).toBe(undefined)
+        expect(result.email).toBe(undefined)
+    })
+
+    it('Token mission, no login state', async ()=>{
+
+        const result = await tokenVerify({ tokenMissing: true, takenText: ''})
+        expect(typeof result).toBe('object')
+        expect(Object.keys(result)).toEqual(
+            expect.arrayContaining([ 'isExpired', 'error', 'accesPermission' ])
+        )
+        expect(typeof result.accesPermission).toBe('boolean')
+        expect(result.accesPermission).toBeFalsy()
+        expect(typeof result.error).toBe('boolean')
+        expect(result.error).toBeFalsy()
+        expect(typeof result.isExpired).toBe('boolean')
         expect(result.isExpired).toBeFalsy()
         expect(result.id).toBe(undefined)
         expect(result.email).toBe(undefined)
@@ -149,7 +175,7 @@ describe('Token verification tests', ()=>{
 })
 
 describe('Special key handle, email token processes', ()=>{
-    it('Encode token with external security key', ()=>{
+    it('Encode token with external security key, verify manually', ()=>{
         const token = tokenEncoder({ id: '1234' }, '123')
         const actTime = new Date().getTime().toString().slice(0, 10)
         const theTimeSec = new Number(actTime)
@@ -160,20 +186,22 @@ describe('Special key handle, email token processes', ()=>{
 
             expect(typeof decoded).toBe('object')
             expect(Object.keys(decoded)).toEqual(
-                expect.arrayContaining(['iat', 'exp', 'id'])
+                expect.arrayContaining(['iat', 'exp', 'id' ])
             )
             expect(decoded.id).toBe('1234')
             expect(decoded.exp).toEqual(theTimeSec + 3600)
         })
     })
 
-    it('Verify token with external security key', async ()=>{
+    it('Verify token with external security key, encode manually', async ()=>{
         const theToken = jwt.sign({ mark: 'abcd' }, '123', { expiresIn: '1m' })
 
-        const result = await tokenVerify(theToken, '123')
+        const result = await tokenVerify(
+            { tokenMissing: false, takenText: theToken}, '123'
+        )
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
-            expect.arrayContaining(['iat', 'exp', 'isExpired', 'error', 'mark'])
+            expect.arrayContaining(['iat', 'exp', 'isExpired', 'error', 'accesPermission', 'mark'])
         )
         expect(typeof result.error).toBe('boolean')
         expect(result.error).toBeFalsy()
@@ -184,7 +212,9 @@ describe('Special key handle, email token processes', ()=>{
     it('Full encode and verify token with external security key', async ()=>{
         const token = tokenEncoder({ mark: 'efgh' }, '123')
         
-        const result = await tokenVerify(token, '123')
+        const result = await tokenVerify(
+            { tokenMissing: false, takenText: token}, '123'
+        )
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['iat', 'exp', 'isExpired', 'error', 'mark'])
@@ -200,7 +230,9 @@ describe('Special key handle, email token processes', ()=>{
         const actTime = new Date().getTime().toString().slice(0, 10)
         const theTimeSec = new Number(actTime)
         
-        const result = await tokenVerify(token, '1234')
+        const result = await tokenVerify(
+            { tokenMissing: false, takenText: token}, '1234'
+        )
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['isExpired', 'error'])
