@@ -1,19 +1,54 @@
+const { createTestClient } = require('apollo-server-testing')
+const { gql } = require('apollo-server-express');
 
-//const serverApp = require('../server').theServer
-//const openServer = require('../server').startServer
+const openServer = require('../server').startTestingServer
 //const stopServer = require('../server').stopServer
 
-jest.useFakeTimers()
+/*
+describe('Some header not required test attempts', ()=>{
+    let theServer = null
+    beforeAll(async ()=>{
+        theServer = await openServer()
+    })
 
-beforeAll((done)=>{
-    //openServer.then(()=>{ done()  })
-})
-afterAll(async ()=>{
-    //await stopServer
-})
+    it('Testing query activate', async ()=>{
+        const { query } = createTestClient(theServer)
+        const THE_QUERY = `
+        {
+            testquery
+        }
+        `
+        const response = await query({ query: THE_QUERY })
+        expect(response.data.testquery).toBe('Server is running fine!')
 
-describe('Registration attempts',()=>{
-    it('Stg', ()=>{
+    })
+    
+    it('Registration attempt', async ()=>{
+        const { mutate } = createTestClient(theServer)
+
+        const THE_REG = gql`
+        {
+            registration(
+                
+                    email: "valid@email.com"
+                    username: "ThisHere"
+                    password: "password"
+                    passwordconf: "password"
+                
+            ){
+                id
+                username
+                token
+                tokenExpire
+                registeredAt
+            }
+            
+        }
+        `
+
+        const response = await mutate( {mutation: THE_REG })
+        console.log(response.errors[0])
+        expect(response.data.registration.usename).toBe('ThisHere')
         /*
         request(serverApp)
         .post('http://localhost:4040/')
@@ -40,17 +75,27 @@ describe('Registration attempts',()=>{
             expect(err).toBe(null)
             expect(res.body).toBeInstanceOf(Object);
         })
-        */
+        *//*
     })
+
+    it('Testing query Password reset attempt', async ()=>{
+        const { mutate } = createTestClient(theServer)
+        const THE_RESET = gql`
+        {
+            resetPassword(email: "mehere@hotmail.com"){
+                processResult
+                resultText
+            }
+        }
+        `
+        const response = await mutate({ mutation: THE_RESET })
+        console.log(response.errors[0])
+        //expect(response.data.testquery).toBe('Server is running fine!')
+
+    })
+
 })
-
-describe('Login attempts', ()=>{
-
-})
-
-describe('Reset forgotten password attempts', ()=>{
-
-})
+*/
 
 describe('Change username attepmts', ()=>{
 

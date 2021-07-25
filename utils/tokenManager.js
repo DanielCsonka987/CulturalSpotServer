@@ -2,6 +2,10 @@ const jwt = require('jsonwebtoken')
 
 const { TOKEN_SECRET, TOKEN_EXPIRE, TOKEN_PREFIX } = require('../config/appConfig')
 
+function tokenEncoder (tokenInput, specSecureKey){
+    return jwt.sign(tokenInput, specSecureKey || TOKEN_SECRET, { expiresIn: TOKEN_EXPIRE })
+}
+
 module.exports = {
 
     tokenHeaderCreation: (tokenItself)=>{
@@ -32,9 +36,7 @@ module.exports = {
         return results;
         
     },
-    tokenEncoder: (tokenInput, specSecureKey)=>{
-        return jwt.sign(tokenInput, specSecureKey || TOKEN_SECRET, { expiresIn: TOKEN_EXPIRE })
-    },
+    tokenEncoder: tokenEncoder,
     tokenVerify: (tokenObj, specSecureKey)=>{ 
         const results = {
             accesPermission: false,
@@ -60,5 +62,13 @@ module.exports = {
             results.accesPermission = true;
             return Object.assign(results, decoded);
         })
+    },
+    createTokenToLink: (dateToPayloadAndSecret, pwdHashToSecret, userIdToLink )=>{
+        const keyToEncript = dateToPayloadAndSecret + pwdHashToSecret;
+
+        const theToken = tokenEncoder({ marker: dateToPayloadAndSecret },
+            keyToEncript)
+
+        return userIdToLink + '.' + theToken
     }
 }

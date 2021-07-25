@@ -9,7 +9,7 @@ module.exports = gql`
         email: String!
         password: String!
         passwordconf: String!
-         username: String!
+        username: String!
     }
     input ChangePwdInput {
         oldpassword: String!
@@ -24,8 +24,9 @@ module.exports = gql`
         id: String!
         email: String!
         username: String!
-        token: String!
-        registeredAt: String!
+        token: String
+        tokenExpire: Int
+        registeredAt: String
         lastLoggedAt: String!
     }
     type ProfileProcess {

@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "jest -o",
+    "testall": "jest",
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
@@ -26,6 +27,7 @@
     "nodemailer": "^6.6.3"
   },
   "devDependencies": {
+    "apollo-server-testing": "^2.25.2",
     "jest": "^27.0.6",
     "nodemon": "^2.0.9",
     "supertest": "^6.1.4"

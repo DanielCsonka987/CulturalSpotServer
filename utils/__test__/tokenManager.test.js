@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 
-const { tokenEncoder, tokenInputRevise, tokenVerify } 
+const { tokenEncoder, tokenInputRevise, tokenVerify, createTokenToLink } 
     = require('../tokenManager')
 const { TOKEN_SECRET, TOKEN_EXPIRE, TOKEN_PREFIX } = require('../../config/appConfig')
 
@@ -238,6 +238,27 @@ describe('Special key handle, email token processes', ()=>{
             expect.arrayContaining(['isExpired', 'error'])
         )
         expect(typeof result.error).toBe('object')
+        expect(result.isExpired).toBeFalsy()
+    })
+})
+describe('Password reset case, TokenToLinkURL creation testion', ()=>{
+    it('TokenToLinkURL creation', async ()=>{
+        const dateToContAndSecret = new Date().getTime()
+        const url = createTokenToLink(dateToContAndSecret, 'fdfgvl4d4g%!FF', '012345678')
+
+        const parts = url.split('.')
+        expect(parts[0]).toBe('012345678')
+
+        const tokenPart = parts[1] + '.' + parts[2] + '.' + parts[3]
+        const result = await tokenVerify({ takenText: tokenPart, tokenMissing: false},
+             dateToContAndSecret + 'fdfgvl4d4g%!FF')
+
+        expect(result.marker).toBe(dateToContAndSecret)
+        expect(typeof result.accesPermission).toBe('boolean')
+        expect(result.accesPermission).toBeTruthy()
+        expect(typeof result.error).toBe('boolean')
+        expect(result.error).toBeFalsy()
+        expect(typeof result.isExpired).toBe('boolean')
         expect(result.isExpired).toBeFalsy()
     })
 })

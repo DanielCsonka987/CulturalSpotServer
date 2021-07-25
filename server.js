@@ -11,6 +11,7 @@ const resolvers = require('./graphql/resolvers')
 const emailerTrsp = require('./emailer/emailerSetup')
 const { tokenInputRevise, tokenVerify } = require('./utils/tokenManager')
 const getDomainURL = require('./utils/defineDomainURL')
+const { RESETPWD_REST_GET_ROUTE } = require('./config/appConfig').ROUTING
 
 const LOCAL_DOMAIN_URL = { url: '' }
 
@@ -32,7 +33,7 @@ const app = express();
 //publish langing fornt-app
 app.get("/", (req, res)=>{ res.send("<h1>GET request accepted</h1>")  })
 //manage GET resetPassword request
-app.get("/resetpassword", (req, res)=>{ res.send("<h1>GET request accepted</h1>")  })
+app.get(RESETPWD_REST_GET_ROUTE, (req, res)=>{ res.send("<h1>GET request accepted 2</h1>")  })
 
 const theDBConnect = ()=>{
     mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
@@ -95,10 +96,16 @@ const stopServer = async ()=>{
 */
 startServer;
 
-module.exports.startServer = Promise.resolve(async ()=>{
-    await mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
-    await server.listen({ port: PORT })
-    await emailerTrsp.setupTrsp
-})
+module.exports.startTestingServer = async ()=>{
 
-module.exports.theServer = apolloSrv
+    const apolloSrv = new ApolloServer({
+        typeDefs,
+        resolvers
+    })
+    mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
+    await emailerTrsp.setupTrsp
+    
+    return apolloSrv;
+}
+
+module.exports.theServer = app

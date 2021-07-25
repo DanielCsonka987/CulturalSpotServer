@@ -1,6 +1,6 @@
 const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server-express')
 
-const { tokenEncoder, tokenInputRevise, tokenVerify } = require('../../utils/tokenManager')
+const { tokenEncoder, createTokenToLink } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
     changePwdInputRevise, deleteAccInputRevise,
@@ -20,7 +20,6 @@ async function authorazEvaluation(context){
             reasonOfFail = 'Expired token!';
         }
         reasonOfFail = 'Missing token!';
-        throw 
     }
     if(reasonOfFail){
         throw new AuthenticationError('Login to use the service!', { general: reasonOfFail })
@@ -93,7 +92,8 @@ module.exports = {
 
             return {
                 id: userToLogin._id,
-                token: tokenEncoder({id: userToLogin.id, email: userToLogin.email}),
+                token: tokenEncoder({subj: userToLogin.id, email: userToLogin.email}),
+                tokenExpire: 3600,
                 email: userToLogin.email,
                 username: userToLogin.username,
                 registeredAt: userToLogin.registeredAt,
@@ -138,7 +138,8 @@ module.exports = {
 
             return {
                 id: newUser._id,
-                token: tokenEncoder({ id: newUser._id, email: newUser.email }),
+                token: tokenEncoder({ subj: newUser._id, email: newUser.email }),
+                tokenExpire: 3600,
                 email: newUser.email,
                 username: newUser.username,
                 registeredAt: newUser.registeredAt,
@@ -165,16 +166,16 @@ module.exports = {
             }catch(err){
                 return new ApolloError('Password reset registring error occured!', err)
             }
-            const secretKeyToEncode = userToReset.pwdHash + datingMarker;
-            const createdToken = tokenEncoder({ marker: datingMarker  }, secretKeyToEncode)
-            const complexEmailToken = userToReset._id + '.' + createdToken; //REST GET type
 
-            const domainUrlAndPath = context.domain + complexEmailToken
+            const complexIdToken = createTokenToLink(datingMarker, userToReset.pwdHash, 
+                userToReset._id
+            )
+            const domainUrlAndPath = context.domainURL + '' + complexIdToken //REST GET type
             const EMAIL_TYPE_TXT = emailTypeStringify(emailType.PWDRESETING)
 
             execMailSending(email, emailType.PWDRESETING, {
                 anchUrl: domainUrlAndPath,
-                anchTxt: complexEmailToken
+                anchTxt: 'Click here!'
             }).then(async (sendingProc)=>{
                 await saveEmailReportToDB(email, EMAIL_TYPE_TXT, sendingProc.integrity,
                     sendingProc.resultId)

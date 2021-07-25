@@ -5,5 +5,9 @@ module.exports = {
     TOKEN_SECRET: process.env.TOKEN_PWD || TOKEN_SECURE,
     TOKEN_PREFIX: 'Bearer ',
 
-    BCRYPT_ROUND: 12
+    BCRYPT_ROUND: 12,
+
+    ROUTING: {
+        RESETPWD_REST_GET_ROUTE: '/resetpassword/'
+    }
 }
