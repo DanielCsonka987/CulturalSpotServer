@@ -31,16 +31,6 @@ module.exports.shutdown = new Promise((resolve, reject)=>{
     })
 })
 
-function verifyTrsp(){
-    return theTransporter.verify((error, success)=>{
-        if(error){
-            console.log('Emailer has lost the connection!')
-            return false;
-        }
-        return success;
-    })
-}
-
 const emailTypes = {
     REGISTRATION: 0,
     PWDRESETING: 1,

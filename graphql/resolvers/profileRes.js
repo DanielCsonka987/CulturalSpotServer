@@ -10,7 +10,7 @@ const { execMailSending, emailType, emailTypeStringify } = require('../../emaile
 const ProfileModel = require('../../models/ProfileModel')
 const EmailReportModel = require('../../models/EmailReportModel')
 
-async function authorazEvaluation(context){
+function authorazEvaluation(context){
     let reasonOfFail = ''
     if(!context.authorazRes.accesPermission){
         if(tokenDetails.error){
@@ -63,7 +63,7 @@ module.exports = {
     Mutation: {
         async login(_, args){
             const { error, field, issue, email, pwdText} = loginInputRevise(
-                args.loginInput.email, args.loginInput.password)
+                args.email, args.password)
             if(error){
                 return new UserInputError('Login validation error!', { field, issue })
             }
@@ -103,10 +103,7 @@ module.exports = {
 
         async registration(_, args){
             const { error, field, issue, email, pwdText, username } = registerInputRevise(
-                args.registrationInput.email, 
-                args.registrationInput.password, 
-                args.registrationInput.passwordconf, 
-                args.registrationInput.username
+                args.email, args.password, args.passwordconf, args.username
             )
             if(error){
                 return new UserInputError('Registration validation error!', { field, issue })
@@ -199,18 +196,15 @@ module.exports = {
 
         async changePassword(_, args, context){
             const { error, field, issue, pwdTextOld, pwdTextNew } = changePwdInputRevise(
-                args.changePwdInput.oldpassword,
-                args.changePwdInput.newpassword,
-                args.changePwdInput.passwordconf
+                args.oldpassword, args.newpassword, args.newconf
             )
             if(error){
                 return new UserInputError('Password changing', { field, issue })
             }
-
-            const tokenExtract = await authorazEvaluation(context)
+            authorazEvaluation(context)
 
             //old password revsision
-            const userToChangePwd = await ProfileModel.findOne({ _id: tokenExtract.id })
+            const userToChangePwd = await ProfileModel.findOne({ _id: context.authorazRes.subj })
             await passwordsMatching(userToChangePwd, pwdTextOld)
 
             //process execution
@@ -225,7 +219,7 @@ module.exports = {
                 return new ApolloError('Server error occured', { general: 'Pwd persistence error!' })
             }
             return {
-                id: tokenExtract.id,
+                id: context.authorazRes.subj,
                 resultText: 'Your password changed!',
                 processResult: true
             }
@@ -240,7 +234,7 @@ module.exports = {
             }
 
             const tokenExtract = await authorazEvaluation(context)
-            const userToUpdate = await ProfileModel.findOne({ _id: tokenExtract.id})
+            const userToUpdate = await ProfileModel.findOne({ _id: tokenExtract.subj})
             if(!userToUpdate){
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
@@ -251,7 +245,7 @@ module.exports = {
                 return new ApolloError('Server error occured', err)
             }
             return {
-                id: tokenExtract.id,
+                id: tokenExtract.subj,
                 resultText: 'Account datas changed!',
                 processResult: true
             }
@@ -259,26 +253,26 @@ module.exports = {
 
         async deleteAccount(_, args, context){
             const { error, field, issue, pwdTextOld } = deleteAccInputRevise(
-                args.delAccountInput.password,
-                args.delAccountInput.passwordconf
+                args.password,
+                args.passwordconf
             )
             if(error){
                 return new UserInputError('Delete account passwords', { field, issue })
             }
 
             const tokenExtract = await authorazEvaluation(context)
-            const userToDelete = await ProfileModel.findOne({ _id: tokenExtract.id })
+            const userToDelete = await ProfileModel.findOne({ _id: tokenExtract.subj })
 
             await passwordsMatching(userToDelete, pwdTextOld)
 
-            await ProfileModel.deleteOne({ _id: tokenExtract.id}, (err)=>{
+            await ProfileModel.deleteOne({ _id: tokenExtract.subj}, (err)=>{
                 if(err){
                     return new ApolloError('Server error occured', err)
                 }
             })
 
             return {
-                id: tokenExtract.id,
+                id: tokenExtract.subj,
                 resultText: 'Account deleted!',
                 processResult: true
             }

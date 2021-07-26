@@ -1,33 +1,19 @@
 const { gql } = require('apollo-server-express')
 
 module.exports = gql`
-    input LoginInput {
-        email: String!
-        password: String!
-    }
-    input RegistrationInput {
-        email: String!
-        password: String!
-        passwordconf: String!
-        username: String!
-    }
-    input ChangePwdInput {
-        oldpassword: String!
-        passwordconf: String!
-        newpassword: String! 
-    }
-    input DelAccountInput{
-        password: String!
-        passwordconf: String! 
-    }
-    type User {
+
+    type UserLog {
         id: String!
         email: String!
         username: String!
-        token: String
-        tokenExpire: Int
-        registeredAt: String
+        token: String!
+        tokenExpire: Int!
+        registeredAt: String!
         lastLoggedAt: String!
+    }
+
+    type UserView {
+        username: String!
     }
     type ProfileProcess {
         id: String!
@@ -38,11 +24,11 @@ module.exports = gql`
         testquery: String!
     }
     type Mutation {
-        login(loginInput: LoginInput): User!
-        registration(registrationInput: RegistrationInput ): User!
+        login(email: String!, password: String! ): UserLog!
+        registration( email: String!, username: String!, password: String!, passwordconf: String! ): UserLog!
         resetPassword(email: String!): ProfileProcess!
-        changePassword(changePwdInput: ChangePwdInput): ProfileProcess!
+        changePassword(oldpassword: String!, newpassword: String!, newconf: String!): ProfileProcess!
         changeAccountDatas(username: String! ): ProfileProcess!
-        deleteAccount(delAccountInput: DelAccountInput): ProfileProcess!
+        deleteAccount(password: String!, passwordconf: String!): ProfileProcess!
     }
 `;

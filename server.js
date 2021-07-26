@@ -15,6 +15,7 @@ const { RESETPWD_REST_GET_ROUTE } = require('./config/appConfig').ROUTING
 
 const LOCAL_DOMAIN_URL = { url: '' }
 
+const app = express();
 const apolloSrv = new ApolloServer({
     typeDefs,
     resolvers,
@@ -29,11 +30,6 @@ const apolloSrv = new ApolloServer({
     }
 
 })
-const app = express();
-//publish langing fornt-app
-app.get("/", (req, res)=>{ res.send("<h1>GET request accepted</h1>")  })
-//manage GET resetPassword request
-app.get(RESETPWD_REST_GET_ROUTE, (req, res)=>{ res.send("<h1>GET request accepted 2</h1>")  })
 
 const theDBConnect = ()=>{
     mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
@@ -63,49 +59,40 @@ const theDBConfig = ()=>{
     .on('reconnected', ()=>{ console.log('MongoDB connection restored!') })
 }
 
-const startServer = new Promise(async (resolve, reject)=>{
+const startServer = async (testPurpose)=>{
     theDBConnect()
     theDBConfig()
-    await apolloSrv.start()
+    if(!testPurpose){    //it makes JEST erroreous
+        //ReferenceError: You are trying to `import` a file after the Jest environment has been torn down.
+        //TypeError: Right-hand side of 'instanceof' is not callable
+        await apolloSrv.start()
+    }
     apolloSrv.applyMiddleware({ app, path: '/graphql' })
-    resolve( app.listen({ port: PORT }) )
-})
-.then(async (srvres)=>{
+
+    //publish frontpage to fornt-app
+    app.get("/", (req, res)=>{ res.send("<h1>GET request accepted - frontpage is sent!</h1>")  })
+    //manage GET resetPassword request
+    app.get(RESETPWD_REST_GET_ROUTE, (req, res)=>{ res.send("<h1>GET request accepted 2</h1>")  })
+
+    if(!testPurpose){    //it makes to SUPERTEST double configurate the PORT
+        //listen EADDRINUSE: address already in use :::4040
+        app.listen({ port: PORT })
+    }
     console.log('Server is running!')
-    emailerTrsp.setupTrsp.then((thing)=>{
+
+    emailerTrsp.setupTrsp.then(()=>{
         console.log('Email connection establised!')
     }).catch(err=>{
         console.log('Email connection has lost! ' + err)
     })
-})
-.catch(err=>{
-    console.log('Server error occured at setup! ', err);
-})
-
-/*
-const stopServer = async ()=>{
-    server.stop().then(()=>{
-        console.log('Server is under shutting down!')
-        mongoose.connection.stop()
-        console.log('MongoDB closed!')
-        emailerTrsp.shutdown.then(()=>{
-            console.log('Emailer closed!')
-        })
-    })
-}
-*/
-startServer;
-
-module.exports.startTestingServer = async ()=>{
-
-    const apolloSrv = new ApolloServer({
-        typeDefs,
-        resolvers
-    })
-    mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
-    await emailerTrsp.setupTrsp
-    
-    return apolloSrv;
+    return app
 }
 
-module.exports.theServer = app
+
+startServer();
+
+module.exports.startTestingServer = startServer
+
+module.exports.exitTestingServer = async ()=>{
+   await apolloSrv.stop()
+}
