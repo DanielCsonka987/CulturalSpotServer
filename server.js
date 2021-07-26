@@ -60,8 +60,8 @@ const theDBConfig = ()=>{
 }
 
 const startServer = async (testPurpose)=>{
-    theDBConnect()
     theDBConfig()
+    theDBConnect()
     if(!testPurpose){    //it makes JEST erroreous
         //ReferenceError: You are trying to `import` a file after the Jest environment has been torn down.
         //TypeError: Right-hand side of 'instanceof' is not callable
