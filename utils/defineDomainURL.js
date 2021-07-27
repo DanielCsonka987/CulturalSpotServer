@@ -1,6 +1,6 @@
 module.exports = (reqObj, localDomainObj)=>{
     if(!localDomainObj.url){
-        localDomainObj.url = reqObj.protocol + reqObj.get('host');
+        localDomainObj.url = { prot: reqObj.protocol, dom: reqObj.get('host') };
         Object.freeze(localDomainObj)
     }
     return localDomainObj.url

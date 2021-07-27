@@ -1,6 +1,6 @@
 const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server-express')
 
-const { tokenEncoder, createTokenToLink } = require('../../utils/tokenManager')
+const { tokenEncoder, createTokenToLink, createTokenToHeader } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
     changePwdInputRevise, deleteAccInputRevise,
@@ -132,7 +132,7 @@ module.exports = {
             }catch(err){
                 return ApolloError('Registration is not completed!', { err })
             }
-
+            
             return {
                 id: newUser._id,
                 token: tokenEncoder({ subj: newUser._id, email: newUser.email }),
@@ -157,9 +157,9 @@ module.exports = {
             }
 
             const datingMarker = new Date().getTime()
-            userToReset.resetPwdMarker = datingMarker
+            userToReset.resetPwdToken = datingMarker.toString()
             try{
-                userToReset.save()
+                await userToReset.save()
             }catch(err){
                 return new ApolloError('Password reset registring error occured!', err)
             }
@@ -167,7 +167,9 @@ module.exports = {
             const complexIdToken = createTokenToLink(datingMarker, userToReset.pwdHash, 
                 userToReset._id
             )
-            const domainUrlAndPath = context.domainURL + '' + complexIdToken //REST GET type
+            //something removes the :// from protocol definition
+            const domainUrlAndPath = context.domainURL.prot + '://' 
+                + context.domainURL.dom + '/apath/' + complexIdToken //REST GET type
             const EMAIL_TYPE_TXT = emailTypeStringify(emailType.PWDRESETING)
 
             execMailSending(email, emailType.PWDRESETING, {
@@ -188,9 +190,11 @@ module.exports = {
                 }
             })
             return {
-                id: '',
                 resultText: 'Password reset email is sent!',
-                processResult: true
+                id: 'none',
+                email: email,
+                username: 'none'
+
             }
         },
 
@@ -219,9 +223,10 @@ module.exports = {
                 return new ApolloError('Server error occured', { general: 'Pwd persistence error!' })
             }
             return {
-                id: context.authorazRes.subj,
                 resultText: 'Your password changed!',
-                processResult: true
+                id: context.authorazRes.subj,
+                email: userToChangePwd.email,
+                username: userToChangePwd.username
             }
         },
 
@@ -233,8 +238,8 @@ module.exports = {
                 return new UserInputError('Account details changing', { field, issue })
             }
 
-            const tokenExtract = await authorazEvaluation(context)
-            const userToUpdate = await ProfileModel.findOne({ _id: tokenExtract.subj})
+            authorazEvaluation(context)
+            const userToUpdate = await ProfileModel.findOne({ _id: context.authorazRes.subj})
             if(!userToUpdate){
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
@@ -245,9 +250,11 @@ module.exports = {
                 return new ApolloError('Server error occured', err)
             }
             return {
-                id: tokenExtract.subj,
                 resultText: 'Account datas changed!',
-                processResult: true
+                id: context.authorazRes.subj,
+                email: userToUpdate.email,
+                username: userToUpdate.username
+                
             }
         },
 
@@ -260,21 +267,23 @@ module.exports = {
                 return new UserInputError('Delete account passwords', { field, issue })
             }
 
-            const tokenExtract = await authorazEvaluation(context)
-            const userToDelete = await ProfileModel.findOne({ _id: tokenExtract.subj })
+            authorazEvaluation(context)
+            const userToDelete = await ProfileModel.findOne({ _id: context.authorazRes.subj })
 
             await passwordsMatching(userToDelete, pwdTextOld)
-
-            await ProfileModel.deleteOne({ _id: tokenExtract.subj}, (err)=>{
+            const tempDatas = { email: userToDelete.email, username: userToDelete.username }
+            await ProfileModel.deleteOne({ _id: context.authorazRes.subj}, (err)=>{
                 if(err){
                     return new ApolloError('Server error occured', err)
                 }
             })
 
             return {
-                id: tokenExtract.subj,
                 resultText: 'Account deleted!',
-                processResult: true
+                id: context.authorazRes.subj,
+                email: tempDatas.email,
+                username: tempDatas.username
+
             }
         }
     }

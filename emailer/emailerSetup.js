@@ -64,17 +64,17 @@ module.exports.execMailSending = (emailToAddress, emailChonesType, inputs)=>{
                 if(mailingRes.messageId){
                     resolve({ 
                         progress: 'done',  resultId: mailingRes.messageId, 
-                        integrity: emailContentToSend.integrity.join(';')
+                        integrity: emailContentToSend.integrity.join('_')
                     })
                 }
                 reject({
                     progress: 'errorAtSending',
-                    integrity: emailContentToSend.integrity.join(';')
+                    integrity: emailContentToSend.integrity.join('_')
                 })
             })
             .catch(err=>{
                 if(err.integrity){  //only at no subject or all content missing
-                    reject({ progress: 'errorAtAssemble', integrity: err.integrity.join(';')  })
+                    reject({ progress: 'errorAtAssemble', integrity: err.integrity.join('_')  })
                 }
                 reject ({ progress: 'errorOfUnknown', err})
             })

@@ -95,4 +95,8 @@ module.exports.startTestingServer = startServer
 
 module.exports.exitTestingServer = async ()=>{
    await apolloSrv.stop()
+   await mongoose.connection.removeAllListeners()
+   await mongoose.connection.close()
+   await emailerTrsp.shutdown
+   console.log('Server is stopping!')
 }

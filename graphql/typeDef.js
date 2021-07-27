@@ -12,13 +12,16 @@ module.exports = gql`
         lastLoggedAt: String!
     }
 
-    type UserView {
+    type UserPublic {
+        id: String!
+        email: String!
         username: String!
     }
     type ProfileProcess {
-        id: String!
-        processResult: Boolean!
         resultText: String!
+        id: String!
+        email: String!
+        username: String!
     }
     type Query {
         testquery: String!
