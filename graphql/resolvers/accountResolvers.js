@@ -1,31 +1,19 @@
 const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server-express')
 
+//helper utils, standalone like, models
 const { tokenEncoder, createTokenToLink, createTokenToHeader } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
     changePwdInputRevise, deleteAccInputRevise,
     updateAccDetInputRevise, resetPwdInputRevise } = require('../../utils/inputRevise')
-const { execMailSending, emailType, emailTypeStringify } = require('../../emailer/emailerSetup')
 
+const { execMailSending, emailType, emailTypeStringify } = require('../../emailer/emailerSetup')
 const ProfileModel = require('../../models/ProfileModel')
 const EmailReportModel = require('../../models/EmailReportModel')
+const PostModel = require('../../models/PostModel')
 
-function authorazEvaluation(context){
-    let reasonOfFail = ''
-    if(!context.authorazRes.accesPermission){
-        if(tokenDetails.error){
-            reasonOfFail = 'Token process error!';
-        }
-        if(tokenDetails.isExpired){
-            reasonOfFail = 'Expired token!';
-        }
-        reasonOfFail = 'Missing token!';
-    }
-    if(reasonOfFail){
-        throw new AuthenticationError('Login to use the service!', { general: reasonOfFail })
-    } 
-    return;
-}
+// someHelper function in resolving - not standalone, apollo connected!
+const { authorazEvaluation } = require('./someHelper')
 
 async function passwordsMatching(user, pwdText){
     if(!user){
@@ -90,6 +78,8 @@ module.exports = {
                 return new ApolloError('Login timestamp persisting failed!')
             }
 
+            const postsOfUser = PostModel.find({ owner: lastLoggedTime._id })
+            
             return {
                 id: userToLogin._id,
                 token: tokenEncoder({subj: userToLogin.id, email: userToLogin.email}),
@@ -97,7 +87,10 @@ module.exports = {
                 email: userToLogin.email,
                 username: userToLogin.username,
                 registeredAt: userToLogin.registeredAt,
-                lastLoggedAt: lastLoggedTime
+                lastLoggedAt: lastLoggedTime,
+
+                friends: userToLogin.friends,
+                posts: postsOfUser
             }
         },
 
