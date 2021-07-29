@@ -8,7 +8,8 @@ const ProfileSchema = new mongoose.Schema({
     lastLoggedAt: String,
     resetPwdToken: String,
 
-    friends: [mongoose.Schema.Types.ObjectId]
+    friends: [mongoose.Schema.Types.ObjectId],
+    undecided: [mongoose.Schema.Types.ObjectId]
 })
 
 module.exports = mongoose.model('profiles', ProfileSchema)

@@ -87,7 +87,7 @@ describe('GrapQL profile queries', ()=>{
         request(theSrv)
         .post('/graphql')
         .send({
-            "query": `mutation{ login(email:"mehere@hotmail.com", password: "testPwd") { id, token, tokenExpire, registeredAt } }`
+            "query": `mutation{ login(email:"user@gmail.com", password: "testPwd") { id, token, tokenExpire, registeredAt } }`
         })
         .set("Accept", "application/json")
         .expect('Content-Type', "application/json; charset=utf-8")

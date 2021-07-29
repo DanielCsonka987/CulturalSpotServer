@@ -34,7 +34,9 @@ module.exports = {
 function forFriends(friendUnit){    //creates UserFracture
     return {
         id: friendUnit._id,
-        username: friendUnit.username
+        username: friendUnit.username,  //finish it, needs additional logic here!!!!!!!
+        status: '',
+        commonFriends: '',
     }
 }
 

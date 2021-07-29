@@ -133,7 +133,10 @@ module.exports = {
                 email: newUser.email,
                 username: newUser.username,
                 registeredAt: newUser.registeredAt,
-                lastLoggedAt: newUser.lastLoggedAt
+                lastLoggedAt: newUser.lastLoggedAt,
+
+                friends: [],
+                posts: []
             }
         },
 

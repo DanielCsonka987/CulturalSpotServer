@@ -5,9 +5,7 @@ module.exports.loginInputRevise = ( email, pwdText )=>{
         pwdText
     }
     const result = {
-        error: false,
-        field: [],
-        issue: []
+        error: false, field: [], issue: []
     }
     if(isThereProblemWithEmail(values.email)){
         result.error = true;
@@ -29,9 +27,7 @@ module.exports.registerInputRevise = (email, pwdText, pwdTextConf, uname)=>{
         pwdText
     }
     const result = {
-        error: false,
-        field: [],
-        issue: []
+        error: false, field: [], issue: []
     }
     if(isThereProblemWithEmail(values.email)){
         result.error = true;
@@ -61,9 +57,7 @@ module.exports.resetPwdInputRevise = (email)=>{
         email: email.trim()
     }
     const result = {
-        error: false,
-        field: [],
-        issue: []
+        error: false, field: [], issue: []
     }
     if(isThereProblemWithEmail(values.email)){
         result.error = true;
@@ -78,9 +72,7 @@ module.exports.updateAccDetInputRevise = (uname)=>{
         username: uname.trim()
     }
     const result = {
-        error: false,
-        field: [],
-        issue: []
+        error: false, field: [], issue: []
     }
     if(isThereProblemWithUsername(values.username)){
         result.error = true;
@@ -96,9 +88,7 @@ module.exports.changePwdInputRevise = (pwdTextOld, pwdTextNew, pwdTextConf )=>{
         pwdTextNew
     }
     const result = {
-        error: false,
-        field: [],
-        issue: []
+        error: false, field: [], issue: []
     }
     if(isThereProblemWithPassword(values.pwdTextOld)){
         result.error = true;
@@ -123,9 +113,7 @@ module.exports.deleteAccInputRevise = (pwdTextOld, pwdTextConf)=>{
         pwdTextOld
     }
     const result = {
-        error: false,
-        field: [],
-        issue: []
+        error: false, field: [], issue: []
     }
     if(isThereProblemWithPassword(values.pwdTextOld)){
         result.error = true;
@@ -140,6 +128,22 @@ module.exports.deleteAccInputRevise = (pwdTextOld, pwdTextConf)=>{
     return result.error? result : values;
 }
 
+module.exports.useridInputRevise = (id)=>{
+    const values = {
+        userid: id
+    }
+    const result = {
+        error: false, field: [], issue: []
+    }
+    if(isThereProblemWithUserid(values.userid)){
+        result.error = true;
+        result.field.push('userid');
+        result.issue.push('The userid is not acceptable!')
+    }
+    return result.error? result : values;
+}
+
+
 module.exports.postInputRevise = (postContent)=>{
 
 }
@@ -149,10 +153,8 @@ module.exports.commentInputRevise = (commentContent)=>{
 }
 
 
+
 function isThereProblemWithEmail(emailText){
-    //somehow it cannot identify the lack of '.' (dot) between domain name and extension
-    const pattern = '^[a-z0-9._]{3,}@[a-z]{3,}\.{1}[a-z]{2,3}$';
-    const analyzer = new RegExp(pattern)
     if(!emailText){
         return true;
     }
@@ -163,27 +165,41 @@ function isThereProblemWithEmail(emailText){
     if(parts[0].length < 2 || parts[0].length > 3 ){
         return true;
     }
+    //somehow it cannot identify the lack of '.' (dot) between domain name and extension
+    const pattern = '^[a-z0-9._]{3,}@[a-z]{3,}\.{1}[a-z]{2,3}$';
+    const analyzer = new RegExp(pattern)
     return !analyzer.test(emailText)
 
 }
 
 function isThereProblemWithPassword(pwdText){
-    const pattern = '.{6,}';
-    const analyzer = new RegExp(pattern)
     if(!pwdText){
         return true;
     }
+    const pattern = '.{6,}';
+    const analyzer = new RegExp(pattern)
     return !analyzer.test(pwdText)
 }
 
 function isThereProblemWithUsername(unameText){
-    const pattern = '[a-zA-Z0-9_ ]{4,}';
-    const analyzer = new RegExp(pattern)
     if(!unameText){
         return true;
     }
     if(unameText.length > 50){
         return true
     } 
+    const pattern = '[a-zA-Z0-9_ ]{4,}';
+    const analyzer = new RegExp(pattern)
     return !analyzer.test(unameText)
+}
+
+function isThereProblemWithUserid(usrid){
+    if(!usrid){
+        return true
+    }
+    if(usrid.length !== 24){
+        return true
+    }
+    const analyzer = new RegExp(/[a-f0-9]{24}/)
+    return !analyzer.test(usrid)
 }

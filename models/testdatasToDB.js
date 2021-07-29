@@ -1,6 +1,7 @@
 const mongooseId = require('mongoose').Types.ObjectId
 const userids = [
-    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId
+    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
+    new mongooseId
 ]
 const postids = [
     new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
@@ -25,7 +26,8 @@ module.exports.profiles = [
         lastLoggedAt: '',
         resetPwdToken: '',
 
-        friends: [userids[1], userids[3]]
+        friends: [userids[1], userids[3]],
+        undecided: []
     },
     {
         _id: userids[1],
@@ -36,7 +38,8 @@ module.exports.profiles = [
         lastLoggedAt: '',
         resetPwdToken: '',
 
-        friends: [userids[0], userids[2]]
+        friends: [userids[0], userids[2]],
+        undecided: []
     },
     {
         _id: userids[2],
@@ -47,7 +50,8 @@ module.exports.profiles = [
         lastLoggedAt: '',
         resetPwdToken: '',
 
-        friends: [userids[1]]
+        friends: [userids[1]],
+        undecided: []
     },
     {
         _id: userids[3],
@@ -58,7 +62,8 @@ module.exports.profiles = [
         lastLoggedAt: '',
         resetPwdToken: '',
 
-        friends: [userids[0]]
+        friends: [userids[0]],
+        undecided: []
     },
     {
         _id: userids[4],
@@ -69,7 +74,32 @@ module.exports.profiles = [
         lastLoggedAt: '',
         resetPwdToken: '',
 
-        friends: []
+        friends: [],
+        undecided: [userids[5]]
+    },
+    {
+        _id: userids[5],
+        email: 'testpurpose@gmail.com',
+        username: 'Somebody',
+        pwdHash: '$2b$12$1rGfwRBKU8zcFCHAEOWAlunq4JJG6bdKCQ3yjxdvw71a2RMtJtS2e',     // testkey
+        registeredAt: '',
+        lastLoggedAt: '',
+        resetPwdToken: '',
+
+        friends: [],
+        undecided: [userids[5]]
+    },
+    {
+        _id: userids[6],
+        email: 'testpurpose@gmail.com',
+        username: 'Really New Here',
+        pwdHash: '$2b$12$CtegCLT5gmar/gJ2r36kOOf5DnMMQnjwcL0CK0AtWt85R8lNjGwFe',     // testsecret
+        registeredAt: '',
+        lastLoggedAt: '',
+        resetPwdToken: '',
+
+        friends: [],
+        undecided: []
     }
 
 ]

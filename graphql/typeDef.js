@@ -1,23 +1,36 @@
 const { gql } = require('apollo-server-express')
 
 module.exports = gql`
-    ## for friends managing
+    ## for friends managing, not account datas approach
     type UserPublic {
         id: String!
         email: String!
         username: String!
         registeredAt: String!
+        status: Connection!
+        commonFriends: Int
+
         friends: [UserFracture]!
         posts: [Post]!
     }
     type UserFracture {
         id: String!
         username: String!
+        status: Connection!
+        commonFriends: Int
     }
     type FriendProcess {
         resultText: String!
         friendid: String!
     }
+    ## type of conenction CLOSE = friend of a friend
+    enum Connection {
+        FRIEND
+        CLOSE
+        UNCONNECTED
+        ME
+    }
+
 
 
     ## for posts and comments
@@ -90,7 +103,8 @@ module.exports = gql`
 
         ## firend processes
         listOfMyFriends: [UserPublic]!
-        listOfFriendsOf(friendid: String!): [UserPublic]!
+        listOfUndecidedFriends(): [UserFracture]!
+        listOfFriendOfThisUser(friendid: String!): [UserPublic]!
 
         ## posts processes
         listOfAllPosts: [Post]!         ## own and firends posts
@@ -108,8 +122,10 @@ module.exports = gql`
         deleteAccount(password: String!, passwordconf: String!): AccountProcess!
 
         ## firend processes
-        makeAFriend(friendId: String!): UserPublic!
-        removeAFriend(friendId: String): FriendProcess!
+        makeAFriend(friendid: String!): UserPublic!
+        removeAFriend(friendid: String): FriendProcess!
+        approveThisFriendRequest(fiendid: String!): FriendProcess!
+        removeThisFriendRequest(friendid: String!): FriendProcess!
 
         ## posts processes
             ## only if it is the user's
