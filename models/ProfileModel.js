@@ -9,7 +9,8 @@ const ProfileSchema = new mongoose.Schema({
     resetPwdToken: String,
 
     friends: [mongoose.Schema.Types.ObjectId],
-    undecided: [mongoose.Schema.Types.ObjectId]
+    initiatedCon: [mongoose.Schema.Types.ObjectId],
+    undecidedCon: [mongoose.Schema.Types.ObjectId]
 })
 
 module.exports = mongoose.model('profiles', ProfileSchema)

@@ -34,7 +34,7 @@ describe('Token input revision tests', ()=>{
     it('Normal test', ()=>{
         const token = tokenEncoder({ msg: 'text' })
         const tokenHeader = TOKEN_PREFIX + token
-        const tokenInput = { headers: { authorazition: tokenHeader } }
+        const tokenInput = { headers: { authorization: tokenHeader } }
         const revised = tokenInputRevise(tokenInput)
 
         expect(typeof revised).toBe('object')
@@ -54,8 +54,8 @@ describe('Token input revision tests', ()=>{
         expect(revised.tokenMissing).toBeTruthy()
         expect(revised.takenText).toBe(null)
     })
-    it('No real authorazition header test', ()=>{
-        const tokenInput = { headers: { authorazition: ''} }
+    it('No real authorization header test', ()=>{
+        const tokenInput = { headers: { authorization: ''} }
         const revised = tokenInputRevise(tokenInput)
         expect(typeof revised).toBe('object')
         expect(Object.keys(revised)).toEqual(
@@ -64,9 +64,9 @@ describe('Token input revision tests', ()=>{
         expect(revised.tokenMissing).toBeTruthy()
         expect(revised.takenText).toBe(null)
     })
-    it('No prefixed authorazition header test', ()=>{
+    it('No prefixed authorization header test', ()=>{
         const token = tokenEncoder({ msg: 'text' })
-        const tokenInput = { headers: { authorazition: token } }
+        const tokenInput = { headers: { authorization: token } }
         const revised = tokenInputRevise(tokenInput)
         expect(typeof revised).toBe('object')
         expect(Object.keys(revised)).toEqual(
@@ -78,7 +78,7 @@ describe('Token input revision tests', ()=>{
     it('Damaged schema token test', ()=>{
         const tokenParts = tokenEncoder({ msg: 'text' }).split('.')
         const token = tokenParts[0] + '.' + tokenParts[1] + tokenParts[2]
-        const tokenInput = { headers: { authorazition: token } }
+        const tokenInput = { headers: { authorization: token } }
         const revised = tokenInputRevise(tokenInput)
         expect(typeof revised).toBe('object')
         expect(Object.keys(revised)).toEqual(

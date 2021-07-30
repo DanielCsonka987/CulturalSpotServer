@@ -7,27 +7,25 @@ module.exports = gql`
         email: String!
         username: String!
         registeredAt: String!
-        status: Connection!
-        commonFriends: Int
+        relation: Connection!
+        mutualFriendCount: Int
 
         friends: [UserFracture]!
-        posts: [Post]!
     }
     type UserFracture {
         id: String!
         username: String!
-        status: Connection!
-        commonFriends: Int
+        relation: Connection!
+        mutualFriendCount: Int
     }
     type FriendProcess {
         resultText: String!
         friendid: String!
     }
-    ## type of conenction CLOSE = friend of a friend
     enum Connection {
         FRIEND
-        CLOSE
         UNCONNECTED
+        UNCERTAIN
         ME
     }
 
@@ -85,8 +83,13 @@ module.exports = gql`
         registeredAt: String!
         lastLoggedAt: String!
 
-        friends: [UserFracture]!
-        posts: [Post]
+        friends: [UserMini]!
+        myposts: [Post]
+    }
+    type UserMini {
+        id: String!,
+        username: String!,
+        email: String!
     }
     type AccountProcess {
         resultText: String!
@@ -101,10 +104,12 @@ module.exports = gql`
     type Query {
         testquery: String!
 
-        ## firend processes
-        listOfMyFriends: [UserPublic]!
-        listOfUndecidedFriends(): [UserFracture]!
-        listOfFriendOfThisUser(friendid: String!): [UserPublic]!
+        ## friend processes
+        listOfMyFriends: [UserMini]!
+        listOfUndecidedFriendships: [UserFracture]!
+        listOfInitiatedFriendships: [UserFracture]!
+        showThisUserInDetail(userid: String!): UserPublic 
+
 
         ## posts processes
         listOfAllPosts: [Post]!         ## own and firends posts
@@ -122,10 +127,17 @@ module.exports = gql`
         deleteAccount(password: String!, passwordconf: String!): AccountProcess!
 
         ## firend processes
-        makeAFriend(friendid: String!): UserPublic!
-        removeAFriend(friendid: String): FriendProcess!
-        approveThisFriendRequest(fiendid: String!): FriendProcess!
-        removeThisFriendRequest(friendid: String!): FriendProcess!
+            ## for the initiation management by the source
+        initiateAFriendship(friendid: String!): UserFracture!
+        removeAFriendshipInitiation(friendid: String): FriendProcess!
+
+            ## for the initiation acceptance-denial by the target
+        approveThisFriendshipRequest(fiendid: String!): UserMini
+        removeThisFriendshipRequest(friendid: String!): FriendProcess!
+
+            ## for remove a stable friend-conenction
+        removeThisFriend(friendid: String!): FriendProcess!
+
 
         ## posts processes
             ## only if it is the user's

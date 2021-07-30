@@ -13,7 +13,7 @@ const EmailReportModel = require('../../models/EmailReportModel')
 const PostModel = require('../../models/PostModel')
 
 // someHelper function in resolving - not standalone, apollo connected!
-const { authorazEvaluation } = require('./someHelper')
+const { authorizEvaluation } = require('./someHelper')
 
 async function passwordsMatching(user, pwdText){
     if(!user){
@@ -194,17 +194,17 @@ module.exports = {
             }
         },
 
-        async changePassword(_, args, context){
+        async changePassword(_, args, {authorizRes}){
             const { error, field, issue, pwdTextOld, pwdTextNew } = changePwdInputRevise(
                 args.oldpassword, args.newpassword, args.newconf
             )
             if(error){
                 return new UserInputError('Password changing', { field, issue })
             }
-            authorazEvaluation(context)
+            authorizEvaluation(authorizRes)
 
             //old password revsision
-            const userToChangePwd = await ProfileModel.findOne({ _id: context.authorazRes.subj })
+            const userToChangePwd = await ProfileModel.findOne({ _id: authorizRes.subj })
             await passwordsMatching(userToChangePwd, pwdTextOld)
 
             //process execution
@@ -220,13 +220,13 @@ module.exports = {
             }
             return {
                 resultText: 'Your password changed!',
-                id: context.authorazRes.subj,
+                id: authorizRes.subj,
                 email: userToChangePwd.email,
                 username: userToChangePwd.username
             }
         },
 
-        async changeAccountDatas(_, args, context){
+        async changeAccountDatas(_, args, {authorizRes}){
             const { error, field, issue, username} = updateAccDetInputRevise(
                 args.username
             )
@@ -234,8 +234,8 @@ module.exports = {
                 return new UserInputError('Account details changing', { field, issue })
             }
 
-            authorazEvaluation(context)
-            const userToUpdate = await ProfileModel.findOne({ _id: context.authorazRes.subj})
+            authorizEvaluation(authorizRes)
+            const userToUpdate = await ProfileModel.findOne({ _id: authorizRes.subj})
             if(!userToUpdate){
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
@@ -247,14 +247,14 @@ module.exports = {
             }
             return {
                 resultText: 'Account datas changed!',
-                id: context.authorazRes.subj,
+                id: authorizRes.subj,
                 email: userToUpdate.email,
                 username: userToUpdate.username
                 
             }
         },
 
-        async deleteAccount(_, args, context){
+        async deleteAccount(_, args, {authorizRes}){
             const { error, field, issue, pwdTextOld } = deleteAccInputRevise(
                 args.password,
                 args.passwordconf
@@ -263,12 +263,12 @@ module.exports = {
                 return new UserInputError('Delete account passwords', { field, issue })
             }
 
-            authorazEvaluation(context)
-            const userToDelete = await ProfileModel.findOne({ _id: context.authorazRes.subj })
+            authorizEvaluation(authorizRes)
+            const userToDelete = await ProfileModel.findOne({ _id: authorizRes.subj })
 
             await passwordsMatching(userToDelete, pwdTextOld)
             const tempDatas = { email: userToDelete.email, username: userToDelete.username }
-            await ProfileModel.deleteOne({ _id: context.authorazRes.subj}, (err)=>{
+            await ProfileModel.deleteOne({ _id: authorizRes.subj}, (err)=>{
                 if(err){
                     return new ApolloError('Server error occured', err)
                 }
@@ -276,7 +276,7 @@ module.exports = {
 
             return {
                 resultText: 'Account deleted!',
-                id: context.authorazRes.subj,
+                id: authorizRes.subj,
                 email: tempDatas.email,
                 username: tempDatas.username
 

@@ -21,10 +21,10 @@ const apolloSrv = new ApolloServer({
     resolvers,
     context: async({ req, res })=>{
 
-        const authorazRes = await tokenVerify( tokenInputRevise(req) );
+        const authorizRes = await tokenVerify( tokenInputRevise(req) );
         const domainURL = getDomainURL(req, LOCAL_DOMAIN_URL)
         return {
-            authorazRes,
+            authorizRes,
             domainURL
         }
     }

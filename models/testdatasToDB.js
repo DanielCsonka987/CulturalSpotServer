@@ -27,7 +27,8 @@ module.exports.profiles = [
         resetPwdToken: '',
 
         friends: [userids[1], userids[3]],
-        undecided: []
+        initiatedCon: [],
+        undecidedCon: [userids[5]]
     },
     {
         _id: userids[1],
@@ -39,7 +40,8 @@ module.exports.profiles = [
         resetPwdToken: '',
 
         friends: [userids[0], userids[2]],
-        undecided: []
+        initiatedCon: [],
+        undecidedCon: []
     },
     {
         _id: userids[2],
@@ -51,7 +53,8 @@ module.exports.profiles = [
         resetPwdToken: '',
 
         friends: [userids[1]],
-        undecided: []
+        initiatedCon: [],
+        undecidedCon: []
     },
     {
         _id: userids[3],
@@ -63,7 +66,8 @@ module.exports.profiles = [
         resetPwdToken: '',
 
         friends: [userids[0]],
-        undecided: []
+        initiatedCon: [],
+        undecidedCon: []
     },
     {
         _id: userids[4],
@@ -75,7 +79,8 @@ module.exports.profiles = [
         resetPwdToken: '',
 
         friends: [],
-        undecided: [userids[5]]
+        initiatedCon: [],
+        undecidedCon: [userids[5]]
     },
     {
         _id: userids[5],
@@ -87,7 +92,8 @@ module.exports.profiles = [
         resetPwdToken: '',
 
         friends: [],
-        undecided: [userids[5]]
+        initiatedCon: [userids[4], userids[0]],
+        undecidedCon: []
     },
     {
         _id: userids[6],
@@ -99,7 +105,8 @@ module.exports.profiles = [
         resetPwdToken: '',
 
         friends: [],
-        undecided: []
+        initiatedCon: [],
+        undecidedCon: []
     }
 
 ]

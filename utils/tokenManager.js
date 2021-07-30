@@ -16,7 +16,7 @@ module.exports = {
             tokenMissing: false,
             takenText: null
         }
-        const headerText = reqToVerif.headers.authorazition;
+        const headerText = reqToVerif.headers.authorization;
         if(!headerText){
             results.tokenMissing = true;
             return results;

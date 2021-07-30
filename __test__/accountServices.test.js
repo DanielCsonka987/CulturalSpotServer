@@ -154,7 +154,7 @@ describe('GrapQL profile queries', ()=>{
                     }
                 }`
             })
-            .set('Authorazition', createTokenToHeader(tokenToAuth))
+            .set('Authorization', createTokenToHeader(tokenToAuth))
             .set('Accept', 'application/json')
             .expect('Content-Type', 'application/json; charset=utf-8')
             .expect(200)
@@ -200,7 +200,7 @@ describe('GrapQL profile queries', ()=>{
                     id, username, email, resultText
                 }
             }`})
-            .set('Authorazition', createTokenToHeader(tokenToAuth))
+            .set('Authorization', createTokenToHeader(tokenToAuth))
             .set('Accept', 'application/json')
             .expect('Content-Type', 'application/json; charset=utf-8')
             .expect(200)
@@ -238,7 +238,7 @@ describe('GrapQL profile queries', ()=>{
                     id, username, email, resultText
                 }
             }`})
-            .set('Authorazition', createTokenToHeader(tokenToAuth))
+            .set('Authorization', createTokenToHeader(tokenToAuth))
             .set('Accept', 'application/json')
             .expect('Content-Type', 'application/json; charset=utf-8')
             .expect(200)
