@@ -1,4 +1,5 @@
 const { AuthenticationError } = require('apollo-server-express')
+const mongooseId = require('mongoose').Types.ObjectId;
 
 const ProfileModel = require('../../models/ProfileModel')
 
@@ -19,13 +20,16 @@ module.exports.authorizEvaluation = (authorizRes)=>{
     return;
 }
 
-module.exports.countTheAmountOfFriends = async (useridOfTargetAcc, baseAccountWitFriendList)=>{
-    if(useridOfTargetAcc === baseAccountWitFriendList._id){
-        return baseAccountWitFriendList.friends.length
+module.exports.countTheAmountOfFriends = async (useridAsBase, accountToCompare)=>{
+    const useridBaseObj = (typeof useridAsBase === 'object')? 
+        useridAsBase : new mongooseId(useridAsBase)
+
+    if(useridBaseObj.equals(accountToCompare._id)){
+        return accountToCompare.friends.length
     }
-    const accountUnderAnalyze = await ProfileModel.findOne({ _id: useridOfTargetAcc})
+    const accountUnderAnalyze = await ProfileModel.findOne({ _id: useridBaseObj})
     const resultAmount = accountUnderAnalyze.friends.reduce((acc, cur)=>{
-        if(baseAccountWitFriendList.friends.includes(cur._id)){
+        if(accountToCompare.friends.includes(cur._id)){
             return acc + 1;
         }
     }, 0)
@@ -34,14 +38,30 @@ module.exports.countTheAmountOfFriends = async (useridOfTargetAcc, baseAccountWi
     return resultAmount
 }
 
-module.exports.defineUserConnections = (useridOfTargetAcc,  baseAccountWitFriendList)=>{
-    if(typeof useridOfTargetAcc === 'object'){       
-        return (useridOfTargetAcc.equals(baseAccountWitFriendList._id))? 'ME' : 
-                clientUser.friends.includes(item._id)? 'FRIEND': 'UNCONNECTED'
-    }else{
-        return (useridOfTargetAcc === baseAccountWitFriendList._id.toString())? 'ME' : 
-            clientUser.friends.includes(item._id)? 'FRIEND': 'UNCONNECTED'
+module.exports.defineUserConnections = (useridAsBase,  accountToCompare)=>{
+    const useridBaseObj = (typeof useridAsBase === 'object')? 
+        useridAsBase : new mongooseId(useridAsBase)
+    
+    //accepts only mongoose.Types.ObjectID as targetAccount !!!
+    if(useridBaseObj.equals(accountToCompare._id)){
+        return 'ME'
     }
+    if(accountToCompare.friends.includes(useridBaseObj)){
+        return 'FRIEND'
+    }
+    if(accountToCompare.initiatedCon.includes(useridBaseObj)){
+        return 'INITIATED'
+    }
+    if(accountToCompare.undecidedCon.includes(useridBaseObj)){
+        return 'UNCERTAIN'
+    }
+    return 'UNCONNECTED'
+}
 
-    // finish it!!! get input from undecidedCon and initiatedCon fields!!!
+module.exports.getTheUsernameFromId = async (useridAsBase)=>{
+    const useridBaseObj = (typeof useridAsBase === 'object')? 
+        useridAsBase : new mongooseId(useridAsBase)
+    
+    const profile = await ProfileModel.findOne({ _id: useridBaseObj })
+    return profile.username
 }

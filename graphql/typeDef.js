@@ -20,12 +20,13 @@ module.exports = gql`
     }
     type FriendProcess {
         resultText: String!
-        friendid: String!
+        useridAtProcess: String!
     }
     enum Connection {
         FRIEND
-        UNCONNECTED
+        INITIATED
         UNCERTAIN
+        UNCONNECTED
         ME
     }
 
@@ -58,6 +59,7 @@ module.exports = gql`
         LOVE
         FUNNY
         SAD
+        MAD
     }
     type PostProcess {
         resultText: String!
@@ -109,7 +111,8 @@ module.exports = gql`
         listOfUndecidedFriendships: [UserFracture]!
         listOfInitiatedFriendships: [UserFracture]!
         showThisUserInDetail(userid: String!): UserPublic 
-
+            ## undecidedCon and friends of friends
+        showMeWhoCouldBeMyFriend: [UserFracture]!
 
         ## posts processes
         listOfAllPosts: [Post]!         ## own and firends posts
@@ -128,13 +131,11 @@ module.exports = gql`
 
         ## firend processes
             ## for the initiation management by the source
-        initiateAFriendship(friendid: String!): UserFracture!
+        createAFriendshipInvitation(friendid: String!): UserFracture!
         removeAFriendshipInitiation(friendid: String): FriendProcess!
-
             ## for the initiation acceptance-denial by the target
-        approveThisFriendshipRequest(fiendid: String!): UserMini
+        approveThisFriendshipRequest(friendid: String!): UserMini
         removeThisFriendshipRequest(friendid: String!): FriendProcess!
-
             ## for remove a stable friend-conenction
         removeThisFriend(friendid: String!): FriendProcess!
 

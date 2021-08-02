@@ -1,11 +1,11 @@
 const mongooseId = require('mongoose').Types.ObjectId
 const userids = [
     new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
-    new mongooseId
+    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId
 ]
 const postids = [
     new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
-    new mongooseId, new mongooseId
+    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId
 ]
 const commentids = [
     new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
@@ -21,7 +21,7 @@ module.exports.profiles = [
         _id: userids[0],
         email: 'example@hotmail.uk',
         username: 'John Doe',
-        pwdHash: '$2b$12$1qZdlguz7VvXF2C.FBy/0OEYbszOuUnkHUBp37td1YcTppNVaAona',     // testing
+        pwdHash: '$2b$12$MRSBPUJkPgav1B4pFGJsE.hrn0vZZ19/kjpIaOUpGFUlr7X2zF3Uu',     // testing
         registeredAt: '',
         lastLoggedAt: '',
         resetPwdToken: '',
@@ -34,12 +34,12 @@ module.exports.profiles = [
         _id: userids[1],
         email: 'mymail@hotmail.com',
         username: 'Fraser',
-        pwdHash: '$2b$12$L38Vr6KWwOzskRdIdUo7COGBrNW/2./V8pp5/5QAMNLOM4c1OVHv.',     // tester
+        pwdHash: '$2b$12$MRSBPUJkPgav1B4pFGJsE.hrn0vZZ19/kjpIaOUpGFUlr7X2zF3Uu',     // testing
         registeredAt: '',
         lastLoggedAt: '',
         resetPwdToken: '',
 
-        friends: [userids[0], userids[2]],
+        friends: [userids[0], userids[2], userids[7], userids[8]],
         initiatedCon: [],
         undecidedCon: []
     },
@@ -47,7 +47,7 @@ module.exports.profiles = [
         _id: userids[2],
         email: 'email@gmail.jp',
         username: 'Caster',
-        pwdHash: '$2b$12$S4q3ocgS9Jrs0DKISlnhfOLwhIhUoKkyuoUX9N.xS3JNvHz7WDXJq',     // testcase
+        pwdHash: '$2b$12$XBj3d7FG3ETwbHtIaEd2vuWdq.8wpLtmxHN8JdLEae5s5attfPFVC',     // testing
         registeredAt: '',
         lastLoggedAt: '',
         resetPwdToken: '',
@@ -60,7 +60,7 @@ module.exports.profiles = [
         _id: userids[3],
         email: 'myacc@hotmail.com',
         username: 'Passer By',
-        pwdHash: '$2b$12$XNEpIDrfE3T0V8uyprkiuOOl8TFiaz1svamipfn5kMDQTA85rwXwK',     // testpass
+        pwdHash: '$2b$12$mZqGaZe0EY3RWCV8.U5CD.n5bOdapHztkHoVzkunATOtsovbjxobC',     // testing
         registeredAt: '',
         lastLoggedAt: '',
         resetPwdToken: '',
@@ -73,7 +73,7 @@ module.exports.profiles = [
         _id: userids[4],
         email: 'testing@gmail.com',
         username: 'Passenger',
-        pwdHash: '$2b$12$XNEpIDrfE3T0V8uyprkiuOOl8TFiaz1svamipfn5kMDQTA85rwXwK',     // testpasser
+        pwdHash: '$2b$12$FBM2jfgz3QgDBDewmAHvKONp9Zg.Y1NFgH.jDoEyif1aHtUzPN8RW',     // testing
         registeredAt: '',
         lastLoggedAt: '',
         resetPwdToken: '',
@@ -86,12 +86,12 @@ module.exports.profiles = [
         _id: userids[5],
         email: 'testpurpose@gmail.com',
         username: 'Somebody',
-        pwdHash: '$2b$12$1rGfwRBKU8zcFCHAEOWAlunq4JJG6bdKCQ3yjxdvw71a2RMtJtS2e',     // testkey
+        pwdHash: '$2b$12$puvV62aqpUXGG3JJfUHKVOC4RVSMHJkfeW7hyrQrpmHcKBU9j9NIS',     // testing
         registeredAt: '',
         lastLoggedAt: '',
         resetPwdToken: '',
 
-        friends: [],
+        friends: [userids[9]],
         initiatedCon: [userids[4], userids[0]],
         undecidedCon: []
     },
@@ -99,7 +99,7 @@ module.exports.profiles = [
         _id: userids[6],
         email: 'testpurpose@gmail.com',
         username: 'Really New Here',
-        pwdHash: '$2b$12$CtegCLT5gmar/gJ2r36kOOf5DnMMQnjwcL0CK0AtWt85R8lNjGwFe',     // testsecret
+        pwdHash: '$2b$12$UVOs.o3nDnMpPuCB182KJOnjznM.2udxeoZWproMQmq6vDPBPli0C',     // testing
         registeredAt: '',
         lastLoggedAt: '',
         resetPwdToken: '',
@@ -107,8 +107,46 @@ module.exports.profiles = [
         friends: [],
         initiatedCon: [],
         undecidedCon: []
-    }
+    },
+    {
+        _id: userids[7],
+        email: 'usermail@gmail.com',
+        username: 'Profile_1089',
+        pwdHash: '$2b$12$26bRmafEWLEggXu7XA7SCuRfR3GJT.eXbSOP05mkqfxgQvATWmffO',     // testing
+        registeredAt: '',
+        lastLoggedAt: '',
+        resetPwdToken: '',
 
+        friends: [userids[1]],
+        initiatedCon: [],
+        undecidedCon: []
+    },
+    {
+        _id: userids[8],
+        email: 'mail1569@gmail.com',
+        username: 'User Programmer',
+        pwdHash: '$2b$12$.WEmolgcMWZl78bTn8sBC.w1mbR4kpE/F0hI9Bql7ylAtWi2ni3Uy',     // testing
+        registeredAt: '',
+        lastLoggedAt: '',
+        resetPwdToken: '',
+
+        friends: [userids[1]],
+        initiatedCon: [],
+        undecidedCon: []
+    },
+    {
+        _id: userids[9],
+        email: 'user319mail@gmail.com',
+        username: 'CoolGuy',
+        pwdHash: '$2b$12$xDMFtCneEzaUpu0plRIk1u29i5NdriaOMnndJt980lrkHb7MoqfGS',     // testing
+        registeredAt: '',
+        lastLoggedAt: '',
+        resetPwdToken: '',
+
+        friends: [userids[5]],
+        initiatedCon: [],
+        undecidedCon: []
+    }
 ]
 
 module.exports.posts = [
@@ -190,6 +228,27 @@ module.exports.posts = [
         comments: [
             commentids[4], commentids[5]
         ],
+        sentiments: []
+    },
+    {
+        _id: postids[7],
+        owner: userids[5],
+        content: 'Good Business is appeared, no hesitate to ask about it!',
+        comments: [],
+        sentiments: []
+    },
+    {
+        _id: postids[8],
+        owner: userids[9],
+        content: 'I have some newborn little kittey, who seeks new home at good owners!',
+        comments: [],
+        sentiments: []
+    },
+    {
+        _id: postids[9],
+        owner: userids[7],
+        content: 'The weather is awful....I have already wet cealing - anybody with the same problem?',
+        comments: [],
         sentiments: []
     }
 ]
