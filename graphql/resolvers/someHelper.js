@@ -3,6 +3,10 @@ const mongooseId = require('mongoose').Types.ObjectId;
 
 const ProfileModel = require('../../models/ProfileModel')
 
+/**
+ * for the authorization the token consist 
+ * -> subj (user identification), exp (timelimit to use)
+*/
 module.exports.authorizEvaluation = (authorizRes)=>{
     let reasonOfFail = ''
     if(!authorizRes.accesPermission){
@@ -18,6 +22,21 @@ module.exports.authorizEvaluation = (authorizRes)=>{
         throw new AuthenticationError('Login to use the service!', { general: reasonOfFail })
     } 
     return;
+}
+
+/**
+ * for the authorization the token consist 
+ * -> id (user identification), no exp field!!
+ * => no user of authorizRes and authorazEvaluation() with this!
+ * => tokenInputRevise() no valid either (its for header revision)
+*/
+module.exports.tokenRefreshmentEvaluation = ()=>{
+    let reasonOfFail = ''
+
+
+    if(reasonOfFail){
+        throw new AuthenticationError('Token renewal failed! Please, login again!', { general: reasonOfFail })
+    } 
 }
 
 module.exports.countTheAmountOfFriends = async (useridAsBase, accountToCompare)=>{

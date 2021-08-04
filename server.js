@@ -9,7 +9,7 @@ const DB_CONNECT = (process.env.NODE_ENV === 'production')?
 const typeDefs = require('./graphql/typeDef')
 const resolvers = require('./graphql/resolvers')
 const emailerTrsp = require('./emailer/emailerSetup')
-const { tokenInputRevise, tokenVerify } = require('./utils/tokenManager')
+const { authorizTokenInputRevise, authorizTokenVerify } = require('./utils/tokenManager')
 const getDomainURL = require('./utils/defineDomainURL')
 const { RESETPWD_REST_GET_ROUTE } = require('./config/appConfig').ROUTING
 
@@ -20,8 +20,15 @@ const apolloSrv = new ApolloServer({
     typeDefs,
     resolvers,
     context: async({ req, res })=>{
-
-        const authorizRes = await tokenVerify( tokenInputRevise(req) );
+    /**
+     * for the authorization the token consist 
+     * -> id (user identification), no exp field!!
+     * => no user of authorizRes and authorazEvaluation() with this!
+     * => authorizTokenInputRevise() no valid either (its for header revision)
+    */
+        const authorizRes = await authorizTokenVerify( 
+            authorizTokenInputRevise(req) 
+        );
         const domainURL = getDomainURL(req, LOCAL_DOMAIN_URL)
         return {
             authorizRes,

@@ -82,6 +82,7 @@ module.exports = gql`
         username: String!
         token: String!
         tokenExpire: Int!
+        tokenRefresh: String!
         registeredAt: String!
         lastLoggedAt: String!
 
@@ -110,7 +111,7 @@ module.exports = gql`
         listOfMyFriends: [UserMini]!
         listOfUndecidedFriendships: [UserFracture]!
         listOfInitiatedFriendships: [UserFracture]!
-        showThisUserInDetail(userid: String!): UserPublic 
+        showThisUserInDetail(friendid: String!): UserPublic 
             ## undecidedCon and friends of friends
         showMeWhoCouldBeMyFriend: [UserFracture]!
 

@@ -24,7 +24,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$MRSBPUJkPgav1B4pFGJsE.hrn0vZZ19/kjpIaOUpGFUlr7X2zF3Uu',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [userids[1], userids[3]],
         initiatedCon: [],
@@ -37,7 +38,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$MRSBPUJkPgav1B4pFGJsE.hrn0vZZ19/kjpIaOUpGFUlr7X2zF3Uu',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [userids[0], userids[2], userids[7], userids[8]],
         initiatedCon: [],
@@ -50,7 +52,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$XBj3d7FG3ETwbHtIaEd2vuWdq.8wpLtmxHN8JdLEae5s5attfPFVC',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [userids[1]],
         initiatedCon: [],
@@ -63,7 +66,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$mZqGaZe0EY3RWCV8.U5CD.n5bOdapHztkHoVzkunATOtsovbjxobC',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [userids[0]],
         initiatedCon: [],
@@ -76,7 +80,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$FBM2jfgz3QgDBDewmAHvKONp9Zg.Y1NFgH.jDoEyif1aHtUzPN8RW',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [],
         initiatedCon: [],
@@ -89,7 +94,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$puvV62aqpUXGG3JJfUHKVOC4RVSMHJkfeW7hyrQrpmHcKBU9j9NIS',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [userids[9]],
         initiatedCon: [userids[4], userids[0]],
@@ -102,7 +108,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$UVOs.o3nDnMpPuCB182KJOnjznM.2udxeoZWproMQmq6vDPBPli0C',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [],
         initiatedCon: [],
@@ -115,7 +122,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$26bRmafEWLEggXu7XA7SCuRfR3GJT.eXbSOP05mkqfxgQvATWmffO',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [userids[1]],
         initiatedCon: [],
@@ -128,7 +136,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$.WEmolgcMWZl78bTn8sBC.w1mbR4kpE/F0hI9Bql7ylAtWi2ni3Uy',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [userids[1]],
         initiatedCon: [],
@@ -141,7 +150,8 @@ module.exports.profiles = [
         pwdHash: '$2b$12$xDMFtCneEzaUpu0plRIk1u29i5NdriaOMnndJt980lrkHb7MoqfGS',     // testing
         registeredAt: '',
         lastLoggedAt: '',
-        resetPwdToken: '',
+        resetPwdMarker: '',
+        refreshToken: '',
 
         friends: [userids[5]],
         initiatedCon: [],

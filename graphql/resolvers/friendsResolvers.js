@@ -64,7 +64,7 @@ module.exports = {
         async showThisUserInDetail(_, args, { authorizRes }){
             await authorizEvaluation( authorizRes )
 
-            const { error, issue, field, userid} = useridInputRevise(args.userid)
+            const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){
                 return new UserInputError('No proper userid for show a user catalog!', { field, issue })
             }
@@ -148,7 +148,7 @@ module.exports = {
             return {
                 id: userid,
                 username: targetUser.username,
-                relation: 'UNCERTAIN',
+                relation: 'INITIATED',
                 mutualFriendCount: await countTheAmountOfFriends(targetUser._id, clientUser)
             }
         },

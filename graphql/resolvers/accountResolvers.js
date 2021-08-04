@@ -1,7 +1,7 @@
 const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server-express')
 
 //helper utils, standalone like, models
-const { tokenEncoder, createTokenToLink, createTokenToHeader } = require('../../utils/tokenManager')
+const { autorizTokenEncoder, createTokenToLink, createRefreshToken } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
     changePwdInputRevise, deleteAccInputRevise,
@@ -82,10 +82,11 @@ module.exports = {
             
             return {
                 id: userToLogin._id,
-                token: tokenEncoder({subj: userToLogin.id, email: userToLogin.email}),
-                tokenExpire: 3600,
                 email: userToLogin.email,
                 username: userToLogin.username,
+                token: autorizTokenEncoder({subj: userToLogin.id, email: userToLogin.email}),
+                tokenExpire: 3600,
+                refreshToken: createRefreshToken({id: userToLogin._id}),
                 registeredAt: userToLogin.registeredAt,
                 lastLoggedAt: lastLoggedTime,
 
@@ -118,28 +119,45 @@ module.exports = {
                 username: username,
                 pwdHash: encrypt.hash,
                 registeredAt: actTimeISO,
-                lastLoggedAt: actTimeISO
+                lastLoggedAt: actTimeISO,
+                resetPwdMarker: '',
+                refreshToken: '',
+    
+                friends: [],
+                initiatedCon: [],
+                undecidedCon: []
             })
             try{
                 await newUser.save()
             }catch(err){
                 return ApolloError('Registration is not completed!', { err })
             }
-            
+            const refreshToken = createRefreshToken({id: newUser._id})
+            try{
+                newUser.refreshToken = refreshToken;
+                await newUser.save()
+            }catch(err){
+                return ApolloError('Login is not completed!', { err })
+            }
             return {
                 id: newUser._id,
-                token: tokenEncoder({ subj: newUser._id, email: newUser.email }),
+                token: autorizTokenEncoder({ subj: newUser._id, email: newUser.email }),
                 tokenExpire: 3600,
                 email: newUser.email,
                 username: newUser.username,
                 registeredAt: newUser.registeredAt,
                 lastLoggedAt: newUser.lastLoggedAt,
+                refreshToken: refreshToken,
 
                 friends: [],
                 posts: []
             }
         },
-
+/* 
+ * Resetting forgotten password first step -> email creation with link
+ * Href = doman + userid + resetToken
+ * resetToken with secretkey of hashPWD and timemark, content of {mark: timemark}
+*/
         async resetPassword(_, args, context){
             const { error, field, issue, email } = resetPwdInputRevise( args.email )
 
@@ -153,7 +171,7 @@ module.exports = {
             }
 
             const datingMarker = new Date().getTime()
-            userToReset.resetPwdToken = datingMarker.toString()
+            userToReset.resetPwdMarker = datingMarker.toString()
             try{
                 await userToReset.save()
             }catch(err){

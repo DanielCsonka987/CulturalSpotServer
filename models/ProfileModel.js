@@ -6,7 +6,8 @@ const ProfileSchema = new mongoose.Schema({
     username: String,
     registeredAt: String,
     lastLoggedAt: String,
-    resetPwdToken: String,
+    resetPwdMarker: String,
+    refreshToken: String,
 
     friends: [mongoose.Schema.Types.ObjectId],
     initiatedCon: [mongoose.Schema.Types.ObjectId],
