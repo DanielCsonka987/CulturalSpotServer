@@ -1,4 +1,4 @@
-const { AuthenticationError } = require('apollo-server-express')
+const { AuthenticationError, ApolloError } = require('apollo-server-express')
 const mongooseId = require('mongoose').Types.ObjectId;
 
 const ProfileModel = require('../../models/ProfileModel')
@@ -39,14 +39,18 @@ module.exports.tokenRefreshmentEvaluation = ()=>{
     } 
 }
 
-module.exports.countTheAmountOfFriends = async (useridAsBase, accountToCompare)=>{
+module.exports.countTheAmountOfFriends = async (useridAsBase, accountToCompare, dataSources)=>{
     const useridBaseObj = (typeof useridAsBase === 'object')? 
         useridAsBase : new mongooseId(useridAsBase)
 
     if(useridBaseObj.equals(accountToCompare._id)){
         return accountToCompare.friends.length
     }
-    const accountUnderAnalyze = await ProfileModel.findOne({ _id: useridBaseObj})
+    const accountUnderAnalyze = await dataSources.profiles.get(useridBaseObj)
+    if(!accountUnderAnalyze){
+        throw new ApolloError('No user have found', 
+        { general: 'countTheAmountOfFriends falied' })
+    }
     const resultAmount = accountUnderAnalyze.friends.reduce((acc, cur)=>{
         if(accountToCompare.friends.includes(cur._id)){
             return acc + 1;
@@ -77,10 +81,14 @@ module.exports.defineUserConnections = (useridAsBase,  accountToCompare)=>{
     return 'UNCONNECTED'
 }
 
-module.exports.getTheUsernameFromId = async (useridAsBase)=>{
+module.exports.getTheUsernameFromId = async (useridAsBase, dataSources)=>{
     const useridBaseObj = (typeof useridAsBase === 'object')? 
         useridAsBase : new mongooseId(useridAsBase)
     
-    const profile = await ProfileModel.findOne({ _id: useridBaseObj })
+    const profile = await dataSources.profiles.get(useridBaseObj)
+    if(!profile){
+        throw new ApolloError('No user have found', 
+        { general: 'UsernameFromId falied to ' + useridBaseObj.toString() })
+    }
     return profile.username
 }

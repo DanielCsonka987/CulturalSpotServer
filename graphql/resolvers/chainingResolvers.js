@@ -3,7 +3,6 @@ const ProfileModel = require('../../models/ProfileModel')
 const { countTheAmountOfFriends, defineUserConnections } = require('./someHelper')
 
 module.exports = {
-
     UserLogging: {
         friends: async (parent)=>{
             const friendsArray = await ProfileModel.find({_id: parent.friends })

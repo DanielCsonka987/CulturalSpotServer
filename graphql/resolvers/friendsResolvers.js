@@ -7,14 +7,14 @@ const { useridInputRevise } = require('../../utils/inputRevise')
 module.exports = {
 
     Query: {
-        async listOfMyFriends(_, __, { authorizRes }){
+        async listOfMyFriends(_, __, { authorizRes, dataSources }){
             await authorizEvaluation(authorizRes)
 
-            const myAccount = await ProfileModel.findOne({_id: authorizRes.subj})
+            const myAccount = await dataSources.profiles.get(authorizRes.subj)
             if(!myAccount){
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
-            const usersFriendsAccounts = await ProfileModel.find({ _id: myAccount.friends })
+            const usersFriendsAccounts = await dataSources.profiles.getAllOfThese(myAccount.friends)
 
             return  usersFriendsAccounts.map(frnd=>{
                 return { 
@@ -24,91 +24,111 @@ module.exports = {
                 }
             })
         },
-        async listOfUndecidedFriendships(_, __, { authorizRes }){
+        async listOfUndecidedFriendships(_, __, { authorizRes, dataSources }){
             await authorizEvaluation(authorizRes)
 
-            const myAccount = await ProfileModel.findOne({_id: authorizRes.subj})
+            const myAccount = await dataSources.profiles.get(authorizRes.subj)
             if(!myAccount){
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
-            const usersUndecidedFriends = await ProfileModel.find({ _id: myAccount.undecidedCon })
-
+            const usersUndecidedFriends = await dataSources.profiles.getAllOfThese(
+                myAccount.undecidedCon
+            )
             return  usersUndecidedFriends.map(async frnd=>{
                 return { 
                     id: frnd._id,
                     username: frnd.username,
                     relation: 'UNCERTAIN',
-                    mutualFriendCount: await countTheAmountOfFriends(frnd._id, myAccount)
+                    mutualFriendCount: await countTheAmountOfFriends(
+                        frnd._id, myAccount, dataSources
+                    )
                 }
             })
         },
-        async listOfInitiatedFriendships(_, __, { authorizRes}){
+        async listOfInitiatedFriendships(_, __, { authorizRes, dataSources }){
             await authorizEvaluation(authorizRes)
 
-            const myAccount = await ProfileModel.findOne({_id: authorizRes.subj})
+            const myAccount = await dataSources.profiles.get(authorizRes.subj)
             if(!myAccount){
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
 
-            const usersInitiatedFriendships = await ProfileModel.find({ _id: myAccount.initiatedCon })
-
+            const usersInitiatedFriendships = await dataSources.profiles.getAllOfThese(
+                myAccount.initiatedCon 
+            )
             return  usersInitiatedFriendships.map(async frnd=>{
                 return { 
                     id: frnd._id,
                     username: frnd.username,
                     relation: 'INITIATED',
-                    mutualFriendCount: await countTheAmountOfFriends(frnd._id, myAccount)
+                    mutualFriendCount: await countTheAmountOfFriends(
+                        frnd._id, myAccount, dataSources
+                    )
                 }
             })
         },
-        async showThisUserInDetail(_, args, { authorizRes }){
+        async showThisUserInDetail(_, args, { authorizRes, dataSources }){
             await authorizEvaluation( authorizRes )
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){
                 return new UserInputError('No proper userid for show a user catalog!', { field, issue })
             }
-            const accountAtQuery = await ProfileModel.findOne({_id: userid})
+            const accountAtQuery = await dataSources.profiles.get(userid)
             if(!accountAtQuery){
                 return new UserInputError('No user found', { general: 'No target of input userid' })
             }
-            const theFriendList = await ProfileModel.find({ _id: accountAtQuery.friends })
-            const clientUser = await ProfileModel.findOne({ _id: authorizRes.subj })
+            const theFriendList = await dataSources.profiles.getAllOfThese(
+                accountAtQuery.friends 
+            )
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
             return {
                 id: userid,
                 email: accountAtQuery.email,
                 username: accountAtQuery.username,
                 registeredAt: accountAtQuery.registeredAt,
-                relation: defineUserConnections(accountAtQuery._id, clientUser),
-                mutualFriendCount: await countTheAmountOfFriends(accountAtQuery._id, clientUser),
+                relation: defineUserConnections(
+                    accountAtQuery._id, clientUser, dataSources
+                ),
+                mutualFriendCount: await countTheAmountOfFriends(
+                    accountAtQuery._id, clientUser, dataSources
+                ),
                 friends: theFriendList
             } 
         },
-        async showMeWhoCouldBeMyFriend(_, __, { authorizRes }){
+        async showMeWhoCouldBeMyFriend(_, __, { authorizRes, dataSources }){
             await authorizEvaluation( authorizRes )
-            const clientUser = await ProfileModel.findOne({ _id: authorizRes.subj })
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
             const possibleFriendOutput = []
             for( const undecCon of clientUser.undecidedCon){
                 possibleFriendOutput.push({ 
                     id: undecCon._id,
-                    username: await getTheUsernameFromId(undecCon._id),
+                    username: await getTheUsernameFromId(
+                        undecCon._id, dataSources
+                    ),
                     relation: 'UNCERTAIN',
-                    mutualFriendCount: await countTheAmountOfFriends(undecCon, clientUser)
+                    mutualFriendCount: await countTheAmountOfFriends(
+                        undecCon, clientUser, dataSources
+                    )
                 })
             }
             for(const frnd of clientUser.friends ){
 
-                const frndAcc = await ProfileModel.findOne({ _id: frnd._id })
+                const frndAcc = await dataSources.profiles.get(frnd._id)
                 const allInterestingFriendidOfThiFriend = frndAcc.friends.filter(
                     item=>{ return !item.equals(clientUser._id) }
                 )
                 for(const frndOfFrnd_id of allInterestingFriendidOfThiFriend){
                     possibleFriendOutput.push({
                         id: frndOfFrnd_id.toString(),
-                        username: await getTheUsernameFromId(frndOfFrnd_id),
+                        username: await getTheUsernameFromId(
+                            frndOfFrnd_id, dataSources
+                        ),
                         relation: defineUserConnections(frndOfFrnd_id, clientUser),
-                        mutualFriendCount: await countTheAmountOfFriends(frndOfFrnd_id, clientUser)
+                        mutualFriendCount: await countTheAmountOfFriends(
+                            frndOfFrnd_id, clientUser, dataSources
+                        )
                     })
                 }
 
@@ -117,7 +137,7 @@ module.exports = {
         }
     },
     Mutation: {
-        async createAFriendshipInvitation(_, args, { authorizRes }){
+        async createAFriendshipInvitation(_, args, { authorizRes, dataSources }){
             await authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
@@ -128,7 +148,7 @@ module.exports = {
                 return new UserInputError('This userid belogns to your account, not permitted!')
             }
 
-            const targetUser = await ProfileModel.findOne({ _id: userid })
+            const targetUser = await dataSources.profiles.get(userid)
             if(!targetUser){
                 return new UserInputError('No user found', { general: 'No target of input userid' })
             }
@@ -139,9 +159,9 @@ module.exports = {
             }
             try{
                 clientUser.initiatedCon.push(targetUser._id)
-                await clientUser.save()
+                await dataSources.profiles.saving(clientUser)
                 targetUser.undecidedCon.push(clientUser._id)
-                await targetUser.save()
+                await dataSources.profiles.saving(targetUser)
             }catch(err){
                 throw new ApolloError('Persistence error occured', err)
             }
@@ -149,10 +169,12 @@ module.exports = {
                 id: userid,
                 username: targetUser.username,
                 relation: 'INITIATED',
-                mutualFriendCount: await countTheAmountOfFriends(targetUser._id, clientUser)
+                mutualFriendCount: await countTheAmountOfFriends(
+                    targetUser._id, clientUser, dataSources
+                )
             }
         },
-        async removeAFriendshipInitiation(_, args, { authorizRes }){
+        async removeAFriendshipInitiation(_, args, { authorizRes, dataSources }){
             await authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
@@ -163,11 +185,11 @@ module.exports = {
                 return new UserInputError('This userid belogns to your account, not permitted!')
             }
 
-            const targetUser = await ProfileModel.findOne({ _id: userid })
+            const targetUser = await dataSources.profiles.get(userid)
             if(!targetUser){
                 return new UserInputError('No user found', { general: 'No target of input userid' })
             }
-            const clientUser = await ProfileModel.findOne({ _id: authorizRes.subj })
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
             if(!clientUser.initiatedCon.includes(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as initiated connection!')
@@ -176,11 +198,11 @@ module.exports = {
                 clientUser.initiatedCon = clientUser.initiatedCon.filter(
                     item=>{ return !item.equals(targetUser._id) }
                 )
-                await clientUser.save()
+                await dataSources.profiles.saving(clientUser)
                 targetUser.undecidedCon = targetUser.undecidedCon.filter(
                     item=>{ return !item.equals(clientUser._id) }
                 )
-                await targetUser.save()
+                await dataSources.profiles.saving(targetUser)
             }catch(err){
                 throw new ApolloError('Persistence error occured', err)
             }
@@ -190,7 +212,7 @@ module.exports = {
                 resultText: 'Firendship initiation cancelled!'
             }
         },
-        async approveThisFriendshipRequest(_, args, { authorizRes }){
+        async approveThisFriendshipRequest(_, args, { authorizRes, dataSources }){
             await authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
@@ -201,12 +223,12 @@ module.exports = {
                 return new UserInputError('This userid belogns to your account, not permitted!')
             }
 
-            const targetUser = await ProfileModel.findOne({ _id: userid })
+            const targetUser = await dataSources.profiles.get(userid)
             if(!targetUser){
                 return new UserInputError('No user found', { general: 'No target of input userid' })
             }
 
-            const clientUser = await ProfileModel.findOne({ _id: authorizRes.subj })
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
             if(clientUser.friends.includes(targetUser._id)){
                 return new UserInputError('This userid is already marked as your friend!')
             }
@@ -218,13 +240,13 @@ module.exports = {
                     item=>{ return !item.equals(targetUser._id) }
                 )
                 clientUser.friends.push(targetUser._id)
-                await clientUser.save()
+                await dataSources.profiles.saving(clientUser)
 
                 targetUser.initiatedCon = targetUser.initiatedCon.filter(
                     item=>{ return !item.equals(clientUser._id) }
                 )
                 targetUser.friends.push(clientUser._id)
-                await targetUser.save()
+                await dataSources.profiles.saving(targetUser)
             }catch(err){
                 throw new ApolloError('Persistence error occured', err)
             }
@@ -235,7 +257,7 @@ module.exports = {
             }
 
         },
-        async removeThisFriendshipRequest(_, args, { authorizRes }){
+        async removeThisFriendshipRequest(_, args, { authorizRes, dataSources }){
             await authorizEvaluation(authorizRes)
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){
@@ -245,11 +267,11 @@ module.exports = {
                 return new UserInputError('This userid belogns to your account, not permitted!')
             }
 
-            const targetUser = await ProfileModel.findOne({ _id: userid })
+            const targetUser = await dataSources.profiles.get(userid)
             if(!targetUser){
                 return new UserInputError('No user found', { general: 'No target of input userid' })
             }
-            const clientUser = await ProfileModel.findOne({ _id: authorizRes.subj })
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
             if(!clientUser.undecidedCon.includes(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as undecided connection!')
@@ -258,12 +280,12 @@ module.exports = {
                 clientUser.undecidedCon = clientUser.undecidedCon.filter(
                     item=> { return !item._id.equals(targetUser._id)}
                 )
-                await clientUser.save()
+                await dataSources.profiles.saving(clientUser)
 
                 targetUser.initiatedCon = targetUser.initiatedCon.filter(
                     item=>{ return !item._id.equals(clientUser._id) }
                 )
-                await targetUser.save()
+                await dataSources.profiles.saving(targetUser)
             }catch(err){
                 throw new ApolloError('Persistence error occured', err)
             }
@@ -272,7 +294,7 @@ module.exports = {
                 resultText: 'Firendship request cancelled!'
             }
         },
-        async removeThisFriend(_, args, { authorizRes }){
+        async removeThisFriend(_, args, { authorizRes, dataSources }){
             await authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
@@ -283,11 +305,11 @@ module.exports = {
                 return new UserInputError('This userid belogns to your account, not permitted!')
             }
 
-            const targetUser = await ProfileModel.findOne({ _id: userid })
+            const targetUser = await dataSources.profiles.get(userid)
             if(!targetUser){
                 return new UserInputError('No user found', { general: 'No target of input userid' })
             }
-            const clientUser = await ProfileModel.findOne({ _id: authorizRes.subj })
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
             if(!clientUser.friends.includes(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as a friend!')
@@ -296,12 +318,12 @@ module.exports = {
                 clientUser.friends = clientUser.friends.filter(
                     item=>{ return !item._id.equals(targetUser._id) }
                 )
-                await clientUser.save()
+                await dataSources.profiles.saving(clientUser)
 
                 targetUser.friends = targetUser.friends.filter(
                     item =>{ return !item._id.equals(clientUser._id) }
                 )
-                await targetUser.save()
+                await dataSources.profiles.saving(targetUser)
             }catch(err){
                 throw new ApolloError('Persistence error occured', err)
             }

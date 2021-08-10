@@ -49,14 +49,14 @@ async function saveEmailReportToDB(emailToAddres, emailTypeTxt, emailQuality,
 
 module.exports = {
     Mutation: {
-        async login(_, args){
+        async login(_, args, { dataSources }){
             const { error, field, issue, email, pwdText} = loginInputRevise(
                 args.email, args.password)
             if(error){
                 return new UserInputError('Login validation error!', { field, issue })
             }
 
-            const userToLogin = await ProfileModel.findOne({ email })
+            const userToLogin = await dataSources.profiles.get(email)
             if(!userToLogin){
                 return new AuthenticationError('Wrong email or password!', { general: 'No account found!'})
             }
@@ -70,10 +70,12 @@ module.exports = {
 
             //temporary saving out then update logged timestamp
             const lastLoggedTime = userToLogin.lastLoggedAt
+            const refreshTokenStr = createRefreshToken({id: userToLogin._id})
             userToLogin.lastLoggedAt = new Date().toISOString()
             userToLogin.resetPwdToken = '';
+            userToLogin.refreshToken = refreshTokenStr;
             try{
-                userToLogin.save();
+                dataSources.profiles.saving(userToLogin);
             }catch(err){
                 return new ApolloError('Login timestamp persisting failed!')
             }
@@ -86,7 +88,7 @@ module.exports = {
                 username: userToLogin.username,
                 token: autorizTokenEncoder({subj: userToLogin.id, email: userToLogin.email}),
                 tokenExpire: 3600,
-                refreshToken: createRefreshToken({id: userToLogin._id}),
+                refreshToken: refreshTokenStr,
                 registeredAt: userToLogin.registeredAt,
                 lastLoggedAt: lastLoggedTime,
 
@@ -95,7 +97,7 @@ module.exports = {
             }
         },
 
-        async registration(_, args){
+        async registration(_, args, { dataSources }){
             const { error, field, issue, email, pwdText, username } = registerInputRevise(
                 args.email, args.password, args.passwordconf, args.username
             )
@@ -103,7 +105,7 @@ module.exports = {
                 return new UserInputError('Registration validation error!', { field, issue })
             }
 
-            const resUser = await ProfileModel.findOne({ email })
+            const resUser = await dataSources.profiles.get(email)
             if(resUser){
                 return new UserInputError('This email is already occupied!')
             }
@@ -113,29 +115,29 @@ module.exports = {
                 return new ApolloError('Registration encryption error!', encrypt.error )
             }
             
+            let newUser = ''
             const actTimeISO = new Date().toISOString()
-            const newUser = new ProfileModel({
-                email: email,
-                username: username,
-                pwdHash: encrypt.hash,
-                registeredAt: actTimeISO,
-                lastLoggedAt: actTimeISO,
-                resetPwdMarker: '',
-                refreshToken: '',
-    
-                friends: [],
-                initiatedCon: [],
-                undecidedCon: []
-            })
             try{
-                await newUser.save()
+                newUser = await dataSources.profiles.create({
+                    email: email,
+                    username: username,
+                    pwdHash: encrypt.hash,
+                    registeredAt: actTimeISO,
+                    lastLoggedAt: actTimeISO,
+                    resetPwdMarker: '',
+                    refreshToken: '',
+        
+                    friends: [],
+                    initiatedCon: [],
+                    undecidedCon: []
+                })
             }catch(err){
                 return ApolloError('Registration is not completed!', { err })
             }
             const refreshToken = createRefreshToken({id: newUser._id})
+            newUser.refreshToken = refreshToken;
             try{
-                newUser.refreshToken = refreshToken;
-                await newUser.save()
+                await dataSources.profiles.saving(newUser)
             }catch(err){
                 return ApolloError('Login is not completed!', { err })
             }
@@ -158,14 +160,14 @@ module.exports = {
  * Href = doman + userid + resetToken
  * resetToken with secretkey of hashPWD and timemark, content of {mark: timemark}
 */
-        async resetPassword(_, args, context){
+        async resetPassword(_, args, { dataSources, domainURL }){
             const { error, field, issue, email } = resetPwdInputRevise( args.email )
 
             if(error){
                 return new UserInputError('Validation error!', { field, issue })
             }
 
-            const userToReset = await ProfileModel.findOne({ email: email })
+            const userToReset = await dataSources.profiles.get(email)
             if(!userToReset){
                 return new UserInputError('No such email in system!')
             }
@@ -173,7 +175,7 @@ module.exports = {
             const datingMarker = new Date().getTime()
             userToReset.resetPwdMarker = datingMarker.toString()
             try{
-                await userToReset.save()
+                await dataSources.profiles.saving(userToReset)
             }catch(err){
                 return new ApolloError('Password reset registring error occured!', err)
             }
@@ -182,8 +184,8 @@ module.exports = {
                 userToReset._id
             )
             //something removes the :// from protocol definition
-            const domainUrlAndPath = context.domainURL.prot + '://' 
-                + context.domainURL.dom + '/apath/' + complexIdToken //REST GET type
+            const domainUrlAndPath = domainURL.prot + '://' 
+                + domainURL.dom + '/apath/' + complexIdToken //REST GET type
             const EMAIL_TYPE_TXT = emailTypeStringify(emailType.PWDRESETING)
 
             execMailSending(email, emailType.PWDRESETING, {
@@ -212,7 +214,7 @@ module.exports = {
             }
         },
 
-        async changePassword(_, args, {authorizRes}){
+        async changePassword(_, args, { authorizRes, dataSources }){
             const { error, field, issue, pwdTextOld, pwdTextNew } = changePwdInputRevise(
                 args.oldpassword, args.newpassword, args.newconf
             )
@@ -222,7 +224,7 @@ module.exports = {
             authorizEvaluation(authorizRes)
 
             //old password revsision
-            const userToChangePwd = await ProfileModel.findOne({ _id: authorizRes.subj })
+            const userToChangePwd = await dataSources.profiles.get(authorizRes.subj)
             await passwordsMatching(userToChangePwd, pwdTextOld)
 
             //process execution
@@ -232,7 +234,7 @@ module.exports = {
             }
             userToChangePwd.pwdHash = newPwdHashing.hash;
             try{
-                await userToChangePwd.save();
+                await dataSources.profiles.saving(userToChangePwd);
             }catch(err){
                 return new ApolloError('Server error occured', { general: 'Pwd persistence error!' })
             }
@@ -244,7 +246,7 @@ module.exports = {
             }
         },
 
-        async changeAccountDatas(_, args, {authorizRes}){
+        async changeAccountDatas(_, args, { authorizRes, dataSources }){
             const { error, field, issue, username} = updateAccDetInputRevise(
                 args.username
             )
@@ -253,13 +255,13 @@ module.exports = {
             }
 
             authorizEvaluation(authorizRes)
-            const userToUpdate = await ProfileModel.findOne({ _id: authorizRes.subj})
+            const userToUpdate = await dataSources.profiles.get(authorizRes.subj)
             if(!userToUpdate){
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
             userToUpdate.username = username
             try{
-                await userToUpdate.save()
+                await dataSources.profiles.saving(userToUpdate)
             }catch(err){
                 return new ApolloError('Server error occured', err)
             }
@@ -272,7 +274,7 @@ module.exports = {
             }
         },
 
-        async deleteAccount(_, args, {authorizRes}){
+        async deleteAccount(_, args, { authorizRes, dataSources }){
             const { error, field, issue, pwdTextOld } = deleteAccInputRevise(
                 args.password,
                 args.passwordconf
@@ -282,15 +284,19 @@ module.exports = {
             }
 
             authorizEvaluation(authorizRes)
-            const userToDelete = await ProfileModel.findOne({ _id: authorizRes.subj })
+            const userToDelete = await dataSources.profiles.get(authorizRes.subj)
+            if(!userToDelete){
+                return new ApolloError('No user found', { general: 'No target of Token id' })
+            }
 
             await passwordsMatching(userToDelete, pwdTextOld)
             const tempDatas = { email: userToDelete.email, username: userToDelete.username }
-            await ProfileModel.deleteOne({ _id: authorizRes.subj}, (err)=>{
-                if(err){
-                    return new ApolloError('Server error occured', err)
-                }
-            })
+            try{
+                await dataSources.profiles.deleting(authorizRes.subj)
+            }catch(err){               
+                return new ApolloError('Server error occured', err)
+                
+            }
 
             return {
                 resultText: 'Account deleted!',

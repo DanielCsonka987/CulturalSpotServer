@@ -22,8 +22,8 @@ module.exports.profiles = [
         email: 'example@hotmail.uk',
         username: 'John Doe',
         pwdHash: '$2b$12$MRSBPUJkPgav1B4pFGJsE.hrn0vZZ19/kjpIaOUpGFUlr7X2zF3Uu',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('11 December 2020 10:34 UTC').toISOString(),
+        lastLoggedAt: new Date('08 August 2021 23:21 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 
@@ -36,8 +36,8 @@ module.exports.profiles = [
         email: 'mymail@hotmail.com',
         username: 'Fraser',
         pwdHash: '$2b$12$MRSBPUJkPgav1B4pFGJsE.hrn0vZZ19/kjpIaOUpGFUlr7X2zF3Uu',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('18 June 2019 16:04 UTC').toISOString(),
+        lastLoggedAt: new Date('28 July 2021 12:32 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 
@@ -50,8 +50,8 @@ module.exports.profiles = [
         email: 'email@gmail.jp',
         username: 'Caster',
         pwdHash: '$2b$12$XBj3d7FG3ETwbHtIaEd2vuWdq.8wpLtmxHN8JdLEae5s5attfPFVC',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('13 May 2021 13:10 UTC').toISOString(),
+        lastLoggedAt: new Date('21 July 2021 06:10 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 
@@ -64,8 +64,8 @@ module.exports.profiles = [
         email: 'myacc@hotmail.com',
         username: 'Passer By',
         pwdHash: '$2b$12$mZqGaZe0EY3RWCV8.U5CD.n5bOdapHztkHoVzkunATOtsovbjxobC',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('13 May 2020 13:37 UTC').toISOString(),
+        lastLoggedAt: new Date('03 February 2021 13:37 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 
@@ -78,8 +78,8 @@ module.exports.profiles = [
         email: 'testing@gmail.com',
         username: 'Passenger',
         pwdHash: '$2b$12$FBM2jfgz3QgDBDewmAHvKONp9Zg.Y1NFgH.jDoEyif1aHtUzPN8RW',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('13 May 2018 18:30 UTC').toISOString(),
+        lastLoggedAt: new Date('10 August 2021 11:24 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 
@@ -92,8 +92,8 @@ module.exports.profiles = [
         email: 'testpurpose@gmail.com',
         username: 'Somebody',
         pwdHash: '$2b$12$puvV62aqpUXGG3JJfUHKVOC4RVSMHJkfeW7hyrQrpmHcKBU9j9NIS',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('11 January 2016 13:37 UTC').toISOString(),
+        lastLoggedAt: new Date('21 May 2021 18:21 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 
@@ -106,8 +106,8 @@ module.exports.profiles = [
         email: 'testpurpose@gmail.com',
         username: 'Really New Here',
         pwdHash: '$2b$12$UVOs.o3nDnMpPuCB182KJOnjznM.2udxeoZWproMQmq6vDPBPli0C',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('30 May 2019 19:00 UTC').toISOString(),
+        lastLoggedAt: new Date('13 July 2021 13:04 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 
@@ -120,8 +120,8 @@ module.exports.profiles = [
         email: 'usermail@gmail.com',
         username: 'Profile_1089',
         pwdHash: '$2b$12$26bRmafEWLEggXu7XA7SCuRfR3GJT.eXbSOP05mkqfxgQvATWmffO',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('26 September 2016 09:37 UTC').toISOString(),
+        lastLoggedAt: new Date('13 May 2021 13:37 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 
@@ -134,8 +134,8 @@ module.exports.profiles = [
         email: 'mail1569@gmail.com',
         username: 'User Programmer',
         pwdHash: '$2b$12$.WEmolgcMWZl78bTn8sBC.w1mbR4kpE/F0hI9Bql7ylAtWi2ni3Uy',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('01 December 2020 15:37 UTC').toISOString(),
+        lastLoggedAt: new Date('24 June 2021 13:25 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 
@@ -148,8 +148,8 @@ module.exports.profiles = [
         email: 'user319mail@gmail.com',
         username: 'CoolGuy',
         pwdHash: '$2b$12$xDMFtCneEzaUpu0plRIk1u29i5NdriaOMnndJt980lrkHb7MoqfGS',     // testing
-        registeredAt: '',
-        lastLoggedAt: '',
+        registeredAt: new Date('26 May 2020 10:12 UTC').toISOString(),
+        lastLoggedAt: new Date('29 August 2021 15:31 UTC').toISOString(),
         resetPwdMarker: '',
         refreshToken: '',
 

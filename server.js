@@ -11,7 +11,8 @@ const resolvers = require('./graphql/resolvers')
 const emailerTrsp = require('./emailer/emailerSetup')
 const { authorizTokenInputRevise, authorizTokenVerify } = require('./utils/tokenManager')
 const getDomainURL = require('./utils/defineDomainURL')
-const { RESETPWD_REST_GET_ROUTE } = require('./config/appConfig').ROUTING
+const { RESETPWD_REST_GET_ROUTE } = require('./config/appConfig').ROUTING;
+const ProfileDataSource = require('./repository/profileDS');
 
 const LOCAL_DOMAIN_URL = { url: '' }
 
@@ -19,6 +20,9 @@ const app = express();
 const apolloSrv = new ApolloServer({
     typeDefs,
     resolvers,
+    dataSources: ()=>({
+        profiles: new ProfileDataSource()
+    }),
     context: async({ req, res })=>{
     /**
      * for the authorization the token consist 
@@ -103,7 +107,7 @@ module.exports.startTestingServer = startServer
 module.exports.exitTestingServer = async ()=>{
    await apolloSrv.stop()
    await mongoose.connection.removeAllListeners()
-   await mongoose.connection.close()
+   await mongoose.disconnect()
    await emailerTrsp.shutdown
    console.log('Server is stopping!')
 }

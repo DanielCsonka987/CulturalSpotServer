@@ -18,7 +18,7 @@ beforeAll( async ()=>{
     await ProfileModel.deleteMany(
         {email: removeContent } , async (err, rep)=>{
             
-            await ProfileModel.insertMany(userTestDatas, async (error, report)=>{
+        await ProfileModel.insertMany(userTestDatas, async (error, report)=>{
             expect(error).toBe(null)
             expect(typeof report).toBe('object')
             userIds = report.map(item=>{ return item._id.toString() })
@@ -26,6 +26,7 @@ beforeAll( async ()=>{
 
             //id at pointer 0 will be removed
             //id at pointer 1 will be at the main target of friend management tests
+            //id at pointer 3 will be login with -> lastLogin field must changes
             report[1].friends.push(report[2]._id)   //at mut.5 removed
             report[1].initiatedCon.push(report[3]._id)
             report[1].undecidedCon.push(report[4]._id)  //at mut.4 accepted
@@ -44,6 +45,8 @@ beforeAll( async ()=>{
             await report[4].save()
             report[5].initiatedCon.push(report[5]._id)
             await report[5].save()
+
+
         })
         //1 more user exist - at mut.1 initiated friendship, that at mut.2 removed
     })
@@ -111,7 +114,7 @@ describe('GrapQL profile queries', ()=>{
         .post('/graphql')
         .send({
             "query": `mutation{
-                 login(email:"${userEmails[0]}", password: "testing") 
+                 login(email:"${userEmails[3]}", password: "testing") 
                 { id, token, tokenExpire, registeredAt }
             }`
         })
@@ -286,7 +289,7 @@ describe('GrapQL profile queries', ()=>{
         })
     })
     it('ResetPassword attempt', (done)=>{
-        const userEmailTarget = userEmails[2];
+        const userEmailTarget = userEmails[4];
         ProfileModel.findOne({email: userEmailTarget}, (err, doc)=>{
             expect(err).toBe(null)
             const theUserId = doc._id.toString();

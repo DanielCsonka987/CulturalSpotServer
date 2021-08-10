@@ -6,10 +6,8 @@
   "scripts": {
     "test": "jest -o",
     "testall": "jest",
-
     "seedLocalDB": "node ./models/dbSeeder.js local",
     "seedCloudDB": "node ./models/dbSeeder.js cloud",
-
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
@@ -25,6 +23,7 @@
   "dependencies": {
     "apollo-server-express": "^3.0.2",
     "bcrypt": "^5.0.1",
+    "dataloader": "^2.0.0",
     "graphql": "^15.5.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.2",
