@@ -146,16 +146,21 @@ module.exports = {
     createRefreshToken: (tokenContent)=>{
         return  jwt.sign(tokenContent, TOKEN_SECRET)
     },
-    loginRefreshTokenInputRevise: (tokenFromBody)=>{
+    loginRefreshTokenInputRevise: (reqToVerif)=>{
         const results = {
             tokenMissing: false,
             takenText: null
         }
-        if(tokenSchemaIsFaulty(tokenFromBody)){
+        const tokenFromHeader = reqToVerif.headers.refreshing;
+        if(!tokenFromHeader){
+            results.tokenMissing = true;
+            return results;
+        }
+        if(tokenSchemaIsFaulty(tokenFromHeader)){
             results.tokenMissing = true
             return results
         }
-        results.takenText = tokenFromBody
+        results.takenText = tokenFromHeader
         return results
     },
     loginRefreshTokenValidate: (tokenObj)=>{
@@ -171,6 +176,7 @@ module.exports = {
                 results.error = err;
                 return results
             }
+            results.takenText = tokenObj.takenText;
             results.refreshingPermission = true;
             return Object.assign(results, decoded);
         })

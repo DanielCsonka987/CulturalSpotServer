@@ -3,8 +3,10 @@ const request = require('supertest')
 
 const ProfileModel = require('../models/ProfileModel')
 const EmailReportModel = require('../models/EmailReportModel')
-const { createTokenToHeader, userTestDatas, userTestRegister } = require('./helperToTesting')
-const { autorizTokenEncoder } = require('../utils/tokenManager')
+const { createTokenToHeader, userTestDatas, userTestRegister } 
+    = require('./helperToTesting')
+const { autorizTokenEncoder, createRefreshToken, 
+    authorizTokenVerify, authorizTokenInputRevise } = require('../utils/tokenManager')
 const { startTestingServer, exitTestingServer } = require('../server')
 
 let userEmails= []
@@ -201,8 +203,9 @@ describe('GrapQL profile queries', ()=>{
                     async (error, doc)=>{
                     expect(error).toBe(null)
                     expect(doc.pwdHash).not.toEqual(theOldHashPwd)
-                    console.log('The new password hash to check in the DB record. \n %s',
-                        doc.pwdHash)
+                    /*console.log('The new password hash to check in the DB record. \n %s \n %s',
+                        doc._id.toString(),
+                        doc.pwdHash)*/
                     done()
                 })
             })
@@ -328,6 +331,85 @@ describe('GrapQL profile queries', ()=>{
             })
         })
         
+    })
+
+    it('Renew authorization token', (done)=>{
+        const userIdTarget = userIds[2]
+        const refToken = createRefreshToken({id: userIds[2].toString()})
+        ProfileModel.findOne({ _id: userIdTarget }, async (error, doc)=>{
+            expect(error).toBe(null)
+            
+            doc.refreshToken = refToken;
+            await doc.save()
+
+            request(theSrv)
+            .post('/graphql')
+            .send({
+                "query": `query{
+                     refreshAuth
+                    { id, newToken, tokenExpire }
+                }`
+            })
+            .set("Accept", "application/json")
+            .set("Refreshing", refToken)
+            .expect('Content-Type', "application/json; charset=utf-8")
+            .expect(200)
+            .end((err, res)=>{
+                expect(err).toBe(null)
+                expect(res.body.data.refreshAuth.id).toBe(userIdTarget.toString())
+                expect(typeof res.body.data.refreshAuth.newToken).toBe('string')
+                expect(res.body.data.refreshAuth.tokenExpire).toBe(3600)
+    
+                const theNewAuthToken = createTokenToHeader(res.body.data.refreshAuth.newToken)
+                const headerObj = { headers: { authorization: theNewAuthToken}}
+                const verifTokenRes = authorizTokenInputRevise(headerObj)
+                expect(verifTokenRes.tokenMissing).toBe(false)
+
+                const tokenPalyload = authorizTokenVerify(verifTokenRes)
+                expect(tokenPalyload.subj).toBe(userIdTarget.toString())
+                expect(tokenPalyload.isExpired).toBe(false)
+                done()
+            })
+        })
+    })
+
+    it('Logout process', (done)=>{
+        const userIdTarget = userIds[2]
+        const refToken = createRefreshToken({id: userIds[2].toString()})
+        ProfileModel.findOne({_id: userIdTarget}, async (error, doc)=>{
+            expect(error).toBe(null)
+            doc.refreshToken = refToken;
+            await doc.save()
+            
+            const authToken = autorizTokenEncoder(
+                {subj: doc._id.toString(), email: doc.email}
+            )
+
+            request(theSrv)
+            .post('/graphql')
+            .send({
+                "query": `mutation{
+                     logout
+                    { resultText, id, email, username }
+                }`
+            })
+            .set("Accept", "application/json")
+            .set("Authorization", createTokenToHeader(authToken))
+            .expect('Content-Type', "application/json; charset=utf-8")
+            .expect(200)
+            .end((err, res)=>{
+                expect(err).toBe(null)
+                expect(res.body.data.logout.resultText).toBe('You have been logged out!')
+                expect(res.body.data.logout.id).toBe(userIdTarget.toString())
+
+                ProfileModel.findOne({_id: userIdTarget}, (e, d)=>{
+                    expect(e).toBe(null)
+                    expect(d.refreshToken).toBe('')
+
+                    done()
+                })
+            })
+        })
     })
 })
 

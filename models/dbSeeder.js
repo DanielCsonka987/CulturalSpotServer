@@ -3,6 +3,7 @@ const ProfileModel = require('./ProfileModel')
 const PostModel = require('./PostModel')
 const CommentModel = require('./CommentModel')
 const ChattingModel = require('./ChattingModel')
+const EmailReportModel = require('./EmailReportModel')
 
 const { dbLocal, dbCloud } = require('../config/dbConfig')
 const { profiles, posts, comments, messages } = require('./testdatasToDB')
@@ -75,6 +76,16 @@ const seedingProcess = new Promise((resolve, reject)=>{
                 if(report.length !== messages.length) { console.log('Messages collection misses some document!') }
                 console.log('Messages seeding done!')
             })
+        }
+    })
+})
+.then(()=>{
+    //emailreports collection clearing
+    EmailReportModel.deleteMany({}, (err, rep)=>{
+        if(err){
+            console.log('EmailReport collection empting failed!')
+        }else{
+            console.log('EmailReport collection is empty!')
         }
     })
 }).catch(err=>{

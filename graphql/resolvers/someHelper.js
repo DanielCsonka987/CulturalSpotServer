@@ -30,10 +30,14 @@ module.exports.authorizEvaluation = (authorizRes)=>{
  * => no user of authorizRes and authorazEvaluation() with this!
  * => tokenInputRevise() no valid either (its for header revision)
 */
-module.exports.tokenRefreshmentEvaluation = ()=>{
+module.exports.tokenRefreshmentEvaluation = (refreshAuthRes)=>{
     let reasonOfFail = ''
-
-
+    if(!refreshAuthRes.refreshingPermission){
+        if(refreshAuthRes.error){
+            reasonOfFail = 'Token process error!';
+        }
+        reasonOfFail = 'Missing token!';
+    }
     if(reasonOfFail){
         throw new AuthenticationError('Token renewal failed! Please, login again!', { general: reasonOfFail })
     } 

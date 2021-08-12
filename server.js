@@ -9,7 +9,9 @@ const DB_CONNECT = (process.env.NODE_ENV === 'production')?
 const typeDefs = require('./graphql/typeDef')
 const resolvers = require('./graphql/resolvers')
 const emailerTrsp = require('./emailer/emailerSetup')
-const { authorizTokenInputRevise, authorizTokenVerify } = require('./utils/tokenManager')
+const { authorizTokenInputRevise, authorizTokenVerify, 
+    loginRefreshTokenInputRevise, loginRefreshTokenValidate } 
+    = require('./utils/tokenManager')
 const getDomainURL = require('./utils/defineDomainURL')
 const { RESETPWD_REST_GET_ROUTE } = require('./config/appConfig').ROUTING;
 const ProfileDataSource = require('./repository/profileDS');
@@ -33,9 +35,13 @@ const apolloSrv = new ApolloServer({
         const authorizRes = await authorizTokenVerify( 
             authorizTokenInputRevise(req) 
         );
+        const refreshRes = await loginRefreshTokenValidate(
+            loginRefreshTokenInputRevise(req)
+        )
         const domainURL = getDomainURL(req, LOCAL_DOMAIN_URL)
         return {
             authorizRes,
+            refreshRes,
             domainURL
         }
     }

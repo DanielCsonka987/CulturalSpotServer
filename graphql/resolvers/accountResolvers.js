@@ -8,12 +8,11 @@ const { loginInputRevise, registerInputRevise,
     updateAccDetInputRevise, resetPwdInputRevise } = require('../../utils/inputRevise')
 
 const { execMailSending, emailType, emailTypeStringify } = require('../../emailer/emailerSetup')
-const ProfileModel = require('../../models/ProfileModel')
 const EmailReportModel = require('../../models/EmailReportModel')
 const PostModel = require('../../models/PostModel')
 
 // someHelper function in resolving - not standalone, apollo connected!
-const { authorizEvaluation } = require('./someHelper')
+const { authorizEvaluation, tokenRefreshmentEvaluation } = require('./someHelper')
 
 async function passwordsMatching(user, pwdText){
     if(!user){
@@ -46,8 +45,32 @@ async function saveEmailReportToDB(emailToAddres, emailTypeTxt, emailQuality,
 }
 
 
-
 module.exports = {
+    Query: {
+
+        async refreshAuth(_, args, { dataSources, refreshRes }){
+            //authorization probabyl expired, no normal Evaluation here!!!
+
+            tokenRefreshmentEvaluation(refreshRes)
+
+            const clientUser = await dataSources.profiles.get(refreshRes.id)
+            if(!clientUser){
+                return new ApolloError('No user found', { general: 'No target of Token id' })
+            }
+            if(clientUser.refreshToken !== refreshRes.takenText){
+                return new UserInputError('No token match', 
+                    { general: 'Token valid, but it is not the persisted one' }
+                )
+            }
+
+            return {
+                id: clientUser._id.toString(),
+                newToken: autorizTokenEncoder({subj: clientUser._id.toString(), email: clientUser.email}),
+                tokenExpire: 3600
+            }
+
+        }
+    },
     Mutation: {
         async login(_, args, { dataSources }){
             const { error, field, issue, email, pwdText} = loginInputRevise(
@@ -70,7 +93,7 @@ module.exports = {
 
             //temporary saving out then update logged timestamp
             const lastLoggedTime = userToLogin.lastLoggedAt
-            const refreshTokenStr = createRefreshToken({id: userToLogin._id})
+            const refreshTokenStr = createRefreshToken({id: userToLogin._id.toString()})
             userToLogin.lastLoggedAt = new Date().toISOString()
             userToLogin.resetPwdToken = '';
             userToLogin.refreshToken = refreshTokenStr;
@@ -86,7 +109,7 @@ module.exports = {
                 id: userToLogin._id,
                 email: userToLogin.email,
                 username: userToLogin.username,
-                token: autorizTokenEncoder({subj: userToLogin.id, email: userToLogin.email}),
+                token: autorizTokenEncoder({subj: userToLogin._id.toString(), email: userToLogin.email}),
                 tokenExpire: 3600,
                 refreshToken: refreshTokenStr,
                 registeredAt: userToLogin.registeredAt,
@@ -134,7 +157,7 @@ module.exports = {
             }catch(err){
                 return ApolloError('Registration is not completed!', { err })
             }
-            const refreshToken = createRefreshToken({id: newUser._id})
+            const refreshToken = createRefreshToken({id: newUser._id.toString()})
             newUser.refreshToken = refreshToken;
             try{
                 await dataSources.profiles.saving(newUser)
@@ -143,7 +166,7 @@ module.exports = {
             }
             return {
                 id: newUser._id,
-                token: autorizTokenEncoder({ subj: newUser._id, email: newUser.email }),
+                token: autorizTokenEncoder({ subj: newUser._id.toString(), email: newUser.email }),
                 tokenExpire: 3600,
                 email: newUser.email,
                 username: newUser.username,
@@ -225,6 +248,9 @@ module.exports = {
 
             //old password revsision
             const userToChangePwd = await dataSources.profiles.get(authorizRes.subj)
+            if(!userToChangePwd){
+                return new ApolloError('No user found', { general: 'No target of Token id' })
+            }
             await passwordsMatching(userToChangePwd, pwdTextOld)
 
             //process execution
@@ -305,6 +331,26 @@ module.exports = {
                 username: tempDatas.username
 
             }
+        },
+
+        async logout(_, __, { authorizRes, dataSources }){
+
+            authorizEvaluation(authorizRes)
+
+            const clientToLogout = await dataSources.profiles.get(authorizRes.subj)
+            if(!clientToLogout){
+                return new ApolloError('No user found', { general: 'No target of Token id' })
+            }
+            clientToLogout.refreshToken = ''
+            await dataSources.profiles.saving(clientToLogout)
+
+            return {
+                resultText: 'You have been logged out!',
+                id: clientToLogout._id.toString(),
+                email: clientToLogout.email,
+                username: clientToLogout.username
+            }
         }
+
     }
 }

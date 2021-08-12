@@ -213,7 +213,7 @@ describe('Email tokenkey handle, processes', ()=>{
         const actTime = new Date().getTime().toString().slice(0, 10)
         const theTimeSec = new Number(actTime)
         const theSpecialToken = createTokenToLink('abcde', shortHash, '12345')
-        console.log(theSpecialToken)
+        //console.log(theSpecialToken)
         const res = resoluteTokenFromLink(theSpecialToken)
 
         expect(typeof res.tokenMissing).toBe('boolean')
@@ -243,7 +243,7 @@ describe('Email tokenkey handle, processes', ()=>{
         expect(result.tokenMissing).toBeFalsy()
         expect(result.takenUserid).toBe('123')
         expect(typeof result.takenText).toBe('string')
-        console.log(result.takenText)
+        //console.log(result.takenText)
         const final = await verifyTokenFromLink(result, 'abcdef', shortHash)
         expect(Object.keys(final)).toEqual(
             expect.arrayContaining(['isExpired', 'error', 'passResetPermission'])
@@ -298,7 +298,7 @@ describe('Refresh token creation tests', ()=>{
     it('Token revision test', ()=>{
         const token = jwt.sign({ id: '12345abcde' }, TOKEN_SECRET)
 
-        const result = loginRefreshTokenInputRevise(token)
+        const result = loginRefreshTokenInputRevise({headers: {refreshing: token}})
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenText'])
         )
@@ -315,7 +315,7 @@ describe('Refresh token creation tests', ()=>{
     })
     it('Token encoding, revision', ()=>{
         const token = createRefreshToken({ id: '12345abcde' })
-        const result = loginRefreshTokenInputRevise(token)
+        const result = loginRefreshTokenInputRevise({headers: {refreshing: token}})
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenText'])
         )
@@ -332,7 +332,7 @@ describe('Refresh token creation tests', ()=>{
     })
     it('Token full process', async ()=>{
         const token = createRefreshToken({ id: '12345abcde' })
-        const result = loginRefreshTokenInputRevise(token)
+        const result = loginRefreshTokenInputRevise({headers: {refreshing: token}})
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenText'])
         )
@@ -343,7 +343,7 @@ describe('Refresh token creation tests', ()=>{
         const final = await loginRefreshTokenValidate(result)
 
         expect(typeof final).toBe('object')
-        console.log(final)
+        //console.log(final)
         expect(Object.keys(final)).toEqual(
             expect.arrayContaining(['error','refreshingPermission', 'id', 'iat'])
         )
@@ -360,7 +360,7 @@ describe('Refresh token creation tests', ()=>{
         const parts = token.split('.')
         const faulty = parts[0] + '.' + parts[2] 
 
-        const result = loginRefreshTokenInputRevise(faulty)
+        const result = loginRefreshTokenInputRevise({headers: {refreshing: faulty}})
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenText'])
         )

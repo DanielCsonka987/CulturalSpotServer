@@ -10,6 +10,7 @@ module.exports = {
             console.log('Server is running fine!')
             return 'Server is running fine!'
         },
+        ...accountAPI.Query,
         ...friendsAPI.Query,
         ...postsAPI.Query
     },

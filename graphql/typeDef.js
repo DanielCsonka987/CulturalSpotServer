@@ -89,6 +89,11 @@ module.exports = gql`
         friends: [UserMini]!
         myposts: [Post]
     }
+    type TokenAuth {
+        id: String!
+        newToken: String!
+        tokenExpire: Int!
+    }
     type UserMini {
         id: String!,
         username: String!,
@@ -106,6 +111,9 @@ module.exports = gql`
  
     type Query {
         testquery: String!
+
+        ## account processes
+        refreshAuth: TokenAuth!
 
         ## friend processes
         listOfMyFriends: [UserMini]!
@@ -129,6 +137,7 @@ module.exports = gql`
         changePassword(oldpassword: String!, newpassword: String!, newconf: String!): AccountProcess!
         changeAccountDatas(username: String! ): AccountProcess!
         deleteAccount(password: String!, passwordconf: String!): AccountProcess!
+        logout: AccountProcess!
 
         ## firend processes
             ## for the initiation management by the source
