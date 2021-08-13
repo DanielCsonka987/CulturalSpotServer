@@ -12,7 +12,7 @@ const EmailReportModel = require('../../models/EmailReportModel')
 const PostModel = require('../../models/PostModel')
 
 // someHelper function in resolving - not standalone, apollo connected!
-const { authorizEvaluation, tokenRefreshmentEvaluation } = require('./someHelper')
+const { authorizEvaluation, tokenRefreshmentEvaluation } = require('./resolveHelpers')
 
 async function passwordsMatching(user, pwdText){
     if(!user){

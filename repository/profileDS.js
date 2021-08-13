@@ -30,8 +30,8 @@ class ProfileDataSource extends MyDataSource{
     async get(key, { ttlInSeconds } = {}){
 
         if(isThisProperDocID(key)){
-            const chaceing = ttlInSeconds? { ttlInSeconds } : ''
-            return super.get(key, chaceing)
+            const caching = ttlInSeconds? { ttlInSeconds } : ''
+            return super.get(key, caching)
         }
         if(!isItRealEmail(key)){
             this.didEncounterError( new Error('Not reasonable keyword is passed!'))

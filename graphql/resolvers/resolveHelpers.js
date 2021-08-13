@@ -1,8 +1,6 @@
 const { AuthenticationError, ApolloError } = require('apollo-server-express')
 const mongooseId = require('mongoose').Types.ObjectId;
 
-const ProfileModel = require('../../models/ProfileModel')
-
 /**
  * for the authorization the token consist 
  * -> subj (user identification), exp (timelimit to use)

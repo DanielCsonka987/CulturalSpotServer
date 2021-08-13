@@ -4,17 +4,25 @@ const DocType = require('mongoose').Document
 
 const url = require('../config/dbConfig').dbLocal
 const ProfileModel = require('../models/ProfileModel')
+const PostModel = require('../models/PostModel')
 const ParentDs = require('./generalDataSource')
 const ProfDs = require('./profileDS')
+const PostDs = require('./postDS')
 
-let docColl = []
+let docProfiles = []
+let docPosts = []
 
 beforeAll((done)=>{
     mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
     ProfileModel.find({}, async (err, docs)=>{
         expect(err).toBe(null)
-        docColl = docs
-        done()
+        docProfiles = docs
+
+        PostModel.find({}, async (e, d)=>{
+            expect(e).toBe(null)
+            docPosts = d
+            done()
+        })
     })
     
 })
@@ -27,7 +35,7 @@ describe('Parent DataSource positive tests', ()=>{
 
     it('Testing the parent', async ()=>{
 
-        const targetIdStr = docColl[1]._id.toString()
+        const targetIdStr = docProfiles[1]._id.toString()
 
         const dsParent = new ParentDs(ProfileModel)
         dsParent.initialize({ context: 'stg' });
@@ -38,7 +46,7 @@ describe('Parent DataSource positive tests', ()=>{
     })
     it('Testing the parent with cashing, string id maintained', async ()=>{
 
-        const targetIdStr = docColl[1]._id.toString()
+        const targetIdStr = docProfiles[1]._id.toString()
 
         const dsParent = new ParentDs(ProfileModel)
         dsParent.initialize({ context: 'stg' });
@@ -51,7 +59,7 @@ describe('Parent DataSource positive tests', ()=>{
     })
     it('Testing the parent with cashing, ObjectId maintained', async ()=>{
 
-            const targetIdObj = docColl[1]._id
+            const targetIdObj = docProfiles[1]._id
     
             const dsParent = new ParentDs(ProfileModel)
             dsParent.initialize({ context: 'stg' });
@@ -64,7 +72,7 @@ describe('Parent DataSource positive tests', ()=>{
     })
     it('Parent saving the loaded doc and creation a newone', async ()=>{
 
-        const targetIdObj = docColl[1]._id
+        const targetIdObj = docProfiles[1]._id
 
         const dsParent = new ParentDs(ProfileModel)
         dsParent.initialize({ context: 'stg' });
@@ -107,27 +115,27 @@ describe('Parent DataSource positive tests', ()=>{
         dsParent.initialize({ context: 'stg' });
 
         metrics.push(new Date().getTime() + ' start point')
-        const doc4 = await dsParent.get(docColl[4]._id )
+        const doc4 = await dsParent.get(docProfiles[4]._id )
         metrics.push(new Date().getTime() + ' doc4 loaded')
-        const doc2 = await dsParent.get(docColl[2]._id )
+        const doc2 = await dsParent.get(docProfiles[2]._id )
         metrics.push(new Date().getTime() + ' doc2 loaded')
-        const doc0 = await dsParent.get(docColl[0]._id )
+        const doc0 = await dsParent.get(docProfiles[0]._id )
         metrics.push(new Date().getTime() + ' doc0 loaded')
 
         setTimeout(async ()=>{
             metrics.push(new Date().getTime() + ' break 1s, doc4 reload')
-            const doc4re = await dsParent.get(docColl[4]._id )
+            const doc4re = await dsParent.get(docProfiles[4]._id )
             metrics.push(new Date().getTime() + ' the doc4 loaded')
 
             setTimeout(async ()=>{
                 metrics.push(new Date().getTime() + ' break 3s, doc4 reload')
-                const doc4again = await dsParent.get(docColl[4]._id )
+                const doc4again = await dsParent.get(docProfiles[4]._id )
                 metrics.push(new Date().getTime() + ' the doc4 loaded again')
 
                 doc4again.email = 'stgnew@easymail.com'
                 await dsParent.saving(doc4again)
                 metrics.push(new Date().getTime() + ' doc4 update, reload start')
-                const doc4upd = await dsParent.get(docColl[4]._id )
+                const doc4upd = await dsParent.get(docProfiles[4]._id )
                 metrics.push(new Date().getTime() + ' doc4 update loaded')
 
                 expect(doc4upd.email).toBe(doc4again.email)
@@ -148,18 +156,18 @@ describe('Parent DataSource positive tests', ()=>{
         const dsParent = new ParentDs(ProfileModel, { ttlInSeconds: 3 })
         dsParent.initialize({ context: 'stg' });
         
-        const ids = [ docColl[3]._id, docColl[0]._id.toString(), docColl[1]._id ]
+        const ids = [ docProfiles[3]._id, docProfiles[0]._id.toString(), docProfiles[4]._id ]
         const docArr = await dsParent.getAllOfThese(ids)
         expect(docArr).toHaveLength(3)
-        expect(docArr[0]).toStrictEqual(docColl[3])
-        expect(docArr[1]).toStrictEqual(docColl[0])
-        expect(docArr[2]).toStrictEqual(docColl[1])
+        expect(docArr[0]).toStrictEqual(docProfiles[3])
+        expect(docArr[1]).toStrictEqual(docProfiles[0])
+        expect(docArr[2]).toStrictEqual(docProfiles[4])
     })
 
     it('Parent deleting method test', async ()=>{
 
-        const userRemoving = docColl[5]
-        const userToRecreate = {...docColl[5] }
+        const userRemoving = docProfiles[5]
+        const userToRecreate = {...docProfiles[5] }
         const dsParent = new ParentDs(ProfileModel, { ttlInSeconds: 3 })
         dsParent.initialize({ context: 'stg' });
 
@@ -261,27 +269,79 @@ describe('Parent Datasource negative tests', ()=>{
     })
 })
 
-describe('Profile DataSource testing', ()=>{
-    it('Simple processes - get method with ID and email as well', async ()=>{
+describe('Specialised DataSource testing', ()=>{
+    it('Simple profile processes - get method with ID and email as well', async ()=>{
 
         const dsProf = new ProfDs()
         dsProf.initialize({ context: 'stg' });
 
-        const targetIdObj = docColl[0]._id
+        const targetIdObj = docProfiles[0]._id
         const res1 = await dsProf.get(targetIdObj)
         expect(res1).toBeInstanceOf(DocType)
         expect(res1._id).toStrictEqual(targetIdObj)
         
-        const targetEmailStr = docColl[0].email
+        const targetEmailStr = docProfiles[0].email
         const res2 = await dsProf.get(targetEmailStr)
         expect(res2).toBeInstanceOf(DocType)
         expect(res2._id).toStrictEqual(targetIdObj)
 
-        const targetIdStr = docColl[0]._id.toString()
+        const targetIdStr = docProfiles[0]._id.toString()
         const res3 = await dsProf.get(targetIdStr)
         expect(res3).toBeInstanceOf(DocType)
         expect(res3._id).toStrictEqual(targetIdObj)
     })
 
+    it('Simple post processes - get by postId, get by owner', async ()=>{
 
+        const dsPost = new PostDs()
+        dsPost.initialize({ context: 'stg' })
+
+        const postIdStr = docPosts[1]._id.toString()
+        const res1 = await dsPost.get(postIdStr, 'post')
+        expect(res1).toBeInstanceOf(DocType)
+        expect(res1._id.toString()).toEqual(postIdStr)
+
+        const ownerIdObj = docPosts[1].owner
+        const res2 = await dsPost.get(ownerIdObj, 'owner')
+        expect(res2).toBeInstanceOf(Array)
+        expect(res2).toHaveLength(2)
+    })
+
+    it('Simple post processes - getAll by postIds, getAll by owners', async ()=>{
+        const dsPost = new PostDs()
+        dsPost.initialize({ context: 'stg' })
+
+        // user3 has 2 post, user4 has none
+        const manageTheseUsers = [ docProfiles[3], docProfiles[4]]
+        const idsOfAllUser = manageTheseUsers.map(item=>{ return item._id })
+        const manageTheseDocs = [ docPosts[1], docPosts[6]] //all from user3
+        const idsOfAllPost = manageTheseDocs.map(item =>{ return item._id })
+
+        const res1 = await dsPost.getAllOfThese(idsOfAllPost, 'post')
+        expect(res1).toBeInstanceOf(Array)
+        expect(res1).toHaveLength(2)
+        expect(res1[0].owner).toStrictEqual(docProfiles[3]._id)
+        expect(res1[0].owner).toStrictEqual(res1[1].owner)
+
+        const res2 = await dsPost.getAllOfThese(idsOfAllUser, 'owner')
+        expect(res2).toBeInstanceOf(Array)
+        expect(res2).toHaveLength(2)
+        expect(res2[0].owner).toStrictEqual(res2[1].owner)
+    })
+
+    it('Simple post processes - deletAllOfThese', async ()=>{
+        const dsPost = new PostDs()
+        dsPost.initialize({ context: 'stg' })
+
+        const manageTheseDocs = [ docPosts[3], docPosts[4]] //all from user1
+        const idsOfAll = manageTheseDocs.map(item=>{return item._id})
+        await dsPost.deletingAllOfThese(idsOfAll)
+        setTimeout(async ()=>{
+            const reviseDoc = await PostModel.find({_id: idsOfAll})
+            expect(reviseDoc).toBeInstanceOf(Array)
+            expect(reviseDoc).toHaveLength(0)
+    
+            await PostModel.create(manageTheseDocs)
+        }, 500)
+    })
 })

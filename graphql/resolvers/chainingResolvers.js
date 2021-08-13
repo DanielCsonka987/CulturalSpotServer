@@ -1,6 +1,6 @@
 const ProfileModel = require('../../models/ProfileModel')
 
-const { countTheAmountOfFriends, defineUserConnections } = require('./someHelper')
+const { countTheAmountOfFriends, defineUserConnections } = require('./resolveHelpers')
 
 module.exports = {
     UserLogging: {

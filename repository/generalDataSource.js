@@ -42,9 +42,10 @@ class CSDataSource extends DataSource{
         throw error
     }
 
-    cacheKey(key){
+    cacheKey(key, typeDef){
         const keystr = (typeof key === 'object')? key.toString() : key;
-        return `CS-${this.dbModel.modelName}-${keystr}`
+        const typestr = typeDef? typeDef + '-' : '';
+        return `CS-${this.dbModel.modelName}-${typestr}${keystr}`
     }
     /**
      * Load in a document from pointed collection of database
@@ -84,7 +85,7 @@ class CSDataSource extends DataSource{
             }
             return results
         }
-        return this.get(ids, cacheConfig)
+        return await this.get(ids, cacheConfig)
     }
 
     /**
@@ -115,7 +116,7 @@ class CSDataSource extends DataSource{
           }
     }
     /**
-     * Execute saving at pointed and altered mongoose document
+     * Executes saving at pointed and altered mongoose document
      * @param {*} id mongoose ObjectId as pointer of document
      * @param {*} cacheConfig optinal, cache ttlInSeconds as cache time duration
      */
@@ -138,18 +139,24 @@ class CSDataSource extends DataSource{
     }
 
     /**
-     * 
-     * @param {*} id 
+     * Executes deletion of the pointed document
+     * @param {*} id the target ObjectId or stringId to remove
      */
     async deleting(id){
         if(!isThisProperDocID(id) ){
             this.didEncounterError( new Error('Not proper DocId was passed!') )
         }
-        this.dbModel.deleteOne({ _id: id}, (err, res)=>{
-            if(err){ this.didEncounterError( new Error('DB removal error!') ) }
-
+        try{
+            const report = await this.dbModel.deleteOne({ _id: id})
+            if(report.deletedCount !== 1){
+                this.didEncounterError(
+                    new Error(`Deletion failed at ${this.dbModel.modelName} ${id}`)
+                )
+            }
             this.cache.delete(this.cacheKey(id))
-        })
+        }catch(err){
+            this.didEncounterError(err)
+        }
 
     }
 }

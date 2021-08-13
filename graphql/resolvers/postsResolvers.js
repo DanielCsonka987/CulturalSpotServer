@@ -1,6 +1,4 @@
 
-const PostModel = require('../../models/PostModel')
-
 
 module.exports = {
     Query: {

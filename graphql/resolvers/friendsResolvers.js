@@ -1,7 +1,8 @@
 const { ApolloError, UserInputError } = require('apollo-server-express')
 
 const ProfileModel = require('../../models/ProfileModel')
-const { authorizEvaluation, countTheAmountOfFriends, defineUserConnections, getTheUsernameFromId } = require('./someHelper')
+const { authorizEvaluation, countTheAmountOfFriends, 
+    defineUserConnections, getTheUsernameFromId } = require('./resolveHelpers')
 const { useridInputRevise } = require('../../utils/inputRevise')
 
 module.exports = {
