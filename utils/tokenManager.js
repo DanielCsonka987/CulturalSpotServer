@@ -46,7 +46,7 @@ module.exports = {
         return results;
         
     },
-    autorizTokenEncoder: (tokenInput)=>{
+    authorizTokenEncoder: (tokenInput)=>{
         return tokenEncoderWithExp(tokenInput, '', TOKEN_ACCESS_EXPIRE)   
     },
     authorizTokenVerify: (tokenObj)=>{ 

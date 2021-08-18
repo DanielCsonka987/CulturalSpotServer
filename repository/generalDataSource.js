@@ -61,9 +61,9 @@ class CSDataSource extends DataSource{
         if (cachedDoc) {
             return JSON.parse(cachedDoc)
         }
-        
+
         const doc = await this.loader.load(id)
-        
+
         if (ttlInSeconds || this.globalTTLinSec) {
             const ttlValue = ttlInSeconds || this.globalTTLinSec
             this.cache.set(this.cacheKey(id), JSON.stringify(doc), { ttl: ttlValue })

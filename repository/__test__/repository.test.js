@@ -2,12 +2,14 @@ const mongoose = require('mongoose')
 const { InMemoryLRUCache } = require('apollo-server-caching')
 const DocType = require('mongoose').Document
 
-const url = require('../config/dbConfig').dbLocal
-const ProfileModel = require('../models/ProfileModel')
-const PostModel = require('../models/PostModel')
-const ParentDs = require('./generalDataSource')
-const ProfDs = require('./profileDS')
-const PostDs = require('./postDS')
+const url = require('../../config/dbConfig').dbLocal
+const ProfileModel = require('../../models/ProfileModel')
+const PostModel = require('../../models/PostModel')
+const ParentDs = require('../generalDataSource')
+const ProfDs = require('../profileDS')
+const PostDs = require('../postDS')
+
+//it uses the seeded datas as testdata!!!
 
 let docProfiles = []
 let docPosts = []
@@ -27,7 +29,9 @@ beforeAll((done)=>{
     
 })
 afterAll(()=>{
+
     mongoose.disconnect()
+    
 })
 
 
@@ -143,7 +147,6 @@ describe('Parent DataSource positive tests', ()=>{
                 console.log(metrics)
                 //jest.runOnlyPendingTimers()
                 //jest.useRealTimers()
-                done()
             }, 3000)
         }, 1000)
         
@@ -297,14 +300,10 @@ describe('Specialised DataSource testing', ()=>{
         dsPost.initialize({ context: 'stg' })
 
         const postIdStr = docPosts[1]._id.toString()
-        const res1 = await dsPost.get(postIdStr, 'post')
+        const res1 = await dsPost.get(postIdStr)
         expect(res1).toBeInstanceOf(DocType)
         expect(res1._id.toString()).toEqual(postIdStr)
 
-        const ownerIdObj = docPosts[1].owner
-        const res2 = await dsPost.get(ownerIdObj, 'owner')
-        expect(res2).toBeInstanceOf(Array)
-        expect(res2).toHaveLength(2)
     })
 
     it('Simple post processes - getAll by postIds, getAll by owners', async ()=>{
@@ -317,31 +316,47 @@ describe('Specialised DataSource testing', ()=>{
         const manageTheseDocs = [ docPosts[1], docPosts[6]] //all from user3
         const idsOfAllPost = manageTheseDocs.map(item =>{ return item._id })
 
-        const res1 = await dsPost.getAllOfThese(idsOfAllPost, 'post')
+        const res1 = await dsPost.getAllOfThese(idsOfAllPost)
         expect(res1).toBeInstanceOf(Array)
         expect(res1).toHaveLength(2)
         expect(res1[0].owner).toStrictEqual(docProfiles[3]._id)
         expect(res1[0].owner).toStrictEqual(res1[1].owner)
-
-        const res2 = await dsPost.getAllOfThese(idsOfAllUser, 'owner')
-        expect(res2).toBeInstanceOf(Array)
-        expect(res2).toHaveLength(2)
-        expect(res2[0].owner).toStrictEqual(res2[1].owner)
     })
 
     it('Simple post processes - deletAllOfThese', async ()=>{
+
         const dsPost = new PostDs()
         dsPost.initialize({ context: 'stg' })
 
-        const manageTheseDocs = [ docPosts[3], docPosts[4]] //all from user1
-        const idsOfAll = manageTheseDocs.map(item=>{return item._id})
+        const postsToRegenerate = [ docPosts[7], docPosts[8]] //from user5, user9
+        const idsOfAll = postsToRegenerate.map(item=>{return item._id})
         await dsPost.deletingAllOfThese(idsOfAll)
-        setTimeout(async ()=>{
-            const reviseDoc = await PostModel.find({_id: idsOfAll})
-            expect(reviseDoc).toBeInstanceOf(Array)
-            expect(reviseDoc).toHaveLength(0)
-    
-            await PostModel.create(manageTheseDocs)
-        }, 500)
+ 
+        return PostModel.find({_id: idsOfAll}, (err, res)=>{
+            expect(err).toBe(null)
+            expect(res).toBeInstanceOf(Array)
+            expect(res).toHaveLength(0)
+            
+            return PostModel.insertMany(postsToRegenerate, (e, r)=>{
+                expect(e).toBe(null)
+                expect(r).toHaveLength(2)
+                console.log('Post reinsertion done')
+            })
+        })
+ 
+    })
+
+    it('Simple post processes - seek by dedication', async ()=>{
+        const dsPost = new PostDs()
+        dsPost.initialize({ context: 'stg' })
+
+        //user0 has from user3 and user 7 has from user1 post - dedicated to them
+        const user0Id = docProfiles[0]._id
+        const senderId = docProfiles[3]._id
+        const res = await dsPost.getByDedication(user0Id)
+        expect(res).toBeInstanceOf(Array)
+        expect(res).toHaveLength(1)
+        expect(res[0].owner).toStrictEqual(senderId)
+        expect(res[0].dedicatedTo).toStrictEqual(user0Id)
     })
 })

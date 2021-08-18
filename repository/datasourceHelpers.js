@@ -3,6 +3,9 @@ const ObjectIdType = require('mongoose').Types.ObjectId
 const DocType = require('mongoose').Document
 
 module.exports = {
+    isThisUndefined(target){
+        return (typeof target === 'undefined')
+    },
     isThisAnArray(target){
         return (typeof target === 'object' && typeof target.length === 'number' &&
             typeof target.length !== 'null') || Array.isArray(target)

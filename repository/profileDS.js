@@ -1,7 +1,7 @@
 const ProfileModel = require('../models/ProfileModel')
 const MyDataSource = require('./generalDataSource')
 
-const { isItRealEmail, isThisProperDocID } = require('./datasourceHelpers')
+const { isThisUndefined, isItRealEmail, isThisProperDocID } = require('./datasourceHelpers')
 const DataLoader = require('dataloader')
 
 class ProfileDataSource extends MyDataSource{
@@ -28,13 +28,15 @@ class ProfileDataSource extends MyDataSource{
      * @returns mongoose document object
      */
     async get(key, { ttlInSeconds } = {}){
-
+        if(isThisUndefined(key)){
+            return '';
+        }
         if(isThisProperDocID(key)){
             const caching = ttlInSeconds? { ttlInSeconds } : ''
             return super.get(key, caching)
         }
         if(!isItRealEmail(key)){
-            this.didEncounterError( new Error('Not reasonable keyword is passed!'))
+            this.didEncounterError( new Error('Not reasonable keyword is passed! ' + key))
         }
 
         const cachedDoc = await this.cache.get(this.cacheKey(key))

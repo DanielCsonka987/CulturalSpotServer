@@ -36,17 +36,17 @@ module.exports = gql`
     type Post {
         postid: String!
         owner: UserFracture!
-        addressee: UserFracture
+        dedicatedTo: UserFracture
         content: String!
         sentiments: [Sentiment]!
-        comments: [Comment]!
+        comments: [String]!     ## id-s of other comments
     }
     type Comment {
         commentid: String!
         owner: UserFracture!
         content: String!
-        comments: [Comment]!
         sentiments: [Sentiment]!
+        comments: [String]!      ## id-s of other comments
     }
     type Sentiment {
         sentimentid: String!
@@ -61,16 +61,24 @@ module.exports = gql`
         SAD
         MAD
     }
+    enum TargetType {
+        POST
+        COMMENT
+        SENTIMENT
+    }
     type PostProcess {
         resultText: String!
         postid: String!
-        commentid: String!
+    }
+    type CommentProcess {
+        resultText: String!
+
     }
     type SentimentProcess {
         resultText: String!
-        postid: String
-        commentid: String
-        sentiment: Opinion
+        id: String!
+        target: TargetType!
+        content: Opinion!
     }
 
 
@@ -87,7 +95,7 @@ module.exports = gql`
         lastLoggedAt: String!
 
         friends: [UserMini]!
-        myposts: [Post]
+        allPosts: [Post]!
     }
     type TokenAuth {
         id: String!
@@ -124,9 +132,13 @@ module.exports = gql`
         showMeWhoCouldBeMyFriend: [UserFracture]!
 
         ## posts processes
-        listOfAllPosts: [Post]!         ## own and firends posts
-        listOfRecievedPosts: [Post]!    ## specificly addressed to the user
-        listOfSentPosts: [Post]!        ## sent by the user
+        listOfMySentPosts: [Post]      ## own posts to a specific user
+        listOfMyRecievedPosts: [Post]  ## specificly addressed to the user
+        listOfAllPosts: [Post]         ## own and firends posts
+
+        ## comments, sentiments processes
+        listOtTheseComments(comments: [String]!): [Comment]!
+        listOfTheseSentiments(sentiments: [String]!): [Sentiment]!
     }
     type Mutation {
 
@@ -151,16 +163,20 @@ module.exports = gql`
 
 
         ## posts processes
-            ## only if it is the user's
-        removeThisPost(postid: String!): PostProcess!
-        updateThisPost(postid: String!, newcontent: String, newadressee: String): Post!
-        updateThisComment(commentid: String! newcontent: String!): Comment!
-        sentimentRemoval(postid: String!, commentid: String!): SentimentProcess!
-
             ## all originated
-        makeAPost(content: String!, addressee: String): Post! 
-        commentThisPost(postid: String!, content: String!): Comment!
-        sentimentThisPost(postid: String!, sentiment: Opinion!): SentimentProcess!
-        sentimentThisComment(commentid: String!, sentiment: Opinion!): SentimentProcess!
+        makeAPost(content: String!, dedication: String): Post! 
+            ## only if it is the user's post
+        updateThisPost(postid: String!, newcontent: String, newdedication: String): Post!
+        removeThisPost(postid: String!): PostProcess!
+
+        ## comments, sentiments processes
+            ## only for the authors
+        updateCommentContent(commentid: String!, content: String!): CommentProcess!
+        deleteThisComment(commentid: String!): CommentProcess!
+        updateSentimentContent(sentimentid: String!, content: String!): SentimentProcess!
+        deleteThisSentiment(sentimentid: String!): SentimentProcess!
+            ## for everibody
+        createCommentToHere(type: TargetType!, id: String!, content: String): Comment!
+        createSentimentToHere(type: TargetType!, id: String!, content: String): Sentiment!
     }
 `;

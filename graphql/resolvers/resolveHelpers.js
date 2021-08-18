@@ -41,56 +41,65 @@ module.exports.tokenRefreshmentEvaluation = (refreshAuthRes)=>{
     } 
 }
 
-module.exports.countTheAmountOfFriends = async (useridAsBase, accountToCompare, dataSources)=>{
-    const useridBaseObj = (typeof useridAsBase === 'object')? 
-        useridAsBase : new mongooseId(useridAsBase)
+module.exports.countTheAmountOfFriends = async (userUnderProc, userClientToCompare, dataSources)=>{
+    const userToCompare = (typeof userUnderProc === 'object')? 
+        userUnderProc : new mongooseId(userUnderProc)
 
-    if(useridBaseObj.equals(accountToCompare._id)){
-        return accountToCompare.friends.length
+    if(userToCompare.equals(userClientToCompare._id)){
+        return userClientToCompare.friends.length
     }
-    const accountUnderAnalyze = await dataSources.profiles.get(useridBaseObj)
+    if(!Array.isArray(userClientToCompare.friends)){
+        return 0
+    }
+    const accountUnderAnalyze = await dataSources.profiles.get(userToCompare)
     if(!accountUnderAnalyze){
         throw new ApolloError('No user have found', 
         { general: 'countTheAmountOfFriends falied' })
     }
     const resultAmount = accountUnderAnalyze.friends.reduce((acc, cur)=>{
-        if(accountToCompare.friends.includes(cur._id)){
-            return acc + 1;
-        }
+            if(userClientToCompare.friends.includes(cur._id)){
+                return acc + 1;
+            }
     }, 0)
     //in case of only if no friend at all -> the basaAccount id not counts in it
     if(!resultAmount) { return 0 }
     return resultAmount
 }
 
-module.exports.defineUserConnections = (useridAsBase,  accountToCompare)=>{
-    const useridBaseObj = (typeof useridAsBase === 'object')? 
-        useridAsBase : new mongooseId(useridAsBase)
+module.exports.defineUserConnections = (userUnderProc,  userClientToCompare)=>{
+    const userToCompare = (typeof userUnderProc === 'object')? 
+        userUnderProc : new mongooseId(userUnderProc)
     
     //accepts only mongoose.Types.ObjectID as targetAccount !!!
-    if(useridBaseObj.equals(accountToCompare._id)){
+    if(userToCompare.equals(userClientToCompare._id)){
         return 'ME'
     }
-    if(accountToCompare.friends.includes(useridBaseObj)){
-        return 'FRIEND'
+    if(Array.isArray(userClientToCompare.friends)){
+        if(userClientToCompare.friends.includes(userToCompare)){
+            return 'FRIEND'
+        }
     }
-    if(accountToCompare.initiatedCon.includes(useridBaseObj)){
-        return 'INITIATED'
+    if(Array.isArray(userClientToCompare.initiatedCon)){
+        if(userClientToCompare.initiatedCon.includes(userToCompare)){
+            return 'INITIATED'
+        }
     }
-    if(accountToCompare.undecidedCon.includes(useridBaseObj)){
-        return 'UNCERTAIN'
+    if(Array.isArray(userClientToCompare.undecidedCon)){
+        if(userClientToCompare.undecidedCon.includes(userToCompare)){
+            return 'UNCERTAIN'
+        }
     }
     return 'UNCONNECTED'
 }
 
-module.exports.getTheUsernameFromId = async (useridAsBase, dataSources)=>{
-    const useridBaseObj = (typeof useridAsBase === 'object')? 
-        useridAsBase : new mongooseId(useridAsBase)
+module.exports.getTheUsernameFromId = async (userUnderProc, dataSources)=>{
+    const userToCompare = (typeof userUnderProc === 'object')? 
+        userUnderProc : new mongooseId(userUnderProc)
     
-    const profile = await dataSources.profiles.get(useridBaseObj)
+    const profile = await dataSources.profiles.get(userToCompare)
     if(!profile){
         throw new ApolloError('No user have found', 
-        { general: 'UsernameFromId falied to ' + useridBaseObj.toString() })
+        { general: 'UsernameFromId falied to ' + userToCompare.toString() })
     }
     return profile.username
 }

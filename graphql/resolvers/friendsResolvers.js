@@ -1,6 +1,5 @@
 const { ApolloError, UserInputError } = require('apollo-server-express')
 
-const ProfileModel = require('../../models/ProfileModel')
 const { authorizEvaluation, countTheAmountOfFriends, 
     defineUserConnections, getTheUsernameFromId } = require('./resolveHelpers')
 const { useridInputRevise } = require('../../utils/inputRevise')
@@ -9,7 +8,7 @@ module.exports = {
 
     Query: {
         async listOfMyFriends(_, __, { authorizRes, dataSources }){
-            await authorizEvaluation(authorizRes)
+            authorizEvaluation(authorizRes)
 
             const myAccount = await dataSources.profiles.get(authorizRes.subj)
             if(!myAccount){
@@ -26,7 +25,7 @@ module.exports = {
             })
         },
         async listOfUndecidedFriendships(_, __, { authorizRes, dataSources }){
-            await authorizEvaluation(authorizRes)
+            authorizEvaluation(authorizRes)
 
             const myAccount = await dataSources.profiles.get(authorizRes.subj)
             if(!myAccount){
@@ -47,7 +46,7 @@ module.exports = {
             })
         },
         async listOfInitiatedFriendships(_, __, { authorizRes, dataSources }){
-            await authorizEvaluation(authorizRes)
+            authorizEvaluation(authorizRes)
 
             const myAccount = await dataSources.profiles.get(authorizRes.subj)
             if(!myAccount){
@@ -69,8 +68,7 @@ module.exports = {
             })
         },
         async showThisUserInDetail(_, args, { authorizRes, dataSources }){
-            await authorizEvaluation( authorizRes )
-
+            authorizEvaluation( authorizRes )
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){
                 return new UserInputError('No proper userid for show a user catalog!', { field, issue })
@@ -79,9 +77,6 @@ module.exports = {
             if(!accountAtQuery){
                 return new UserInputError('No user found', { general: 'No target of input userid' })
             }
-            const theFriendList = await dataSources.profiles.getAllOfThese(
-                accountAtQuery.friends 
-            )
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
             return {
                 id: userid,
@@ -94,11 +89,11 @@ module.exports = {
                 mutualFriendCount: await countTheAmountOfFriends(
                     accountAtQuery._id, clientUser, dataSources
                 ),
-                friends: theFriendList
+                friends: accountAtQuery.friends 
             } 
         },
         async showMeWhoCouldBeMyFriend(_, __, { authorizRes, dataSources }){
-            await authorizEvaluation( authorizRes )
+            authorizEvaluation( authorizRes )
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
             const possibleFriendOutput = []
@@ -139,7 +134,7 @@ module.exports = {
     },
     Mutation: {
         async createAFriendshipInvitation(_, args, { authorizRes, dataSources }){
-            await authorizEvaluation(authorizRes)
+            authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){
@@ -153,7 +148,7 @@ module.exports = {
             if(!targetUser){
                 return new UserInputError('No user found', { general: 'No target of input userid' })
             }
-            const clientUser = await ProfileModel.findOne({ _id: authorizRes.subj })
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
             if(clientUser.initiatedCon.includes(targetUser._id)){
                 return new UserInputError('This userid is marked as initiated connection!')
@@ -176,7 +171,7 @@ module.exports = {
             }
         },
         async removeAFriendshipInitiation(_, args, { authorizRes, dataSources }){
-            await authorizEvaluation(authorizRes)
+            authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){
@@ -214,7 +209,7 @@ module.exports = {
             }
         },
         async approveThisFriendshipRequest(_, args, { authorizRes, dataSources }){
-            await authorizEvaluation(authorizRes)
+            authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){
@@ -259,7 +254,7 @@ module.exports = {
 
         },
         async removeThisFriendshipRequest(_, args, { authorizRes, dataSources }){
-            await authorizEvaluation(authorizRes)
+            authorizEvaluation(authorizRes)
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){
                 return new UserInputError('No proper userid for refuse a friendship invitation!', { field, issue })
@@ -296,7 +291,7 @@ module.exports = {
             }
         },
         async removeThisFriend(_, args, { authorizRes, dataSources }){
-            await authorizEvaluation(authorizRes)
+            authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){

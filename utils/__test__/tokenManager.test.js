@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 
-const { autorizTokenEncoder, authorizTokenInputRevise, authorizTokenVerify, 
+const { authorizTokenEncoder, authorizTokenInputRevise, authorizTokenVerify, 
     createTokenToLink, resoluteTokenFromLink, verifyTokenFromLink,
     createRefreshToken, loginRefreshTokenInputRevise, loginRefreshTokenValidate } 
     = require('../tokenManager')
@@ -14,7 +14,7 @@ function giveTheSecOnly(time){
 
 describe('Token encoding tests', ()=>{
     it('Encoding test, expirence detection', async ()=>{
-        const token = autorizTokenEncoder({ msg: 'text of token' })
+        const token = authorizTokenEncoder({ msg: 'text of token' })
         return jwt.verify(token, TOKEN_SECRET, (err, decoded)=>{
             expect(err).toBe(null)
             expect(typeof decoded).toBe('object')
@@ -35,7 +35,7 @@ describe('Token encoding tests', ()=>{
 })
 describe('Token input revision tests', ()=>{
     it('Normal test', ()=>{
-        const token = autorizTokenEncoder({ msg: 'text' })
+        const token = authorizTokenEncoder({ msg: 'text' })
         const tokenHeader = TOKEN_PREFIX + token
         const tokenInput = { headers: { authorization: tokenHeader } }
         const revised = authorizTokenInputRevise(tokenInput)
@@ -68,7 +68,7 @@ describe('Token input revision tests', ()=>{
         expect(revised.takenText).toBe(null)
     })
     it('No prefixed authorization header test', ()=>{
-        const token = autorizTokenEncoder({ msg: 'text' })
+        const token = authorizTokenEncoder({ msg: 'text' })
         const tokenInput = { headers: { authorization: token } }
         const revised = authorizTokenInputRevise(tokenInput)
         expect(typeof revised).toBe('object')
@@ -79,7 +79,7 @@ describe('Token input revision tests', ()=>{
         expect(revised.takenText).toBe(null)
     })
     it('Damaged schema token test', ()=>{
-        const tokenParts = autorizTokenEncoder({ msg: 'text' }).split('.')
+        const tokenParts = authorizTokenEncoder({ msg: 'text' }).split('.')
         const token = tokenParts[0] + '.' + tokenParts[1] + tokenParts[2]
         const tokenInput = { headers: { authorization: token } }
         const revised = authorizTokenInputRevise(tokenInput)

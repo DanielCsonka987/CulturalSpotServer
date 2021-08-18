@@ -6,35 +6,44 @@ const PORT = process.env.PORT || 4040;
 const DB_CONNECT = (process.env.NODE_ENV === 'production')?
     retquire('./config/dbConfig').dbCloud
     : require('./config/dbConfig').dbLocal
+const { RESETPWD_REST_GET_ROUTE } = require('./config/appConfig').ROUTING;
+const LOCAL_DOMAIN_URL = { url: '' }
+
 const typeDefs = require('./graphql/typeDef')
 const resolvers = require('./graphql/resolvers')
-const emailerTrsp = require('./emailer/emailerSetup')
 const { authorizTokenInputRevise, authorizTokenVerify, 
     loginRefreshTokenInputRevise, loginRefreshTokenValidate } 
     = require('./utils/tokenManager')
+    
 const getDomainURL = require('./utils/defineDomainURL')
-const { RESETPWD_REST_GET_ROUTE } = require('./config/appConfig').ROUTING;
+const emailerTrsp = require('./emailer/emailerSetup')
 const ProfileDataSource = require('./repository/profileDS');
-
-const LOCAL_DOMAIN_URL = { url: '' }
+const PostDataSource = require('./repository/postDS')
+const CommentDataSource = require('./repository/commentDS')
 
 const app = express();
 const apolloSrv = new ApolloServer({
     typeDefs,
     resolvers,
     dataSources: ()=>({
-        profiles: new ProfileDataSource()
+        profiles: new ProfileDataSource(),
+        posts: new PostDataSource(),
+        comments: new CommentDataSource()
     }),
     context: async({ req, res })=>{
-    /**
-     * for the authorization the token consist 
-     * -> id (user identification), no exp field!!
-     * => no user of authorizRes and authorazEvaluation() with this!
-     * => authorizTokenInputRevise() no valid either (its for header revision)
-    */
+        /**
+         * for the authorization the token consist
+         * -> subj (as userid), email fields and expiration 1 hour
+         */
         const authorizRes = await authorizTokenVerify( 
             authorizTokenInputRevise(req) 
-        );
+            );
+        /**
+         * for the authorization refresh the token consist 
+         * -> id (user identification), no exp field!!
+         * => no user of authorizRes and authorazEvaluation() with this!
+         * => authorizTokenInputRevise() no valid either (its for header revision)
+        */
         const refreshRes = await loginRefreshTokenValidate(
             loginRefreshTokenInputRevise(req)
         )

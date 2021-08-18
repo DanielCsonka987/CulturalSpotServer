@@ -4,13 +4,12 @@ const request = require('supertest')
 const ProfileModel = require('../models/ProfileModel')
 const EmailReportModel = require('../models/EmailReportModel')
 const { createTokenToHeader, userTestDatas, userTestRegister } 
-    = require('./helperToTesting')
-const { autorizTokenEncoder, createRefreshToken, 
+    = require('./helperToTestingServices')
+const { authorizTokenEncoder, createRefreshToken, 
     authorizTokenVerify, authorizTokenInputRevise } = require('../utils/tokenManager')
 const { startTestingServer, exitTestingServer } = require('../server')
 
-let userEmails= []
-let userIds = []
+const userTesting = new Map()
 
 let theSrv = null;
 beforeAll( async ()=>{
@@ -23,34 +22,42 @@ beforeAll( async ()=>{
         await ProfileModel.insertMany(userTestDatas, async (error, report)=>{
             expect(error).toBe(null)
             expect(typeof report).toBe('object')
-            userIds = report.map(item=>{ return item._id.toString() })
-            userEmails = report.map(item=>{ return item.email })
 
+            for(const item of report){
+                userTesting.set(item.username, { id: item._id.toString(), email: item.email, obj: item._id })
+            }
             //id at pointer 0 will be removed
             //id at pointer 1 will be at the main target of friend management tests
             //id at pointer 3 will be login with -> lastLogin field must changes
-            report[1].friends.push(report[2]._id)   //at mut.5 removed
-            report[1].initiatedCon.push(report[3]._id)
-            report[1].undecidedCon.push(report[4]._id)  //at mut.4 accepted
-            report[1].undecidedCon.push(report[5]._id)  //at mut.3 removed
-            await report[1].save()
-
-            report[2].friends.push(report[1]._id)
-            report[2].friends.push(report[3]._id)
-            await report[2].save()
-
-            report[3].undecidedCon.push(report[1]._id)
-            report[3].friends.push(report[2]._id)
-            await report[3].save()
-
-            report[4].initiatedCon.push(report[1]._id)
-            await report[4].save()
-            report[5].initiatedCon.push(report[5]._id)
-            await report[5].save()
-
-
+            for(const item of report){
+                if(item._id.toString() === userTesting.get('User 1').id){
+                    item.friends.push(userTesting.get('User 2').obj)   //at mut.5 removed
+                    item.initiatedCon.push(userTesting.get('User 3').obj)
+                    item.undecidedCon.push(userTesting.get('User 4').obj)  //at mut.4 accepted
+                    item.undecidedCon.push(userTesting.get('User 5').obj)  //at mut.3 removed
+                    await item.save()
+                }
+                if(item._id.toString() === userTesting.get('User 2').id){
+                    item.friends.push(userTesting.get('User 1').obj)
+                    item.friends.push(userTesting.get('User 3').obj)
+                    await item.save()
+                }
+                if(item._id.toString() === userTesting.get('User 3').id){
+                    item.undecidedCon.push(userTesting.get('User 1').obj)
+                    item.friends.push(userTesting.get('User 2').obj)
+                    await item.save()
+                }
+                if(item._id.toString() === userTesting.get('User 4').id){
+                    item.initiatedCon.push(userTesting.get('User 1').obj)
+                    await item.save()
+                }
+                if(item._id.toString() === userTesting.get('User 5').id){
+                    item.initiatedCon.push(userTesting.get('User 1').obj)
+                    await item.save()
+                }
+            }
+            //the user6 exist - at mut.1 initiated friendship, that at mut.2 removed
         })
-        //1 more user exist - at mut.1 initiated friendship, that at mut.2 removed
     })
 })
 afterAll((done)=>{
@@ -61,6 +68,7 @@ afterAll((done)=>{
 
 })
 
+
 describe('Starter base REST URLs', ()=>{
     it('GET the base url', (done)=>{
         request(theSrv)
@@ -70,6 +78,8 @@ describe('Starter base REST URLs', ()=>{
         .end((err, res)=>{
             expect(err).toBe(null)
             expect(res.body).toBeInstanceOf(Object);
+            expect(res.body.errors).toBe(undefined)
+
             expect(res.text.includes('GET request accepted - frontpage is sent!'))
                 .toBeTruthy()
             expect(res.text.includes('<h1>')).toBeTruthy()
@@ -86,6 +96,7 @@ describe('Starter base REST URLs', ()=>{
         .end((err, res)=>{
             expect(err).toBe(null)
             expect(res.body).toBeInstanceOf(Object);
+            expect(res.body.errors).toBe(undefined)
             expect(res.text.includes('GET request accepted 2')).toBeTruthy()
             expect(res.text.includes('<h1>')).toBeTruthy()
             expect(res.text.includes('</h1>')).toBeTruthy()
@@ -116,7 +127,7 @@ describe('GrapQL profile queries', ()=>{
         .post('/graphql')
         .send({
             "query": `mutation{
-                 login(email:"${userEmails[3]}", password: "testing") 
+                 login(email:"${userTesting.get('User 3').email}", password: "testing") 
                 { id, token, tokenExpire, registeredAt }
             }`
         })
@@ -125,11 +136,14 @@ describe('GrapQL profile queries', ()=>{
         .expect(200)
         .end((err, res)=>{
             expect(err).toBe(null)
+            expect(res.body.errors).toBe(undefined)
+
             expect(typeof res.body.data.login.id).toBe('string')
 
             const theGotId = res.body.data.login.id
             ProfileModel.findOne({ _id: theGotId }, (error, result)=>{
                 expect(error).toBe(null)
+                expect(result).not.toBe(null)
                 expect(result.registeredAt).toEqual(res.body.data.login.registeredAt)
                 done()
             })
@@ -151,6 +165,7 @@ describe('GrapQL profile queries', ()=>{
         .expect(200)
         .end((err, res)=>{
             expect(err).toBe(null)
+            expect(res.body.errors).toBe(undefined)
 
             expect(typeof res.body.data.registration.id).toBe('string')
             expect(typeof res.body.data.registration.username).toBe('string')
@@ -159,23 +174,23 @@ describe('GrapQL profile queries', ()=>{
             const theNewId = res.body.data.registration.id
             ProfileModel.findOne({ _id: theNewId }, (error, result)=>{
                 expect(error).toBe(null)
+                expect(result).not.toBe(null)
                 expect(result.username).toBe(userTestRegister.username)
 
-                userIds.push(result._id.toString())
-                userEmails.push(result.email)
+                userTesting.set(result.username, { id: result._id.toString(), email: result.email, obj: result._id })
                 done()
             })
         })
     })
     it('Change pwd attempt', (done)=>{
-        const userEmailTarget = userEmails[userEmails.length-1];
-        const theUserId = userIds[userIds.length-1].toString();
+        const userEmailTarget = userTesting.get('User 2').email;
+        const theUserId = userTesting.get('User 2').id;
         let theOldHashPwd = ''; 
         ProfileModel.findOne({email: userEmailTarget}, (err, doc)=>{
             expect(err).toBe(null)
             theOldHashPwd = doc.pwdHash;
 
-            let tokenToAuth = autorizTokenEncoder({ subj: theUserId, email: userEmailTarget })
+            let tokenToAuth = authorizTokenEncoder({ subj: theUserId, email: userEmailTarget })
     
             request(theSrv)
             .post("/graphql")
@@ -195,13 +210,14 @@ describe('GrapQL profile queries', ()=>{
             .end((err, res)=>{
                 expect(err).toBe(null)
                 expect(typeof res.body.data).toBe('object')
+                expect(res.body.errors).toBe(undefined)
 
                 expect(res.body.data.changePassword.id).toBe(theUserId)
                 expect(res.body.data.changePassword.resultText).toBe('Your password changed!')
     
-                ProfileModel.findOne({_id: res.body.data.changePassword.id}, 
-                    async (error, doc)=>{
+                ProfileModel.findById(res.body.data.changePassword.id, (error, doc)=>{
                     expect(error).toBe(null)
+                    expect(doc).not.toBe(null)
                     expect(doc.pwdHash).not.toEqual(theOldHashPwd)
                     /*console.log('The new password hash to check in the DB record. \n %s \n %s',
                         doc._id.toString(),
@@ -214,128 +230,123 @@ describe('GrapQL profile queries', ()=>{
     })
 
     it('Change user detail attempt', (done)=>{
-        const userEmailTarget = userEmails[userEmails.length - 1];
-        const theUserId = userIds[userIds.length - 1].toString();
+        const userEmailTarget = userTesting.get('User 1').email;
+        const theUserId = userTesting.get('User 1').id;
         const newUsername = 'Recognisable NAME'
-        ProfileModel.findOne({email: userEmailTarget}, (err, doc)=>{
+        const tokenToAuth = authorizTokenEncoder({ subj: theUserId, email: userEmailTarget })
+
+        request(theSrv)
+        .post('/graphql')
+        .send({query: `mutation{
+            changeAccountDatas(username: "${newUsername}"){
+                id, username, email, resultText
+            }
+        }`})
+        .set('Authorization', createTokenToHeader(tokenToAuth))
+        .set('Accept', 'application/json')
+        .expect('Content-Type', 'application/json; charset=utf-8')
+        .expect(200)
+        .end((err, res)=>{
             expect(err).toBe(null)
-            theOldName = doc.username
+            expect(res.body.errors).toBe(undefined)
 
-            const tokenToAuth = autorizTokenEncoder({ subj: theUserId, email: userEmailTarget })
+            expect(typeof res.body.data).toBe('object')
+            expect(typeof res.body.data.changeAccountDatas.id).toBe('string')
+            expect(res.body.data.changeAccountDatas.id).toBe(theUserId)
+            expect(res.body.data.changeAccountDatas.resultText).toBe('Account datas changed!')
 
-            request(theSrv)
-            .post('/graphql')
-            .send({query: `mutation{
-                changeAccountDatas(username: "${newUsername}"){
-                    id, username, email, resultText
-                }
-            }`})
-            .set('Authorization', createTokenToHeader(tokenToAuth))
-            .set('Accept', 'application/json')
-            .expect('Content-Type', 'application/json; charset=utf-8')
-            .expect(200)
-            .end((err, res)=>{
-                expect(err).toBe(null)
 
-                expect(typeof res.body.data).toBe('object')
-                expect(typeof res.body.data.changeAccountDatas.id).toBe('string')
-                expect(res.body.data.changeAccountDatas.id).toBe(theUserId)
-                expect(res.body.data.changeAccountDatas.resultText).toBe('Account datas changed!')
-
-                ProfileModel.findOne({ _id: res.body.data.changeAccountDatas.id }, 
-                    async (error, doc)=>{
-                    expect(error).toBe(null)
-                    expect(doc.username).toBe(newUsername)
-                    done()
-                })  
-            })
-        })
-    })
-
-    it('Delete account attempt', (done)=>{
-        const userEmailTarget = userEmails[0];
-        const theUserId = userIds[0].toString();
-        ProfileModel.findOne({email: userEmailTarget}, (err, doc)=>{
-            expect(err).toBe(null)
-
-            let tokenToAuth = autorizTokenEncoder({ subj: theUserId, email: userEmailTarget })
-
-            request(theSrv)
-            .post('/graphql')
-            .send({query: `mutation{
-                deleteAccount(password: "testing", passwordconf: "testing"){
-                    id, username, email, resultText
-                }
-            }`})
-            .set('Authorization', createTokenToHeader(tokenToAuth))
-            .set('Accept', 'application/json')
-            .expect('Content-Type', 'application/json; charset=utf-8')
-            .expect(200)
-            .end((err, res)=>{
-                expect(err).toBe(null)
-
-                expect(typeof res.body.data).toBe('object')
-                expect(typeof res.body.data.deleteAccount.id).toBe('string')
-                expect(res.body.data.deleteAccount.id).toBe(theUserId)
-                expect(res.body.data.deleteAccount.resultText).toBe('Account deleted!')
-
-                ProfileModel.findOne({ _id: res.body.data.deleteAccount.id }, 
-                    async (error, doc)=>{
-                    expect(error).toBe(null)
-                    expect(doc).toBe(null)
-
-                    userEmails.shift()
-                    userIds.shift()
-                    done()
-                })  
-            })
-        })
-    })
-    it('ResetPassword attempt', (done)=>{
-        const userEmailTarget = userEmails[4];
-        ProfileModel.findOne({email: userEmailTarget}, (err, doc)=>{
-            expect(err).toBe(null)
-            const theUserId = doc._id.toString();
-
-            request(theSrv)
-            .post('/graphql')
-            .send({query: `mutation{
-                resetPassword(email: "${userEmailTarget}"){
-                    id, username, email, resultText
-                }
-            }`})
-            .set('Accept', 'application/json')
-            .expect('Content-Type', 'application/json; charset=utf-8')
-            .expect(200)
-            .end((err, res)=>{
-                expect(err).toBe(null)
-
-                expect(typeof res.body.data).toBe('object')
-                expect(typeof res.body.data.resetPassword.id).toBe('string')
-                expect(res.body.data.resetPassword.id).not.toBe(theUserId)
-                expect(res.body.data.resetPassword.id).toBe('none')
-                expect(res.body.data.resetPassword.resultText).toBe('Password reset email is sent!')
-                setTimeout(()=>{
-                    EmailReportModel.findOne({ msgto: userEmailTarget }, (error, doc)=>{
-                        expect(error).toBe(null)
-                        expect(doc).not.toBe(null)
-    
-                        ProfileModel.findOne({ email: userEmailTarget }, (errObj, docObj)=>{
-                            expect(errObj).toBe(null)
-                            expect(docObj.resetPwdMarker).not.toBe(undefined)
-                            done()
-                        })
-    
-                    })  
-                }, 1200)
-            })
+            ProfileModel.findById(res.body.data.changeAccountDatas.id, (error, doc)=>{
+                expect(error).toBe(null)
+                expect(doc).not.toBe(null)
+                expect(doc.username).toBe(newUsername)
+                done()
+            })  
+            
         })
         
     })
 
+    it('Delete account attempt', (done)=>{
+        const userEmailTarget = userTesting.get('User 0').email;
+        const theUserId = userTesting.get('User 0').id;
+
+        let tokenToAuth = authorizTokenEncoder({ subj: theUserId, email: userEmailTarget })
+
+        request(theSrv)
+        .post('/graphql')
+        .send({query: `mutation{
+            deleteAccount(password: "testing", passwordconf: "testing"){
+                id, username, email, resultText
+            }
+        }`})
+        .set('Authorization', createTokenToHeader(tokenToAuth))
+        .set('Accept', 'application/json')
+        .expect('Content-Type', 'application/json; charset=utf-8')
+        .expect(200)
+        .end((err, res)=>{
+            expect(err).toBe(null)
+            expect(res.body.errors).toBe(undefined)
+
+            expect(typeof res.body.data).toBe('object')
+            expect(typeof res.body.data.deleteAccount.id).toBe('string')
+            expect(res.body.data.deleteAccount.id).toBe(theUserId)
+            expect(res.body.data.deleteAccount.resultText).toBe('Account deleted!')
+
+            ProfileModel.findOne({ _id: res.body.data.deleteAccount.id }, (error, doc)=>{
+                expect(error).toBe(null)
+                expect(doc).toBe(null)
+                userTesting.delete('User 0')
+                done()
+            })  
+        })
+        
+    })
+    it('ResetPassword attempt', (done)=>{
+        const userEmailTarget = userTesting.get('User 4').email;
+        const theUserId = userTesting.get('User 4').id;
+
+        request(theSrv)
+        .post('/graphql')
+        .send({query: `mutation{
+            resetPassword(email: "${userEmailTarget}"){
+                id, username, email, resultText
+            }
+        }`})
+        .set('Accept', 'application/json')
+        .expect('Content-Type', 'application/json; charset=utf-8')
+        .expect(200)
+        .end((err, res)=>{
+            expect(err).toBe(null)
+            expect(res.body.errors).toBe(undefined)
+
+            expect(typeof res.body.data).toBe('object')
+            expect(typeof res.body.data.resetPassword.id).toBe('string')
+            expect(res.body.data.resetPassword.id).not.toBe(theUserId)
+            expect(res.body.data.resetPassword.id).toBe('none')
+            expect(res.body.data.resetPassword.resultText).toBe('Password reset email is sent!')
+
+                EmailReportModel.findOne({ msgto: userEmailTarget }, (error, doc)=>{
+                    expect(error).toBe(null)
+                    expect(doc).not.toBe(null)
+
+                    ProfileModel.findOne({ _id: theUserId }, (errObj, docObj)=>{
+                        expect(errObj).toBe(null)
+                        expect(docObj).not.toBe(null)
+                        expect(docObj.resetPwdMarker).not.toBe(undefined)
+                        done()
+                    })
+
+                })  
+
+        })
+        
+        
+    })
+
     it('Renew authorization token', (done)=>{
-        const userIdTarget = userIds[2]
-        const refToken = createRefreshToken({id: userIds[2].toString()})
+        const userIdTarget = userTesting.get('User 5').id
+        const refToken = createRefreshToken({id: userIdTarget})
         ProfileModel.findOne({ _id: userIdTarget }, async (error, doc)=>{
             expect(error).toBe(null)
             
@@ -356,6 +367,8 @@ describe('GrapQL profile queries', ()=>{
             .expect(200)
             .end((err, res)=>{
                 expect(err).toBe(null)
+                expect(res.body.errors).toBe(undefined)
+
                 expect(res.body.data.refreshAuth.id).toBe(userIdTarget.toString())
                 expect(typeof res.body.data.refreshAuth.newToken).toBe('string')
                 expect(res.body.data.refreshAuth.tokenExpire).toBe(3600)
@@ -374,14 +387,14 @@ describe('GrapQL profile queries', ()=>{
     })
 
     it('Logout process', (done)=>{
-        const userIdTarget = userIds[2]
-        const refToken = createRefreshToken({id: userIds[2].toString()})
+        const userIdTarget = userTesting.get('User 1').id
+        const refToken = createRefreshToken({id: userIdTarget})
         ProfileModel.findOne({_id: userIdTarget}, async (error, doc)=>{
             expect(error).toBe(null)
             doc.refreshToken = refToken;
             await doc.save()
             
-            const authToken = autorizTokenEncoder(
+            const authToken = authorizTokenEncoder(
                 {subj: doc._id.toString(), email: doc.email}
             )
 
@@ -399,11 +412,14 @@ describe('GrapQL profile queries', ()=>{
             .expect(200)
             .end((err, res)=>{
                 expect(err).toBe(null)
+                expect(res.body.errors).toBe(undefined)
+
                 expect(res.body.data.logout.resultText).toBe('You have been logged out!')
                 expect(res.body.data.logout.id).toBe(userIdTarget.toString())
 
                 ProfileModel.findOne({_id: userIdTarget}, (e, d)=>{
                     expect(e).toBe(null)
+                    expect(d).not.toBe(null)
                     expect(d.refreshToken).toBe('')
 
                     done()
@@ -415,7 +431,9 @@ describe('GrapQL profile queries', ()=>{
 
 describe('Graphql frrend queries', ()=>{
     it('My friends query', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] } )
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: ` query{
@@ -431,16 +449,19 @@ describe('Graphql frrend queries', ()=>{
         .end((err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
             expect(typeof res.body.data.listOfMyFriends).toBe('object')
             expect(res.body.data.listOfMyFriends.length).toBe(1)
-            expect(res.body.data.listOfMyFriends[0].id).toBe(userIds[1])
-            expect(res.body.data.listOfMyFriends[0].email).toBe(userEmails[1])
+            expect(res.body.data.listOfMyFriends[0].id).toBe(userTesting.get('User 2').id)
+            expect(res.body.data.listOfMyFriends[0].email).toBe(userTesting.get('User 2').email)
             done()
         })
     })
     it('My undecided friend-request query', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] } )
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: ` query{
@@ -456,18 +477,21 @@ describe('Graphql frrend queries', ()=>{
         .end((err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
             expect(typeof res.body.data.listOfUndecidedFriendships).toBe('object')
             expect(res.body.data.listOfUndecidedFriendships.length).toBe(2)
-            expect(res.body.data.listOfUndecidedFriendships[0].id).toBe(userIds[3])
+            expect(res.body.data.listOfUndecidedFriendships[0].id).toBe(userTesting.get('User 4').id)
             expect(res.body.data.listOfUndecidedFriendships[0].relation).toBe('UNCERTAIN')
-            expect(res.body.data.listOfUndecidedFriendships[1].id).toBe(userIds[4])
+            expect(res.body.data.listOfUndecidedFriendships[1].id).toBe(userTesting.get('User 5').id)
             expect(res.body.data.listOfUndecidedFriendships[1].relation).toBe('UNCERTAIN')
             done()
         })
     })
     it('My initiated friend-request query', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] } )
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: ` query{
@@ -483,20 +507,25 @@ describe('Graphql frrend queries', ()=>{
         .end((err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
             expect(typeof res.body.data.listOfInitiatedFriendships).toBe('object')
             expect(res.body.data.listOfInitiatedFriendships.length).toBe(1)
-            expect(res.body.data.listOfInitiatedFriendships[0].id).toBe(userIds[2])
-            expect(res.body.data.listOfInitiatedFriendships[0].relation).toBe('INITIATED')
+            expect(res.body.data.listOfInitiatedFriendships[0].id)
+                .toBe(userTesting.get('User 3').id)
+            expect(res.body.data.listOfInitiatedFriendships[0].relation)
+                .toBe('INITIATED')
             done()
         })
     })
     it('Spec. users public account', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] } )
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: ` query{
-            showThisUserInDetail(friendid: "${userIds[1]}"){
+            showThisUserInDetail(friendid: "${userTesting.get('User 2').id}"){
                     id, username, email, registeredAt, relation, mutualFriendCount, friends{
                         id, username, relation, mutualFriendCount
                     }
@@ -510,16 +539,23 @@ describe('Graphql frrend queries', ()=>{
         .end((err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
-            expect(typeof res.body.data.showThisUserInDetail).toBe('object')
-            expect(res.body.data.showThisUserInDetail.id).toBe(userIds[1])
-            expect(res.body.data.showThisUserInDetail.email).toBe(userEmails[1])
-            expect(res.body.data.showThisUserInDetail.relation).toBe('FRIEND')
+            expect(typeof res.body.data.showThisUserInDetail)
+                .toBe('object')
+            expect(res.body.data.showThisUserInDetail.id)
+                .toBe(userTesting.get('User 2').id)
+            expect(res.body.data.showThisUserInDetail.email)
+                .toBe(userTesting.get('User 2').email)
+            expect(res.body.data.showThisUserInDetail.relation)
+                .toBe('FRIEND')
             done()
         })
     })
     it('Show-me-new-friends query', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] } )
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: ` query{
@@ -535,22 +571,29 @@ describe('Graphql frrend queries', ()=>{
         .end((err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
             expect(res.body.data.showMeWhoCouldBeMyFriend.length).toBe(3)
 
             //the undecided users
-            expect(res.body.data.showMeWhoCouldBeMyFriend[0].id).toBe(userIds[3])
-            expect(res.body.data.showMeWhoCouldBeMyFriend[0].username).toBe(userTestDatas[4].username)
+            expect(res.body.data.showMeWhoCouldBeMyFriend[0].id)
+                .toBe(userTesting.get('User 4').id)
+            expect(res.body.data.showMeWhoCouldBeMyFriend[0].username)
+                .toBe(userTestDatas[4].username)
             expect(res.body.data.showMeWhoCouldBeMyFriend[0].mutualFriendCount).toBe(0)
-            expect(res.body.data.showMeWhoCouldBeMyFriend[0].relation).toBe('UNCERTAIN')
+            expect(res.body.data.showMeWhoCouldBeMyFriend[0].relation)
+                .toBe('UNCERTAIN')
 
-            expect(res.body.data.showMeWhoCouldBeMyFriend[1].id).toBe(userIds[4])
-            expect(res.body.data.showMeWhoCouldBeMyFriend[1].username).toBe(userTestDatas[5].username)
+            expect(res.body.data.showMeWhoCouldBeMyFriend[1].id)
+                .toBe(userTesting.get('User 5').id)
+            expect(res.body.data.showMeWhoCouldBeMyFriend[1].username)
+                .toBe(userTestDatas[5].username)
             expect(res.body.data.showMeWhoCouldBeMyFriend[1].mutualFriendCount).toBe(0)
-            expect(res.body.data.showMeWhoCouldBeMyFriend[1].relation).toBe('UNCERTAIN')
+            expect(res.body.data.showMeWhoCouldBeMyFriend[1].relation)
+                .toBe('UNCERTAIN')
 
             //the only friend of the friend
-            expect(res.body.data.showMeWhoCouldBeMyFriend[2].id).toBe(userIds[2])
+            expect(res.body.data.showMeWhoCouldBeMyFriend[2].id).toBe(userTesting.get('User 3').id)
             expect(res.body.data.showMeWhoCouldBeMyFriend[2].username).toBe(userTestDatas[3].username)
             expect(res.body.data.showMeWhoCouldBeMyFriend[2].mutualFriendCount).toBe(1)
             expect(res.body.data.showMeWhoCouldBeMyFriend[2].relation).toBe('INITIATED')
@@ -561,11 +604,13 @@ describe('Graphql frrend queries', ()=>{
 
 describe('Grapql friend mutations', ()=>{
     it('1 Initiate friendship', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] } )
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: ` mutation{
-                createAFriendshipInvitation(friendid: "${userIds[5]}"){
+                createAFriendshipInvitation(friendid: "${userTesting.get('User 6').id}"){
                     id, username, mutualFriendCount, relation
                 }
             }`
@@ -577,20 +622,21 @@ describe('Grapql friend mutations', ()=>{
         .end((err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
-            expect(res.body.data.createAFriendshipInvitation.id).toBe(
-                userIds[5]
-            )
-            expect(res.body.data.createAFriendshipInvitation.relation).toBe(
-                'INITIATED'
-            )
-            ProfileModel.findOne({_id: userIds[0]}, (error, doc)=>{
+            expect(res.body.data.createAFriendshipInvitation.id)
+                .toBe(userTesting.get('User 6').id)
+            expect(res.body.data.createAFriendshipInvitation.relation)
+                .toBe( 'INITIATED' )
+            ProfileModel.findOne({_id: userTesting.get('User 1').id}, (error, doc)=>{
                 expect(error).toBe(null)
-                expect(doc.initiatedCon.includes(userIds[5])).toBeTruthy()
+                expect(doc).not.toBe(null)
+                expect(doc.initiatedCon.includes(userTesting.get('User 6').obj)).toBeTruthy()
 
-                ProfileModel.findOne({ _id: userIds[5]}, (e, d)=>{
+                ProfileModel.findOne({ _id: userTesting.get('User 6').id }, (e, d)=>{
                     expect(e).toBe(null)
-                    expect(d.undecidedCon.includes(userIds[0])).toBeTruthy()
+                    expect(d).not.toBe(null)
+                    expect(d.undecidedCon.includes(userTesting.get('User 1').obj)).toBeTruthy()
                     done()
                 })
             })
@@ -598,11 +644,13 @@ describe('Grapql friend mutations', ()=>{
     })
 
     it('2 Remove friendship initiation', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] })
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: `mutation{
-                removeAFriendshipInitiation(friendid: "${userIds[5]}"){
+                removeAFriendshipInitiation(friendid: "${userTesting.get('User 3').id}"){
                     resultText, useridAtProcess
                 }
             }
@@ -614,21 +662,20 @@ describe('Grapql friend mutations', ()=>{
         .end( (err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
-            expect(res.body.data.removeAFriendshipInitiation.useridAtProcess).toBe(
-                userIds[5]
-            )
-            expect(res.body.data.removeAFriendshipInitiation.resultText).toBe(
-                'Firendship initiation cancelled!'
-            )
+            expect(res.body.data.removeAFriendshipInitiation.useridAtProcess)
+                .toBe( userTesting.get('User 3').id )
+            expect(res.body.data.removeAFriendshipInitiation.resultText)
+                .toBe( 'Firendship initiation cancelled!' )
 
-            ProfileModel.findOne({_id: userIds[0]}, (error, doc)=>{
+            ProfileModel.findOne({_id: userTesting.get('User 1').id}, (error, doc)=>{
                 expect(error).toBe(null)
-                expect(doc.initiatedCon.includes(userIds[5])).toBeFalsy()
+                expect(doc.initiatedCon.includes(userTesting.get('User 3').obj)).toBeFalsy()
 
-                ProfileModel.findOne({ _id: userIds[5]}, (e, d)=>{
+                ProfileModel.findOne({ _id: userTesting.get('User 3').id}, (e, d)=>{
                     expect(e).toBe(null)
-                    expect(d.undecidedCon.includes(userIds[0])).toBeFalsy()
+                    expect(d.undecidedCon.includes(userTesting.get('User 1').obj)).toBeFalsy()
                     done()
                 })
             })
@@ -636,12 +683,14 @@ describe('Grapql friend mutations', ()=>{
     })
 
     it('3 Remove friendship request', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] })
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: ` 
             mutation{
-                removeThisFriendshipRequest(friendid: "${userIds[4]}"){
+                removeThisFriendshipRequest(friendid: "${userTesting.get('User 5').id}"){
                     resultText, useridAtProcess
                 }
             }
@@ -653,20 +702,23 @@ describe('Grapql friend mutations', ()=>{
         .end( (err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
-            expect(res.body.data.removeThisFriendshipRequest.useridAtProcess).toBe(
-                userIds[4])
+            expect(res.body.data.removeThisFriendshipRequest.useridAtProcess)
+                .toBe(userTesting.get('User 5').id)
             expect(res.body.data.removeThisFriendshipRequest.resultText).toBe(
                 'Firendship request cancelled!'
             )
 
-            ProfileModel.findOne({_id: userIds[0]}, (error, doc)=>{
+            ProfileModel.findOne({_id: userTesting.get('User 1').id }, (error, doc)=>{
                 expect(error).toBe(null)
-                expect(doc.undecidedCon.includes(userIds[4])).toBeFalsy()
+                expect(doc).not.toBe(null)
+                expect(doc.undecidedCon.includes(userTesting.get('User 5').obj)).toBeFalsy()
 
-                ProfileModel.findOne({ _id: userIds[4]}, (e, d)=>{
+                ProfileModel.findOne({ _id: userTesting.get('User 5').id}, (e, d)=>{
                     expect(e).toBe(null)
-                    expect(d.initiatedCon.includes(userIds[0])).toBeFalsy()
+                    expect(d).not.toBe(null)
+                    expect(d.initiatedCon.includes(userTesting.get('User 1').obj)).toBeFalsy()
                     done()
                 })
             })
@@ -674,12 +726,14 @@ describe('Grapql friend mutations', ()=>{
     })
 
     it('4 Approve friendship request', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] })
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: ` 
             mutation{
-                approveThisFriendshipRequest(friendid: "${userIds[3]}"){
+                approveThisFriendshipRequest(friendid: "${userTesting.get('User 4').id}"){
                     id, username, email
                 }
             }
@@ -691,22 +745,23 @@ describe('Grapql friend mutations', ()=>{
         .end( (err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
-            expect(res.body.data.approveThisFriendshipRequest.id).toBe(
-                userIds[3]
-            )
-            expect(res.body.data.approveThisFriendshipRequest.email).toBe(
-                userEmails[3]
-            )
-            ProfileModel.findOne({_id: userIds[0]}, (error, doc)=>{
+            expect(res.body.data.approveThisFriendshipRequest.id)
+                .toBe( userTesting.get('User 4').id )
+            expect(res.body.data.approveThisFriendshipRequest.email)
+                .toBe( userTesting.get('User 4').email )
+            ProfileModel.findOne({_id: userTesting.get('User 1').id}, (error, doc)=>{
                 expect(error).toBe(null)
-                expect(doc.undecidedCon.includes(userIds[3])).toBeFalsy()
-                expect(doc.friends.includes(userIds[3])).toBeTruthy()
+                expect(doc).not.toBe(null)
+                expect(doc.undecidedCon.includes(userTesting.get('User 4').obj)).toBeFalsy()
+                expect(doc.friends.includes(userTesting.get('User 4').obj)).toBeTruthy()
 
-                ProfileModel.findOne({ _id: userIds[3]}, (e, d)=>{
+                ProfileModel.findOne({ _id: userTesting.get('User 4').id}, (e, d)=>{
                     expect(e).toBe(null)
-                    expect(d.initiatedCon.includes(userIds[0])).toBeFalsy()
-                    expect(d.friends.includes(userIds[0])).toBeTruthy()
+                    expect(d).not.toBe(null)
+                    expect(d.initiatedCon.includes(userTesting.get('User 1').obj)).toBeFalsy()
+                    expect(d.friends.includes(userTesting.get('User 1').obj)).toBeTruthy()
                     done()
                 })
             })
@@ -714,12 +769,14 @@ describe('Grapql friend mutations', ()=>{
     })
 
     it('5 Remove a friendship', (done)=>{
-        const authToken = autorizTokenEncoder({ subj: userIds[0], email: userEmails[0] })
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
         request(theSrv)
         .post('/graphql')
         .send({query: ` 
             mutation{
-                removeThisFriend(friendid: "${userIds[1]}"){
+                removeThisFriend(friendid: "${userTesting.get('User 2').id}"){
                     resultText, useridAtProcess
                 }
             }
@@ -731,20 +788,23 @@ describe('Grapql friend mutations', ()=>{
         .end( (err,res)=>{
             expect(err).toBe(null)
             expect(typeof res.body.data).toBe('object')
+            expect(res.body.errors).toBe(undefined)
 
             expect(res.body.data.removeThisFriend.useridAtProcess).toBe(
-                userIds[1]
+                userTesting.get('User 2').id
             )
             expect(res.body.data.removeThisFriend.resultText).toBe(
                 'Firendship removed!'
             )
-            ProfileModel.findOne({_id: userIds[0]}, (error, doc)=>{
+            ProfileModel.findOne({_id: userTesting.get('User 1').id}, (error, doc)=>{
                 expect(error).toBe(null)
-                expect(doc.friends.includes(userIds[1])).toBeFalsy()
+                expect(doc).not.toBe(null)
+                expect(doc.friends.includes(userTesting.get('User 2').obj)).toBeFalsy()
 
-                ProfileModel.findOne({ _id: userIds[1]}, (e, d)=>{
+                ProfileModel.findOne({ _id: userTesting.get('User 2').id}, (e, d)=>{
                     expect(e).toBe(null)
-                    expect(d.friends.includes(userIds[0])).toBeFalsy()
+                    expect(d).not.toBe(null)
+                    expect(d.friends.includes(userTesting.get('User 1').obj)).toBeFalsy()
                     done()
                 })
             })

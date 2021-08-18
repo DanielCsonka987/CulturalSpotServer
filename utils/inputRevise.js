@@ -135,7 +135,7 @@ module.exports.useridInputRevise = (id)=>{
     const result = {
         error: false, field: [], issue: []
     }
-    if(isThereProblemWithUserid(values.userid)){
+    if(isThereProblemWithDBKey(values.userid)){
         result.error = true;
         result.field.push('userid');
         result.issue.push('The userid is not acceptable!')
@@ -144,8 +144,66 @@ module.exports.useridInputRevise = (id)=>{
 }
 
 
-module.exports.postInputRevise = (postContent)=>{
+module.exports.postInputRevise = (dedicatedID, postContent)=>{
+    const values = {
+        dedicatedID,
+        postContent
+    }
+    const result = {
+        error: false, field: [], issue: []
+    }
+    if(isThereProblemWithOptionalDBKey(values.dedicatedID)){
+        result.error = true;
+        result.field.push('dedication')
+        result.issue.push('The userid is not acceptable!')
+    }
+    if(isThereProblemWithContent(values.postContent)){
+        result.error = true;
+        result.field.push('postContent')
+        result.issue.push('The post content is not acceptable!')
+    }
+    return result.error? result : values
+}
+module.exports.postUpdateInputRevise = (postID, newContent, dedicatedID )=>{
+    const values = {
+        postID,
+        newContent,
+        dedicatedID
+    }
+    const result = {
+        error: false, field: [], issue: []
+    }
+    if(isThereProblemWithDBKey(values.postID)){
+        result.error = true;
+        result.field.push('postid')
+        result.issue.push('The postid is not acceptable!')
+    }
+    if(isThereProblemWithOptionalDBKey(values.dedicatedID)){
+        result.error = true;
+        result.field.push('newDedication')
+        result.issue.push('The userid is not acceptable!')
+    }
+    if(isThereProblemWithContent(values.newContent)){
+        result.error = true;
+        result.field.push('postContent')
+        result.issue.push('The post content is not acceptable!')
+    }
+    return result.error? result : values
 
+}
+module.exports.postDeleteInputRevise = (postID)=>{
+    const values = {
+        postID
+    }
+    const result = {
+        error: false, field: [], issue: []
+    }
+    if(isThereProblemWithDBKey(values.postID)){
+        result.error = true;
+        result.field.push('postid')
+        result.issue.push('The postid is not acceptable!')
+    }
+    return result.error? result : values
 }
 
 module.exports.commentInputRevise = (commentContent)=>{
@@ -155,7 +213,7 @@ module.exports.commentInputRevise = (commentContent)=>{
 
 
 function isThereProblemWithEmail(emailText){
-    if(!emailText){
+    if(!emailText || typeof emailText !== 'string'){
         return true;
     }
     if(!emailText.includes('.')){
@@ -173,7 +231,7 @@ function isThereProblemWithEmail(emailText){
 }
 
 function isThereProblemWithPassword(pwdText){
-    if(!pwdText){
+    if(!pwdText || typeof pwdText !== 'string'){
         return true;
     }
     const pattern = '.{6,}';
@@ -182,7 +240,7 @@ function isThereProblemWithPassword(pwdText){
 }
 
 function isThereProblemWithUsername(unameText){
-    if(!unameText){
+    if(!unameText || typeof unameText !== 'string'){
         return true;
     }
     if(unameText.length > 50){
@@ -193,13 +251,26 @@ function isThereProblemWithUsername(unameText){
     return !analyzer.test(unameText)
 }
 
-function isThereProblemWithUserid(usrid){
-    if(!usrid){
+function isThereProblemWithDBKey(key){
+    if(!key || typeof key !== 'string'){
         return true
     }
-    if(usrid.length !== 24){
+    if(key.length !== 24){
         return true
     }
     const analyzer = new RegExp(/[a-f0-9]{24}/)
-    return !analyzer.test(usrid)
+    return !analyzer.test(key)
+}
+
+function isThereProblemWithOptionalDBKey(key){
+    if(!key || typeof key === 'undefined'){
+        return false
+    }
+    return isThereProblemWithDBKey(key)
+}
+function isThereProblemWithContent(content){
+    if(!content || typeof content !== 'string'){ 
+        return true 
+    }
+    return content.length > 300 || content.length == 0
 }

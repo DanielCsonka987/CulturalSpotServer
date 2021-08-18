@@ -27,6 +27,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [postids[0], postids[5]],
         friends: [userids[1], userids[3]],
         initiatedCon: [],
         undecidedCon: [userids[5]]
@@ -41,6 +42,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [postids[3], postids[4]],
         friends: [userids[0], userids[2], userids[7], userids[8]],
         initiatedCon: [],
         undecidedCon: []
@@ -55,6 +57,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [postids[2]],
         friends: [userids[1]],
         initiatedCon: [],
         undecidedCon: []
@@ -69,6 +72,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [postids[1], postids[6]],
         friends: [userids[0]],
         initiatedCon: [],
         undecidedCon: []
@@ -83,6 +87,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [],
         friends: [],
         initiatedCon: [],
         undecidedCon: [userids[5]]
@@ -97,6 +102,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [postids[7]],
         friends: [userids[9]],
         initiatedCon: [userids[4], userids[0]],
         undecidedCon: []
@@ -111,6 +117,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [],
         friends: [],
         initiatedCon: [],
         undecidedCon: []
@@ -125,6 +132,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [postids[9]],
         friends: [userids[1]],
         initiatedCon: [],
         undecidedCon: []
@@ -139,6 +147,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [],
         friends: [userids[1]],
         initiatedCon: [],
         undecidedCon: []
@@ -153,6 +162,7 @@ module.exports.profiles = [
         resetPwdMarker: '',
         refreshToken: '',
 
+        myPosts: [postids[8]],
         friends: [userids[5]],
         initiatedCon: [],
         undecidedCon: []
@@ -163,7 +173,10 @@ module.exports.posts = [
     {
         _id: postids[0],
         owner: userids[0],
-        content: 'I have got married yestaurday!',
+
+        content: 'I have got married yesterday!',
+        createdAt: new Date('14 April 2021 07:11 UTC').toISOString(),
+        updatedAt: new Date('15 April 2021 11:12 UTC').toISOString(),
         comments: [],
         sentiments: [
             { 
@@ -176,7 +189,10 @@ module.exports.posts = [
     {
         _id: postids[1],
         owner: userids[3],
+        dedicatedTo: userids[0],
         content: 'I moved to a new appartmant!',
+        createdAt: new Date('22 November 2020 01:12 UTC').toISOString(),
+        updatedAt: new Date('24 November 2020 10:12 UTC').toISOString(),
         comments: [
             commentids[0]
         ],
@@ -185,7 +201,10 @@ module.exports.posts = [
     {
         _id: postids[2],
         owner: userids[2],
+
         content: 'Where can is find a good car mechanic?',
+        createdAt: new Date('16 May 2021 16:26 UTC').toISOString(),
+        updatedAt: new Date('10 May 2021 13:17 UTC').toISOString(),
         comments: [
             commentids[1], commentids[2]
         ],
@@ -200,14 +219,20 @@ module.exports.posts = [
     {
         _id: postids[3],
         owner: userids[1],
+        dedicatedTo: userids[7],
         content: 'It is a sunny day! Don\'t stay inside!',
+        createdAt: new Date('10 June 2021 16:54 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     },
     {
         _id: postids[4],
         owner: userids[1],
+
         content: 'I drove in a storm... I crushed the bumper...',
+        createdAt: new Date('12 June 2021 10:26 UTC').toISOString(),
+        updatedAt: new Date('12 June 2021 16:26 UTC').toISOString(),
         comments: [
             commentids[3]
         ],
@@ -226,15 +251,21 @@ module.exports.posts = [
     },
     {
         _id: postids[5],
-        owner: userids[0],
+        ownser: userids[0],
+
         content: 'I have some extra gooseberry - who want some?',
+        createdAt: new Date('04 April 2021 23:59 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     },
     {
         _id: postids[6],
         owner: userids[3],
+
         content: 'I am preparing to have a tour to Krakko - any ide, where to go?',
+        createdAt: new Date('14 August 2021 20:10 UTC').toISOString(),
+        updatedAt: new Date('14 August 2021 23:56 UTC').toISOString(),
         comments: [
             commentids[4], commentids[5]
         ],
@@ -243,21 +274,30 @@ module.exports.posts = [
     {
         _id: postids[7],
         owner: userids[5],
+
         content: 'Good Business is appeared, no hesitate to ask about it!',
+        createdAt: new Date('16 March 2021 16:26 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     },
     {
         _id: postids[8],
         owner: userids[9],
+
         content: 'I have some newborn little kittey, who seeks new home at good owners!',
+        createdAt: new Date('23 May 2021 12:26 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     },
     {
         _id: postids[9],
         owner: userids[7],
+
         content: 'The weather is awful....I have already wet cealing - anybody with the same problem?',
+        createdAt: new Date('19 February 2021 14:16 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     }
@@ -266,13 +306,15 @@ module.exports.posts = [
 module.exports.comments = [
     {
         _id: commentids[0],
-        owner: userids[2],
+        owner: userids[0],
         content: 'Wow - here did you have found one?',
+        createdAt: new Date('24 November 2020 10:12 UTC').toISOString(),
+        updatedAt: new Date('25 November 2021 22:32 UTC').toISOString(),
         comments: [],
         sentiments: [
             {
                 id: 1,
-                owner: userids[2],
+                owner: userids[7],
                 content: 'FUNNY'
             }
         ]
@@ -281,13 +323,17 @@ module.exports.comments = [
         _id: commentids[1],
         owner: userids[1],
         content: 'I could give one, but it is expensice!',
+        createdAt: new Date('10 May 2021 12:12 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     },
     {
         _id: commentids[2],
-        owner: userids[1],
+        owner: userids[2],
         content: 'Don\'t worry, I could use that!',
+        createdAt: new Date('10 May 2021 13:17 UTC').toISOString(),
+        updatedAt: new Date('11 May 2021 23:56 UTC').toISOString(),
         comments: [
             commentids[6]
         ],
@@ -297,6 +343,8 @@ module.exports.comments = [
         _id: commentids[3],
         owner: userids[2],
         content: 'What?! Are you all right?',
+        createdAt: new Date('12 June 2021 15:26 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     },
@@ -304,6 +352,8 @@ module.exports.comments = [
         _id: commentids[4],
         owner: userids[0],
         content: 'Nooo, not that place - ',
+        createdAt: new Date('14 August 2021 22:54 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     },
@@ -311,6 +361,8 @@ module.exports.comments = [
         _id: commentids[5],
         owner: userids[3],
         content: 'Of course that place... why not?',
+        createdAt: new Date('14 August 2021 23:56 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     },
@@ -318,6 +370,8 @@ module.exports.comments = [
         _id: commentids[6], 
         owner: userids[2],
         content: 'RepairNow MechaShop, 1st Road 10, I hope it is a real help!',
+        createdAt: new Date('11 May 2021 23:56 UTC').toISOString(),
+        updatedAt: '',
         comments: [],
         sentiments: []
     }

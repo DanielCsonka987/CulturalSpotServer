@@ -1,7 +1,7 @@
 const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server-express')
 
 //helper utils, standalone like, models
-const { autorizTokenEncoder, createTokenToLink, createRefreshToken } = require('../../utils/tokenManager')
+const { authorizTokenEncoder, createTokenToLink, createRefreshToken } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
     changePwdInputRevise, deleteAccInputRevise,
@@ -9,7 +9,6 @@ const { loginInputRevise, registerInputRevise,
 
 const { execMailSending, emailType, emailTypeStringify } = require('../../emailer/emailerSetup')
 const EmailReportModel = require('../../models/EmailReportModel')
-const PostModel = require('../../models/PostModel')
 
 // someHelper function in resolving - not standalone, apollo connected!
 const { authorizEvaluation, tokenRefreshmentEvaluation } = require('./resolveHelpers')
@@ -65,7 +64,7 @@ module.exports = {
 
             return {
                 id: clientUser._id.toString(),
-                newToken: autorizTokenEncoder({subj: clientUser._id.toString(), email: clientUser.email}),
+                newToken: authorizTokenEncoder({subj: clientUser._id.toString(), email: clientUser.email}),
                 tokenExpire: 3600
             }
 
@@ -102,21 +101,19 @@ module.exports = {
             }catch(err){
                 return new ApolloError('Login timestamp persisting failed!')
             }
-
-            const postsOfUser = PostModel.find({ owner: lastLoggedTime._id })
             
             return {
                 id: userToLogin._id,
                 email: userToLogin.email,
                 username: userToLogin.username,
-                token: autorizTokenEncoder({subj: userToLogin._id.toString(), email: userToLogin.email}),
+                token: authorizTokenEncoder({subj: userToLogin._id.toString(), email: userToLogin.email}),
                 tokenExpire: 3600,
                 refreshToken: refreshTokenStr,
                 registeredAt: userToLogin.registeredAt,
                 lastLoggedAt: lastLoggedTime,
 
-                friends: userToLogin.friends,
-                posts: postsOfUser
+                friends: userToLogin.friends,   //array of userids
+                posts: userToLogin.myPosts  //array of postids
             }
         },
 
@@ -166,7 +163,7 @@ module.exports = {
             }
             return {
                 id: newUser._id,
-                token: autorizTokenEncoder({ subj: newUser._id.toString(), email: newUser.email }),
+                token: authorizTokenEncoder({ subj: newUser._id.toString(), email: newUser.email }),
                 tokenExpire: 3600,
                 email: newUser.email,
                 username: newUser.username,
@@ -175,7 +172,7 @@ module.exports = {
                 refreshToken: refreshToken,
 
                 friends: [],
-                posts: []
+                allPosts: []
             }
         },
 /* 
@@ -285,6 +282,7 @@ module.exports = {
             if(!userToUpdate){
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
+
             userToUpdate.username = username
             try{
                 await dataSources.profiles.saving(userToUpdate)
