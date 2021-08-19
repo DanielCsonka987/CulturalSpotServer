@@ -6,6 +6,10 @@ module.exports = {
     isThisUndefined(target){
         return (typeof target === 'undefined')
     },
+    isThisAnEmptyArray(target){
+        return (target.length === 0)
+
+    },
     isThisAnArray(target){
         return (typeof target === 'object' && typeof target.length === 'number' &&
             typeof target.length !== 'null') || Array.isArray(target)

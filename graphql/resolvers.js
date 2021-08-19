@@ -1,6 +1,7 @@
 const accountAPI = require('./resolvers/accountResolvers')
 const friendsAPI = require('./resolvers/friendsResolvers')
 const postsAPI = require('./resolvers/postsResolvers')
+const commentAPI = require('./resolvers/commentResolvers')
 const chainings = require('./resolvers/chainingResolvers')
 
 module.exports = {
@@ -12,11 +13,13 @@ module.exports = {
         },
         ...accountAPI.Query,
         ...friendsAPI.Query,
-        ...postsAPI.Query
+        ...postsAPI.Query,
+        ...commentAPI.Query
     },
     Mutation: {
         ...accountAPI.Mutation,
         ...friendsAPI.Mutation,
-        ...postsAPI.Mutation
+        ...postsAPI.Mutation,
+        ...commentAPI.Mutation
     }
 }

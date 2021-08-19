@@ -64,7 +64,6 @@ module.exports = gql`
     enum TargetType {
         POST
         COMMENT
-        SENTIMENT
     }
     type PostProcess {
         resultText: String!
@@ -137,8 +136,7 @@ module.exports = gql`
         listOfAllPosts: [Post]         ## own and firends posts
 
         ## comments, sentiments processes
-        listOtTheseComments(comments: [String]!): [Comment]!
-        listOfTheseSentiments(sentiments: [String]!): [Sentiment]!
+        listOtTheseComments(targeted: TargetType!, ids: [String]!): [Comment]!
     }
     type Mutation {
 
@@ -161,7 +159,6 @@ module.exports = gql`
             ## for remove a stable friend-conenction
         removeThisFriend(friendid: String!): FriendProcess!
 
-
         ## posts processes
             ## all originated
         makeAPost(content: String!, dedication: String): Post! 
@@ -170,13 +167,13 @@ module.exports = gql`
         removeThisPost(postid: String!): PostProcess!
 
         ## comments, sentiments processes
-            ## only for the authors
-        updateCommentContent(commentid: String!, content: String!): CommentProcess!
-        deleteThisComment(commentid: String!): CommentProcess!
-        updateSentimentContent(sentimentid: String!, content: String!): SentimentProcess!
-        deleteThisSentiment(sentimentid: String!): SentimentProcess!
             ## for everibody
-        createCommentToHere(type: TargetType!, id: String!, content: String): Comment!
-        createSentimentToHere(type: TargetType!, id: String!, content: String): Sentiment!
+        createCommentToHere(targeted: TargetType!, id: String!, commentid: String!, content: String): Comment!
+        createSentimentToHere(targeted: TargetType!, id: String!, sentimentid: String!, content: String): Sentiment!
+            ## only for the authors
+        updateCommentContent(targeted: TargetType!, id: String!, commentid: String!, content: String!): CommentProcess!
+        deleteThisComment(targeted: TargetType!, id: String!, commentid: String!): CommentProcess!
+        updateSentimentContent(targeted: TargetType!, id: String!, sentimentid: String!, content: String!): SentimentProcess!
+        deleteThisSentiment(targeted: TargetType!, id: String!, sentimentid: String!): SentimentProcess!
     }
 `;

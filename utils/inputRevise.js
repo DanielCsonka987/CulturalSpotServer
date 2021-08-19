@@ -192,12 +192,9 @@ module.exports.postUpdateInputRevise = (postID, newContent, dedicatedID )=>{
 
 }
 module.exports.postDeleteInputRevise = (postID)=>{
-    const values = {
-        postID
-    }
-    const result = {
-        error: false, field: [], issue: []
-    }
+    const values = { postID }
+    const result = { error: false, field: [], issue: [] }
+
     if(isThereProblemWithDBKey(values.postID)){
         result.error = true;
         result.field.push('postid')
@@ -206,10 +203,124 @@ module.exports.postDeleteInputRevise = (postID)=>{
     return result.error? result : values
 }
 
-module.exports.commentInputRevise = (commentContent)=>{
+//OPINION REVISION
 
+module.exports.commentQueryInputRevise = (targetingTxt, targetIDs)=>{
+    const values = { targetingTxt, targetIDs }
+    const result = { error: false, field: [], issue: [] }
+
+    if(isThereProblemWithTargetTxt(values.targetingTxt)){
+        result.error = true;
+        result.field.push('targetType')
+        result.issue.push('The targetType is not acceptable!')
+    }
+    if(isThereProblemWithDBKeyArray(values.targetIDs)){
+        result.error = true;
+        result.field.push('targetIds')
+        result.issue.push('The targetIds are not acceptable!')
+    }
+    return result.error? result : values
 }
 
+module.exports.opinionCreateInputRevise =(targetingTxt, targetID, content)=>{
+    const values = { targetingTxt, targetID, content }
+    const result = { error: false, field: [], issue: [] }
+
+    if(isThereProblemWithTargetTxt(values.targetingTxt)){
+        result.error = true;
+        result.field.push('targetType')
+        result.issue.push('The targetType is not acceptable!')
+    }
+    if(isThereProblemWithDBKey(values.targetID)){
+        result.error = true;
+        result.field.push('targetId')
+        result.issue.push('The targetId is not acceptable!')
+    }
+    if(isThereProblemWithContent(values.content)){
+        result.error = true;
+        result.field.push('content')
+        result.issue.push('The content is not acceptable!')
+    }
+    return result.error? result : values
+}
+
+module.exports.commentUpdtInputRevise = (targetingTxt, targetID, commID, content )=>{
+    const values = { targetingTxt, targetID, commID, content }
+    const result = { error: false, field: [], issue: [] }
+
+    if(isThereProblemWithTargetTxt(values.targetingTxt)){
+        result.error = true;
+        result.field.push('targetType')
+        result.issue.push('The targetType is not acceptable!')
+    }
+    if(isThereProblemWithDBKey(values.targetID)){
+        result.error = true;
+        result.field.push('targetId')
+        result.issue.push('The targetId is not acceptable!')
+    }
+    if(isThereProblemWithDBKey(values.commID)){
+        result.error = true;
+        result.field.push('commentId')
+        result.issue.push('The commentId is not acceptable!')
+    }
+    if(isThereProblemWithContent(values.content)){
+        result.error = true;
+        result.field.push('content')
+        result.issue.push('The content is not acceptable!')
+    }
+    return result.error? result : values
+}
+module.exports.sentimentUpdtInputRevise = (targetingTxt, targetID, sentimID, content)=>{
+    const values = { targetingTxt, targetID, sentimID, content }
+    const result = { error: false, field: [], issue: [] }
+
+    if(isThereProblemWithTargetTxt(values.targetingTxt)){
+        result.error = true;
+        result.field.push('targetType')
+        result.issue.push('The targetType is not acceptable!')
+    }
+    if(isThereProblemWithDBKey(values.targetID)){
+        result.error = true;
+        result.field.push('targetId')
+        result.issue.push('The targetId is not acceptable!')
+    }
+    if(isThereProblemWithDBKey(values.sentimID)){
+        result.error = true;
+        result.field.push('sentimentId')
+        result.issue.push('The sentimentId is not acceptable!')
+    }
+    if(isThereProblemWithSentimentTxt(values.content)){
+        result.error = true;
+        result.field.push('content')
+        result.issue.push('The content is not acceptable!')
+    }
+    return result.error? result : values
+}
+
+module.exports.opinionDeleteInputRevise = (targetingTxt, targetID, ID,)=>{
+    const values = { targetingTxt, targetID, ID }
+    const result = { error: false, field: [], issue: [] }
+    if(isThereProblemWithTargetTxt(values.targetingTxt)){
+        result.error = true;
+        result.field.push('targetType')
+        result.issue.push('The targetType is not acceptable!')
+    }
+    if(isThereProblemWithDBKey(values.targetID)){
+        result.error = true;
+        result.field.push('targetId')
+        result.issue.push('The targetId is not acceptable!')
+    }
+    if(isThereProblemWithDBKey(values.ID)){
+        result.error = true;
+        result.field.push('opinionId')
+        result.issue.push('The opinionId is not acceptable!')
+    }
+    return result.error? result : values
+}
+
+
+
+//VALUE EVALUATION HELPERS
 
 
 function isThereProblemWithEmail(emailText){
@@ -273,4 +384,27 @@ function isThereProblemWithContent(content){
         return true 
     }
     return content.length > 300 || content.length == 0
+}
+function isThereProblemWithDBKeyArray(targetArr){
+    if(!targetArr || !Array.isArray(targetArr) ){
+        return true
+    }
+    if(targetArr.length === 0){
+        return true
+    }
+    for(const item of targetArr){
+        if(isThereProblemWithDBKey(item)){
+            return true
+        }
+    }
+    return false
+}
+
+function isThereProblemWithTargetTxt(target){
+    return (target !== 'POST' && target !== 'COMMENT' )
+}
+
+function isThereProblemWithSentimentTxt(target){
+    const templates = [ 'LIKE', 'DISLIKE', 'LOVE', 'FUNNY', 'SAD', 'MAD']
+    return !templates.includes(target)
 }
