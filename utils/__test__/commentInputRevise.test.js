@@ -20,7 +20,7 @@ describe('Query method input revision', ()=>{
         { targ: '', ids: null } //no11
         
      ]
-     it('Proper input 1', ()=>{
+     it('Proper input 0', ()=>{
         const actInput = inputs[0]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -34,7 +34,7 @@ describe('Query method input revision', ()=>{
         expect(typeof targetIDs).toBe('object')
         expect(targetIDs).toStrictEqual(actInput.ids)
     })
-    it('Proper input 2', ()=>{
+    it('Proper input 1', ()=>{
         const actInput = inputs[1]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -48,7 +48,7 @@ describe('Query method input revision', ()=>{
         expect(typeof targetIDs).toBe('object')
         expect(targetIDs).toStrictEqual(actInput.ids)
     })
-    it('Incorrect input 1', ()=>{
+    it('Incorrect input 2 - target type', ()=>{
         const actInput = inputs[2]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -64,7 +64,7 @@ describe('Query method input revision', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetIDs).toBe(undefined)
     })
-    it('Incorrect input 2', ()=>{
+    it('Incorrect input 3', ()=>{
         const actInput = inputs[3]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -80,7 +80,7 @@ describe('Query method input revision', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetIDs).toBe(undefined)
     })
-    it('Incorrect input 3', ()=>{
+    it('Incorrect input 4', ()=>{
         const actInput = inputs[4]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -96,7 +96,7 @@ describe('Query method input revision', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetIDs).toBe(undefined)
     })
-    it('Incorrect input 4', ()=>{
+    it('Incorrect input 5', ()=>{
         const actInput = inputs[5]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -112,7 +112,7 @@ describe('Query method input revision', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetIDs).toBe(undefined)
     })
-    it('Incorrect input 5', ()=>{
+    it('Incorrect input 6', ()=>{
         const actInput = inputs[6]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -129,7 +129,7 @@ describe('Query method input revision', ()=>{
         expect(targetIDs).toBe(undefined)
     })
 
-    it('Incorrect input 6', ()=>{
+    it('Incorrect input 7 targetid', ()=>{
         const actInput = inputs[7]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -145,7 +145,7 @@ describe('Query method input revision', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetIDs).toBe(undefined)
     })
-    it('Incorrect input 7', ()=>{
+    it('Incorrect input 8', ()=>{
         const actInput = inputs[8]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -161,7 +161,7 @@ describe('Query method input revision', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetIDs).toBe(undefined)
     })
-    it('Incorrect input 8', ()=>{
+    it('Incorrect input 9', ()=>{
         const actInput = inputs[9]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -177,7 +177,7 @@ describe('Query method input revision', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetIDs).toBe(undefined)
     })
-    it('Incorrect input 9', ()=>{
+    it('Incorrect input 10', ()=>{
         const actInput = inputs[10]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -193,7 +193,7 @@ describe('Query method input revision', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetIDs).toBe(undefined)
     })
-    it('Incorrect input 10', ()=>{
+    it('Incorrect input 11 all', ()=>{
         const actInput = inputs[11]
         const { error, field, issue, targetingTxt, targetIDs } =
             commentQueryInputRevise(actInput.targ, actInput.ids)
@@ -231,7 +231,7 @@ describe('Mutation, creation input revise', ()=>{
         { targ: 'P', id: '', content: null } //no10
     ]
 
-    it('Proper input 1', ()=>{
+    it('Proper input 0', ()=>{
         const actInput = inputs[0]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -247,7 +247,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(typeof content).toBe('string')
         expect(content).toBe(actInput.content)
     })
-    it('Proper input 2', ()=>{
+    it('Proper input 1', ()=>{
         const actInput = inputs[1]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -263,7 +263,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(typeof content).toBe('string')
         expect(content).toBe(actInput.content)
     })
-    it('Incorrect input 1', ()=>{
+    it('Incorrect input 2 target type', ()=>{
         const actInput = inputs[2]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -280,7 +280,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 2', ()=>{
+    it('Incorrect input 3', ()=>{
         const actInput = inputs[3]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -297,7 +297,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 3', ()=>{
+    it('Incorrect input 4', ()=>{
         const actInput = inputs[4]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -314,7 +314,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 4', ()=>{
+    it('Incorrect input 5 targetId', ()=>{
         const actInput = inputs[5]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -331,7 +331,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 5', ()=>{
+    it('Incorrect input 6', ()=>{
         const actInput = inputs[6]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -348,7 +348,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 6', ()=>{
+    it('Incorrect input 7', ()=>{
         const actInput = inputs[7]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -365,7 +365,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 7', ()=>{
+    it('Incorrect input 8 content', ()=>{
         const actInput = inputs[8]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -382,7 +382,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 8', ()=>{
+    it('Incorrect input 9', ()=>{
         const actInput = inputs[9]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -399,7 +399,7 @@ describe('Mutation, creation input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 9', ()=>{
+    it('Incorrect input 10 all', ()=>{
         const actInput = inputs[10]
         const { error, field, issue, targetingTxt, targetID, content } =
             opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
@@ -469,7 +469,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(typeof content).toBe('string')
         expect(content).toBe(actInput.content)
     })
-    it('Incorect input 0', ()=>{
+    it('Incorect input 1 target type', ()=>{
         const actInput = inputs[1]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -487,7 +487,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 1', ()=>{
+    it('Incorrect input 2', ()=>{
         const actInput = inputs[2]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -505,7 +505,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 2', ()=>{
+    it('Incorrect input 3', ()=>{
         const actInput = inputs[3]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -523,7 +523,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 3', ()=>{
+    it('Incorrect input 4 targetId', ()=>{
         const actInput = inputs[4]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -541,7 +541,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 4', ()=>{
+    it('Incorrect input 5', ()=>{
         const actInput = inputs[5]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -559,7 +559,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 5', ()=>{
+    it('Incorrect input 6 commentId', ()=>{
         const actInput = inputs[6]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -577,7 +577,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 6', ()=>{
+    it('Incorrect input 7', ()=>{
         const actInput = inputs[7]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -595,7 +595,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 7', ()=>{
+    it('Incorrect input 8 content', ()=>{
         const actInput = inputs[8]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -613,7 +613,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 8', ()=>{
+    it('Incorrect input 9', ()=>{
         const actInput = inputs[9]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -631,7 +631,7 @@ describe('Mutation, update comments input revise', ()=>{
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 9', ()=>{
+    it('Incorrect input 10 all', ()=>{
         const actInput = inputs[10]
         const { error, field, issue, targetingTxt, targetID, commID, content } =
             commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -684,7 +684,7 @@ describe('Mutation, update sentiments input revise', ()=>{
     ]
 
 
-    it('Proper input 1', ()=>{
+    it('Proper input 0', ()=>{
         const actInput = inputs[0]
         const { error, field, issue, targetingTxt, targetID, sentimID, content } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -702,7 +702,7 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(typeof content).toBe('string')
         expect(content).toBe(actInput.content)
     })
-    it('Incorect input 1', ()=>{
+    it('Incorect input 1 target type', ()=>{
         const actInput = inputs[1]
         const { error, field, issue, targetingTxt, targetID, sentimID, content } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -720,7 +720,7 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(sentimID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorect input 2', ()=>{
+    it('Incorect input 2 targetId', ()=>{
         const actInput = inputs[2]
         const { error, field, issue, targetingTxt, targetID, sentimID, content } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -756,7 +756,7 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(sentimID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorect input 4', ()=>{
+    it('Incorect input 4 setntimentId', ()=>{
         const actInput = inputs[4]
         const { error, field, issue, targetingTxt, targetID, sentimID, content } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -792,7 +792,7 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(sentimID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorect input 6', ()=>{
+    it('Incorect input 6 content', ()=>{
         const actInput = inputs[6]
         const { error, field, issue, targetingTxt, targetID, sentimID, content } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -828,7 +828,7 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(sentimID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorect input 8', ()=>{
+    it('Incorect input 8 all', ()=>{
         const actInput = inputs[8]
         const { error, field, issue, targetingTxt, targetID, sentimID, content } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
@@ -907,7 +907,7 @@ describe('Mutation, deletion input revise', ()=>{
         expect(typeof ID).toBe('string')
         expect(ID).toBe(actInput.objID)
     })
-    it('Incorrect inputs 1', ()=>{
+    it('Incorrect inputs 2 target type', ()=>{
         const actInput = inputs[2]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
@@ -924,7 +924,7 @@ describe('Mutation, deletion input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(ID).toBe(undefined)
     })
-    it('Incorrect inputs 2', ()=>{
+    it('Incorrect inputs 3', ()=>{
         const actInput = inputs[3]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
@@ -941,7 +941,7 @@ describe('Mutation, deletion input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(ID).toBe(undefined)
     })
-    it('Incorrect inputs 3', ()=>{
+    it('Incorrect inputs 4', ()=>{
         const actInput = inputs[4]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
@@ -958,7 +958,7 @@ describe('Mutation, deletion input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(ID).toBe(undefined)
     })
-    it('Incorrect inputs 4', ()=>{
+    it('Incorrect inputs 5', ()=>{
         const actInput = inputs[5]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
@@ -975,7 +975,7 @@ describe('Mutation, deletion input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(ID).toBe(undefined)
     })
-    it('Incorrect inputs 5', ()=>{
+    it('Incorrect inputs 6', ()=>{
         const actInput = inputs[6]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
@@ -992,7 +992,7 @@ describe('Mutation, deletion input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(ID).toBe(undefined)
     })
-    it('Incorrect inputs 6', ()=>{
+    it('Incorrect inputs 7 targetId', ()=>{
         const actInput = inputs[7]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
@@ -1009,7 +1009,7 @@ describe('Mutation, deletion input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(ID).toBe(undefined)
     })
-    it('Incorrect inputs 7', ()=>{
+    it('Incorrect inputs 8', ()=>{
         const actInput = inputs[8]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
@@ -1026,7 +1026,7 @@ describe('Mutation, deletion input revise', ()=>{
         expect(targetID).toBe(undefined)
         expect(ID).toBe(undefined)
     })
-    it('Incorrect inputs 8', ()=>{
+    it('Incorrect inputs 9', ()=>{
         const actInput = inputs[9]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
@@ -1044,8 +1044,8 @@ describe('Mutation, deletion input revise', ()=>{
         expect(ID).toBe(undefined)
     })
 
-    it('Incorrect inputs 10', ()=>{
-        const actInput = inputs[11]
+    it('Incorrect inputs 10 opinionId', ()=>{
+        const actInput = inputs[10]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
 
@@ -1063,7 +1063,7 @@ describe('Mutation, deletion input revise', ()=>{
         
     })
     it('Incorrect inputs 11', ()=>{
-        const actInput = inputs[12]
+        const actInput = inputs[11]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
 
@@ -1081,6 +1081,24 @@ describe('Mutation, deletion input revise', ()=>{
         
     })
     it('Incorrect inputs 12', ()=>{
+        const actInput = inputs[12]
+        const { error, field, issue, targetingTxt, targetID, ID } =
+            opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('opinionId')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The opinionId is not acceptable!')
+
+        expect(targetingTxt).toBe(undefined)
+        expect(targetID).toBe(undefined)
+        expect(ID).toBe(undefined)
+        
+    })
+    it('Incorrect inputs 13 all', ()=>{
         const actInput = inputs[13]
         const { error, field, issue, targetingTxt, targetID, ID } =
             opinionDeleteInputRevise(actInput.targ, actInput.id, actInput.objID )

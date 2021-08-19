@@ -1,7 +1,7 @@
 const ProfileModel = require('../models/ProfileModel')
 const MyDataSource = require('./generalDataSource')
 
-const { isThisUndefined, isItRealEmail, isThisProperDocID } = require('./datasourceHelpers')
+const { isThisUndefined, isItRealEmail, isThisProperDocID } = require('./dataSourceHelpers')
 const DataLoader = require('dataloader')
 
 class ProfileDataSource extends MyDataSource{

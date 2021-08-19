@@ -18,8 +18,8 @@ const { DataSource } = require('apollo-datasource')
 const { InMemoryLRUCache } = require('apollo-server-caching')
 const DataLoader = require('dataloader')
 
-const { isThisAnArray, isThisProperDocID, isThisProperDocObj, areTheseProperDocParts }
-    = require('./datasourceHelpers')
+const { isThisAnArray, isThisProperDocID, isThisProperDocObj, isThisProperForDocParts }
+    = require('./dataSourceHelpers')
 
 class CSDataSource extends DataSource{
     constructor(DbModel, { ttlInSeconds } = {}){
@@ -95,7 +95,7 @@ class CSDataSource extends DataSource{
      * @returns newly created mongoose document object
      */
     async create(newPropValues, { ttlInSeconds } = {}){
-        if(!areTheseProperDocParts(newPropValues)){
+        if(!isThisProperForDocParts(newPropValues)){
             this.didEncounterError( new Error('Not proper doc parts were passed!') )
         }
         try {

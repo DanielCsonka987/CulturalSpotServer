@@ -9,7 +9,7 @@ const postids = [
 ]
 const commentids = [
     new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
-    new mongooseId, new mongooseId
+    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId
 ]
 const chatids = [
     new mongooseId, new mongooseId
@@ -322,7 +322,7 @@ module.exports.comments = [
     {
         _id: commentids[1],
         owner: userids[1],
-        content: 'I could give one, but it is expensice!',
+        content: 'I could give one, but it is expensive!',
         createdAt: new Date('10 May 2021 12:12 UTC').toISOString(),
         updatedAt: '',
         comments: [],
@@ -368,9 +368,36 @@ module.exports.comments = [
     },
     {
         _id: commentids[6], 
-        owner: userids[2],
+        owner: userids[1],
         content: 'RepairNow MechaShop, 1st Road 10, I hope it is a real help!',
         createdAt: new Date('11 May 2021 23:56 UTC').toISOString(),
+        updatedAt: '',
+        comments: [commentids[7], commentids[8]],
+        sentiments: []
+    },
+    {
+        _id: commentids[7], 
+        owner: userids[2],
+        content: 'Is it really good? My car crashed... at the side and fuel-tank may damaged.',
+        createdAt: new Date('12 May 2021 07:23 UTC').toISOString(),
+        updatedAt: '',
+        comments: [commentids[9]],
+        sentiments: []
+    },
+    {
+        _id: commentids[8], 
+        owner: userids[1],
+        content: 'Dont use that, maaan! Its an explosive now with seats.',
+        createdAt: new Date('12 May 2021 07:45 UTC').toISOString(),
+        updatedAt: '',
+        comments: [],
+        sentiments: []
+    },
+    {
+        _id: commentids[9], 
+        owner: userids[1],
+        content: 'But yes, he is a magician!',
+        createdAt: new Date('12 May 2021 07:46 UTC').toISOString(),
         updatedAt: '',
         comments: [],
         sentiments: []

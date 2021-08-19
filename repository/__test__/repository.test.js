@@ -5,15 +5,17 @@ const DocType = require('mongoose').Document
 const url = require('../../config/dbConfig').dbLocal
 const ProfileModel = require('../../models/ProfileModel')
 const PostModel = require('../../models/PostModel')
+const CommentModel = require('../../models/CommentModel')
 const ParentDs = require('../generalDataSource')
 const ProfDs = require('../profileDS')
 const PostDs = require('../postDS')
+const CommDs = require('../commentDS')
 
 //it uses the seeded datas as testdata!!!
 
 let docProfiles = []
 let docPosts = []
-
+let docComments = null
 beforeAll((done)=>{
     mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
     ProfileModel.find({}, async (err, docs)=>{
@@ -23,13 +25,17 @@ beforeAll((done)=>{
         PostModel.find({}, async (e, d)=>{
             expect(e).toBe(null)
             docPosts = d
-            done()
+
+            CommentModel.find({}, (ex, dc)=>{
+                expect(ex).toBe(null)
+                docComments = dc
+                done()
+            })
         })
     })
     
 })
 afterAll(()=>{
-
     mongoose.disconnect()
     
 })
@@ -361,5 +367,31 @@ describe('Specialised DataSource testing', ()=>{
     })
 
 
-    
+    it('Special recursive comment deletion', async ()=>{
+        const dsComm = new CommDs()
+        dsComm.initialize({ context: 'stg' })
+
+        const commentToDel = [ docComments[6]._id ]
+        const commToReinsert = []
+        for(let i = 6; i < 10; i++){
+            commToReinsert.push(docComments[i])
+        }
+        try{
+            await dsComm.recursiveRemovalOfThese(commentToDel)
+        }catch(err){
+            console.log(err)
+        }
+        
+        return CommentModel.find({}, (e, d)=>{
+            expect(e).toBe(null)
+            expect(d.length + 4).toBe(docComments.length)
+
+            return CommentModel.insertMany(commToReinsert,(ex, re)=>{
+                expect(e).toBe(null)
+                expect(re).not.toBe(null)
+
+                expect(re.length).toBe(4)
+            })
+        })
+    })
 })

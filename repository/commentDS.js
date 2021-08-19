@@ -1,7 +1,7 @@
 const MyDataSource = require('./generalDataSource')
 const CommentModel = require('../models/CommentModel')
 
-const { isThisAnArray, isThisAnEmptyArray, isThisProperDocID } = require('./datasourceHelpers')
+const { isThisAnArray, isThisAnEmptyArray } = require('./dataSourceHelpers')
 
 class CommentDataSource extends MyDataSource{
     constructor(cacheConfig){
@@ -11,19 +11,19 @@ class CommentDataSource extends MyDataSource{
 
     async recursiveRemovalOfThese(arrayKeys){
         if(!isThisAnArray(arrayKeys)){
-            return
+            return this.didEncounterError( new Error('No array were passed!') )
         }
-        if(!isThisAnEmptyArray(arrayKeys)){
-            return
+
+        if(isThisAnEmptyArray(arrayKeys)){
+            return this.didEncounterError( new Error('Empty array were passed!') )
         }
-        
         try{
             for(const commID of arrayKeys){
                 const commentToDel = await super.get(commID)
                 if(!isThisAnEmptyArray(commentToDel.comments)){
                    await this.recursiveRemovalOfThese(commentToDel.comments)
                 }
-                await super.deleting(contentToDel._id);
+                await super.deleting(commentToDel._id);
             }
         }catch(err){
             this.didEncounterError(err)

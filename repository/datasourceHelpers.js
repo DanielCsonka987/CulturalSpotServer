@@ -26,8 +26,8 @@ module.exports = {
     isThisProperDocObj(target){
         return target instanceof DocType
     },
-    areTheseProperDocParts(target){
-        if(target instanceof Object){
+    isThisProperForDocParts(target){
+        if(target instanceof Object && !Array.isArray(target)){
             return Object.keys(target).length > 0 
         }
         return false
@@ -37,7 +37,7 @@ module.exports = {
         if(typeof target !== 'string'){
             return false
         }
-        return target.trim()? true : false
+        return (target.trim().search(/@/) > -1)? true : false
     }
 }
 
