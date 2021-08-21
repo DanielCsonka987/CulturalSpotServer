@@ -367,30 +367,38 @@ describe('Specialised DataSource testing', ()=>{
     })
 
 
-    it('Special recursive comment deletion', async ()=>{
-        const dsComm = new CommDs()
-        dsComm.initialize({ context: 'stg' })
+    it('Special recursive comment deletion', (done)=>{
+        //RESEED THE DB OR IT GO MAD !!!
+        CommentModel.find({}, async (e1, d1)=>{
+            expect(e1).toBe(null)
+            expect(d1).not.toBe(null)
+            const originAmount = d1.length
 
-        const commentToDel = [ docComments[6]._id ]
-        const commToReinsert = []
-        for(let i = 6; i < 10; i++){
-            commToReinsert.push(docComments[i])
-        }
-        try{
-            await dsComm.recursiveRemovalOfThese(commentToDel)
-        }catch(err){
-            console.log(err)
-        }
-        
-        return CommentModel.find({}, (e, d)=>{
-            expect(e).toBe(null)
-            expect(d.length + 4).toBe(docComments.length)
+            const dsComm = new CommDs()
+            dsComm.initialize({ context: 'stg' })
 
-            return CommentModel.insertMany(commToReinsert,(ex, re)=>{
-                expect(e).toBe(null)
-                expect(re).not.toBe(null)
+            const commentToDel = [ docComments[6]._id ]
+            const commToReinsert = []
+            for(let i = 6; i < 10; i++){
+                commToReinsert.push(docComments[i])
+            }
+            try{
+                await dsComm.recursiveRemovalOfThese(commentToDel)
+            }catch(err){
+                expect(err).toBe(null)
+            }
+            
+            return CommentModel.find({}, (e2, d2)=>{
+                expect(e2).toBe(null)
+                expect(d2.length + 4).toBe(originAmount)
 
-                expect(re.length).toBe(4)
+                return CommentModel.insertMany(commToReinsert,(ex, re)=>{
+                    expect(ex).toBe(null)
+                    expect(re).not.toBe(null)
+
+                    expect(re.length).toBe(4)
+                    done()
+                })
             })
         })
     })

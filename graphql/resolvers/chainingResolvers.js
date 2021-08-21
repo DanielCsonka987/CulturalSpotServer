@@ -50,19 +50,6 @@ module.exports = {
             const sentimArray = parent.sentiments
             return sentimArray.map(sentimentTypeDefine)
         }
-
-        /*
-        comments: async(parent, _, { authorizRes, dataSources })=>{
-
-            const stg = parent.comments //array of objectid-s
-            return [{
-                commentid: '',  //objectid of comment
-                owner: '',   //UserFracture type    //ONLY RESOLVE, IMPLEMENTED
-                content: '',    //string, no reolve
-                comments: '',    //array off objectid-s, no more resolve at Comment
-                sentiments: ''  //array off objectid-s, no more resolve at Comment
-            }]
-        }*/
     },
     Comment: {
         owner: async (parent, _, { authorizRes, dataSources })=>{     //UserFracture type return
@@ -115,20 +102,12 @@ async function userFractureTypeDefine(actClient, clientUser, dataSources){
         )
     }
 }
-function commentTypeDefine(commentUnit){
-    return {
-        commentid: commentUnit._id,
-        owner: commentUnit.owner,
-        content: commentUnit.content,
-
-        comments: commentUnit.comments,     //array of commmentid-s
-        sentiments: commentUnit.entiments   //Sentiment type array
-    }
-}
 function sentimentTypeDefine(sentimentUnit){
     return {
         sentimentid: sentimentUnit._id,
         owner: sentimentUnit.owner,
-        content: sentimentUnit.content
+        content: sentimentUnit.content,
+        createdAt: sentimentUnit.createdAt,
+        updatedAt: sentimentUnit.updatedAt
     }
 }

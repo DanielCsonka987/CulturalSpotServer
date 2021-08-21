@@ -204,9 +204,7 @@ module.exports.commentTestDatas1 = [
         updatedAt: '',
         comments: [],
         sentiments: []
-    }
-]
-module.exports.commentTestDatas2 = [
+    },
     {
         content: 'Commenting 4',
         createdAt: new Date('26 June 2021 17:37 UTC').toISOString(),
@@ -230,6 +228,37 @@ module.exports.commentTestDatas2 = [
     }
 ]
 
+module.exports.commentTestDatas2 = [
+    {
+        content: 'Commenting 7',
+        createdAt: new Date('26 June 2021 17:37 UTC').toISOString(),
+        updatedAt: '',
+        comments: [],
+        sentiments: []
+    },
+    {
+        content: 'Commenting 8',
+        createdAt: new Date('22 April 2021 05:52 UTC').toISOString(),
+        updatedAt: '',
+        comments: [],
+        sentiments: []
+    },
+    {
+        content: 'Commenting 9',
+        createdAt: new Date('03 March 2020 14:49 UTC').toISOString(),
+        updatedAt: '',
+        comments: [],
+        sentiments: []
+    },
+    {
+        content: 'Commenting 10',
+        createdAt: new Date('03 March 2020 14:49 UTC').toISOString(),
+        updatedAt: '',
+        comments: [],
+        sentiments: []
+    }
+]
+
 module.exports.sentimentTestDatas = [
     {
         content: 'LIKE',
@@ -244,15 +273,23 @@ module.exports.sentimentTestDatas = [
         createdAt: new Date('19 November 2020 16:23 UTC').toISOString()
     },
     {
-        content: 'SAD',
+        content: 'SAD',     //no.3
         createdAt: new Date('23 December 2020 04:30 UTC').toISOString()
     },
     {
-        content: 'FUNNY',
+        content: 'FUNNY',   //no.4
         createdAt: new Date('05 September 2020 20:17 UTC').toISOString()
     },
     {
-        content: 'LOVE',
+        content: 'LOVE',    //no.5
         createdAt: new Date('26 October 2020 16:44 UTC').toISOString()
+    },
+    {
+        content: 'MAD', //no.6
+        createdAt: new Date('03 March 2020 14:49 UTC').toISOString()
+    },
+    {
+        content: 'LIKE',
+        createdAt: new Date('01 MAy 2021 12:31 UTC').toISOString()
     },
 ]

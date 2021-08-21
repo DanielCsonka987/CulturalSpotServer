@@ -1,19 +1,20 @@
-const { commentQueryInputRevise, opinionCreateInputRevise, 
-    commentUpdtInputRevise, sentimentUpdtInputRevise, 
-    opinionDeleteInputRevise } = require('../inputRevise')
+const { isNullableType } = require('graphql')
+const { commentQueryInputRevise, commentCreateInputRevise, sentimentCreateInputRevise, 
+    commentUpdtInputRevise, sentimentUpdtInputRevise,  opinionDeleteInputRevise } 
+    = require('../inputRevise')
 
 describe('Query method input revision', ()=>{
     const inputs = [ 
-        { targ: 'POST', ids: [ '0123456789abcdef01234567', 'abcdef0123456789abcdef01' ] },
-        { targ: 'COMMENT', ids: [ '0123456789abcdef01234567', 'abcdef0123456789abcdef01' ] },
-        { targ: 'post', ids: [ '0123456789abcdef01234567', 'abcdef0123456789abcdef01' ] },
-        { targ: 'connent', ids: [ '0123456789abcdef01234567', 'abcdef0123456789abcdef01' ] },
-        { targ: 'stg', ids: [ '0123456789abcdef01234567', 'abcdef0123456789abcdef01' ] },
-        { targ: '', ids: [ '0123456789abcdef01234567', 'abcdef0123456789abcdef01' ] },
-        { targ: null , ids: [ '0123456789abcdef01234567', 'abcdef0123456789abcdef01' ] },
+        { targ: 'POST', id: '0123456789abcdef01234567' },
+        { targ: 'COMMENT', id: '0123456789abcdef01234567' },
+        { targ: 'post', id: '0123456789abcdef01234567' },   // no2
+        { targ: 'connent', id: '0123456789abcdef01234567' },
+        { targ: 'stg', id: '0123456789abcdef01234567' },
+        { targ: '', id: '0123456789abcdef01234567' },
+        { targ: null , id: '0123456789abcdef01234567' },
 
-        { targ: 'COMMENT', ids: [ '0123456789', 'abcdef0123456789abcdef01' ] }, // no.7
-        { targ: 'COMMENT', ids: [ '', '' ] },
+        { targ: 'COMMENT', id: '0123456789', }, // no.7
+        { targ: 'COMMENT', id: '' },
         { targ: 'COMMENT', ids: [] },
         { targ: 'COMMENT', ids: null },
 
@@ -22,8 +23,8 @@ describe('Query method input revision', ()=>{
      ]
      it('Proper input 0', ()=>{
         const actInput = inputs[0]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -31,13 +32,13 @@ describe('Query method input revision', ()=>{
 
         expect(typeof targetingTxt).toBe('string')
         expect(targetingTxt).toBe(actInput.targ)
-        expect(typeof targetIDs).toBe('object')
-        expect(targetIDs).toStrictEqual(actInput.ids)
+        expect(typeof targetID).toBe('string')
+        expect(targetID).toStrictEqual(actInput.id)
     })
     it('Proper input 1', ()=>{
         const actInput = inputs[1]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -45,13 +46,13 @@ describe('Query method input revision', ()=>{
 
         expect(typeof targetingTxt).toBe('string')
         expect(targetingTxt).toBe(actInput.targ)
-        expect(typeof targetIDs).toBe('object')
-        expect(targetIDs).toStrictEqual(actInput.ids)
+        expect(typeof targetID).toBe('string')
+        expect(targetID).toStrictEqual(actInput.id)
     })
     it('Incorrect input 2 - target type', ()=>{
         const actInput = inputs[2]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -62,12 +63,12 @@ describe('Query method input revision', ()=>{
         expect(issue[0]).toBe('The targetType is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
     it('Incorrect input 3', ()=>{
         const actInput = inputs[3]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -78,12 +79,12 @@ describe('Query method input revision', ()=>{
         expect(issue[0]).toBe('The targetType is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
     it('Incorrect input 4', ()=>{
         const actInput = inputs[4]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -94,12 +95,12 @@ describe('Query method input revision', ()=>{
         expect(issue[0]).toBe('The targetType is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
     it('Incorrect input 5', ()=>{
         const actInput = inputs[5]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -110,12 +111,12 @@ describe('Query method input revision', ()=>{
         expect(issue[0]).toBe('The targetType is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
     it('Incorrect input 6', ()=>{
         const actInput = inputs[6]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -126,94 +127,94 @@ describe('Query method input revision', ()=>{
         expect(issue[0]).toBe('The targetType is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
 
     it('Incorrect input 7 targetid', ()=>{
         const actInput = inputs[7]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('targetIds')
+        expect(field[0]).toBe('targetId')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The targetIds are not acceptable!')
+        expect(issue[0]).toBe('The targetId is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
     it('Incorrect input 8', ()=>{
         const actInput = inputs[8]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('targetIds')
+        expect(field[0]).toBe('targetId')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The targetIds are not acceptable!')
+        expect(issue[0]).toBe('The targetId is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
     it('Incorrect input 9', ()=>{
         const actInput = inputs[9]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('targetIds')
+        expect(field[0]).toBe('targetId')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The targetIds are not acceptable!')
+        expect(issue[0]).toBe('The targetId is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
     it('Incorrect input 10', ()=>{
         const actInput = inputs[10]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('targetIds')
+        expect(field[0]).toBe('targetId')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The targetIds are not acceptable!')
+        expect(issue[0]).toBe('The targetId is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
     it('Incorrect input 11 all', ()=>{
         const actInput = inputs[11]
-        const { error, field, issue, targetingTxt, targetIDs } =
-            commentQueryInputRevise(actInput.targ, actInput.ids)
+        const { error, field, issue, targetingTxt, targetID } =
+            commentQueryInputRevise(actInput.targ, actInput.id)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(2)
         expect(field[0]).toBe('targetType')
-        expect(field[1]).toBe('targetIds')
+        expect(field[1]).toBe('targetId')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(2)
         expect(issue[0]).toBe('The targetType is not acceptable!')
-        expect(issue[1]).toBe('The targetIds are not acceptable!')
+        expect(issue[1]).toBe('The targetId is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
-        expect(targetIDs).toBe(undefined)
+        expect(targetID).toBe(undefined)
     })
 })
 
-describe('Mutation, creation input revise', ()=>{
+describe('Mutation, comment creation input revise', ()=>{
     const inputs = [
         { targ: 'POST', id: '0123456789abcdef01234567', content: 'Stg to test' },
         { targ: 'COMMENT', id: '0123456789abcdef01234567', content: 'Stg to test' },
@@ -234,7 +235,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Proper input 0', ()=>{
         const actInput = inputs[0]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -250,7 +251,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Proper input 1', ()=>{
         const actInput = inputs[1]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -266,7 +267,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Incorrect input 2 target type', ()=>{
         const actInput = inputs[2]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -283,7 +284,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Incorrect input 3', ()=>{
         const actInput = inputs[3]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -300,7 +301,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Incorrect input 4', ()=>{
         const actInput = inputs[4]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -317,7 +318,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Incorrect input 5 targetId', ()=>{
         const actInput = inputs[5]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -334,7 +335,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Incorrect input 6', ()=>{
         const actInput = inputs[6]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -351,7 +352,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Incorrect input 7', ()=>{
         const actInput = inputs[7]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -368,7 +369,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Incorrect input 8 content', ()=>{
         const actInput = inputs[8]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -385,7 +386,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Incorrect input 9', ()=>{
         const actInput = inputs[9]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -402,7 +403,7 @@ describe('Mutation, creation input revise', ()=>{
     it('Incorrect input 10 all', ()=>{
         const actInput = inputs[10]
         const { error, field, issue, targetingTxt, targetID, content } =
-            opinionCreateInputRevise(actInput.targ, actInput.id, actInput.content)
+            commentCreateInputRevise(actInput.targ, actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -422,39 +423,29 @@ describe('Mutation, creation input revise', ()=>{
     })
 })
 
-describe('Mutation, update comments input revise', ()=>{
+describe('Mutation, sentiment creation input revise', ()=>{
     const inputs = [
-        { targ: 'POST', id: '0123456789abcdef01234567', 
-            objID: 'abcdef0123456789abcdef01', content: 'A testing content' },
-        { targ: 'comment', id: '0123456789abcdef01234567', 
-            objID: 'abcdef0123456789abcdef01', content: 'A testing content' },
-        { targ: '', id: '0123456789abcdef01234567', 
-            objID: 'abcdef0123456789abcdef01', content: 'A testing content' },
-        { targ: null, id: '0123456789abcdef01234567', 
-            objID: 'abcdef0123456789abcdef01', content: 'A testing content' },
+        { targ: 'POST', id: '01234abcdef0123456789abc', cont: 'SAD'},
+        { targ: 'COMMENT', id: '01234abcdef0123456789abc', cont: 'LIKE'},
 
-        { targ: 'COMMENT', id: '0123456789abcd', 
-            objID: 'abcdef0123456789abcdef01', content: 'A testing content' },  //no4
-        { targ: 'COMMENT', id: '', 
-            objID: 'abcdef0123456789abcdef01', content: 'A testing content' },
+        { targ: 'P', id: '01234abcdef0123456789abc', cont: 'DISLIKE'},  //no.2
+        { targ: '', id: '01234abcdef0123456789abc', cont: 'MAD'},
+        { targ: null, id: '01234abcdef0123456789abc', cont: 'SAD'},
 
-        { targ: 'COMMENT', id: '0123456789abcdef01234567', 
-            objID: 'abc', content: 'A testing content' },   //no6
-        { targ: 'COMMENT', id: '0123456789abcdef01234567', 
-            objID: null, content: 'A testing content' },
+        { targ: 'POST', id: '012349abc', cont: 'LIKE'}, //no.5
+        { targ: 'POST', id: '', cont: 'FUNNY'},
+        { targ: 'POST', id: null, cont: 'SAD'},
 
-        { targ: 'POST', id: '0123456789abcdef01234567', 
-            objID: 'abcdef0123456789abcdef01', content: '' },   //no8
-        { targ: 'POST', id: '0123456789abcdef01234567', 
-            objID: 'abcdef0123456789abcdef01', content: null },
+        { targ: 'POST', id: '01234abcdef0123456789abc', cont: ''}, //no.8
+        { targ: 'POST', id: '01234abcdef0123456789abc', cont: null},
 
-        { targ: null, id: '', objID: '012', content: '' }   //no10
+        { targ: 'stg', id: '', cont: null}, //no.10
+        
     ]
-
-    it('Proper input 1', ()=>{
+    it('Proper input 0', ()=>{
         const actInput = inputs[0]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
 
         expect(error).toBe(undefined)
         expect(field).toBe(undefined)
@@ -464,15 +455,34 @@ describe('Mutation, update comments input revise', ()=>{
         expect(targetingTxt).toBe(actInput.targ)
         expect(typeof targetID).toBe('string')
         expect(targetID).toBe(actInput.id)
-        expect(typeof commID).toBe('string')
-        expect(commID).toBe(actInput.objID)
-        expect(typeof content).toBe('string')
-        expect(content).toBe(actInput.content)
+        expect(typeof sentimCont).toBe('string')
+        expect(sentimCont).toBe(actInput.cont)
     })
-    it('Incorect input 1 target type', ()=>{
+    it('Proper input 1', ()=>{
         const actInput = inputs[1]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
+
+        expect(error).toBe(undefined)
+        expect(field).toBe(undefined)
+        expect(issue).toBe(undefined)
+
+        expect(typeof targetingTxt).toBe('string')
+        expect(targetingTxt).toBe(actInput.targ)
+        expect(typeof targetID).toBe('string')
+        expect(targetID).toBe(actInput.id)
+        expect(typeof sentimCont).toBe('string')
+        expect(sentimCont).toBe(actInput.cont)
+    })
+
+    it('Incorrect input 2 target type', ()=>{
+        const actInput = inputs[2]
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
+
+        expect(targetingTxt).toBe(undefined)
+        expect(targetID).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
@@ -481,177 +491,276 @@ describe('Mutation, update comments input revise', ()=>{
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
         expect(issue[0]).toBe('The targetType is not acceptable!')
+    })
+    it('Incorrect input 3', ()=>{
+        const actInput = inputs[3]
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
 
         expect(targetingTxt).toBe(undefined)
         expect(targetID).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('targetType')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The targetType is not acceptable!')
+    })
+    it('Incorrect input 4', ()=>{
+        const actInput = inputs[4]
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
+
+        expect(targetingTxt).toBe(undefined)
+        expect(targetID).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('targetType')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The targetType is not acceptable!')
+    })
+    it('Incorrect input 5 targetId', ()=>{
+        const actInput = inputs[5]
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
+
+        expect(targetingTxt).toBe(undefined)
+        expect(targetID).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('targetId')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The targetId is not acceptable!')
+    })
+    it('Incorrect input 6', ()=>{
+        const actInput = inputs[6]
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
+
+        expect(targetingTxt).toBe(undefined)
+        expect(targetID).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('targetId')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The targetId is not acceptable!')
+    })
+    it('Incorrect input 7', ()=>{
+        const actInput = inputs[7]
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
+
+        expect(targetingTxt).toBe(undefined)
+        expect(targetID).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('targetId')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The targetId is not acceptable!')
+    })
+    it('Incorrect input 8 sentim.content', ()=>{
+        const actInput = inputs[8]
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
+
+        expect(targetingTxt).toBe(undefined)
+        expect(targetID).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('sentimContent')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The sentiment content is not acceptable!')
+    })
+    it('Incorrect input 9', ()=>{
+        const actInput = inputs[9]
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
+
+        expect(targetingTxt).toBe(undefined)
+        expect(targetID).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('sentimContent')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The sentiment content is not acceptable!')
+    })
+    it('Incorrect input 10 all', ()=>{
+        const actInput = inputs[10]
+        const { error, field, issue, targetingTxt, targetID, sentimCont } =
+            sentimentCreateInputRevise(actInput.targ, actInput.id, actInput.cont)
+
+        expect(targetingTxt).toBe(undefined)
+        expect(targetID).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(3)
+        expect(field[0]).toBe('targetType')
+        expect(field[1]).toBe('targetId')
+        expect(field[2]).toBe('sentimContent')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(3)
+        expect(issue[0]).toBe('The targetType is not acceptable!')
+        expect(issue[1]).toBe('The targetId is not acceptable!')
+        expect(issue[2]).toBe('The sentiment content is not acceptable!')
+    })
+})
+
+
+describe('Mutation, update comments input revise', ()=>{
+    const inputs = [
+        { id: '0123456789abcdef01234567',  content: 'A testing content' },
+
+        { id: '012345674567',  content: 'A testing content' },  //no.1
+        { id: '',  content: 'A testing content' },
+        { id: null,  content: 'A testing content' },
+
+        { id: '0123456789abcdef01234567', content: '' },  //no.4
+        { id: '0123456789abcdef01234567', content: null },
+
+        {  id: '', content: '' }   //no.6
+    ]
+
+    it('Proper input 1', ()=>{
+        const actInput = inputs[0]
+        const { error, field, issue, commID, content } =
+            commentUpdtInputRevise(actInput.id, actInput.content)
+
+        expect(error).toBe(undefined)
+        expect(field).toBe(undefined)
+        expect(issue).toBe(undefined)
+
+        expect(typeof commID).toBe('string')
+        expect(commID).toBe(actInput.id)
+        expect(typeof content).toBe('string')
+        expect(content).toBe(actInput.content)
+    })
+   
+    it('Incorrect input 1 commentId', ()=>{
+        const actInput = inputs[1]
+        const { error, field, issue, commID, content } =
+            commentUpdtInputRevise(actInput.id, actInput.content)
+
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('commentId')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The commentId is not acceptable!')
+
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
     it('Incorrect input 2', ()=>{
         const actInput = inputs[2]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
+        const { error, field, issue, commID, content } =
+            commentUpdtInputRevise(actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('targetType')
+        expect(field[0]).toBe('commentId')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The targetType is not acceptable!')
+        expect(issue[0]).toBe('The commentId is not acceptable!')
 
-        expect(targetingTxt).toBe(undefined)
-        expect(targetID).toBe(undefined)
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
     it('Incorrect input 3', ()=>{
         const actInput = inputs[3]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
+        const { error, field, issue, commID, content } =
+            commentUpdtInputRevise(actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('targetType')
+        expect(field[0]).toBe('commentId')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The targetType is not acceptable!')
+        expect(issue[0]).toBe('The commentId is not acceptable!')
 
-        expect(targetingTxt).toBe(undefined)
-        expect(targetID).toBe(undefined)
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 4 targetId', ()=>{
+    it('Incorrect input 4 content', ()=>{
         const actInput = inputs[4]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
+        const { error, field, issue,  commID, content } =
+            commentUpdtInputRevise(actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('targetId')
+        expect(field[0]).toBe('content')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The targetId is not acceptable!')
+        expect(issue[0]).toBe('The content is not acceptable!')
 
-        expect(targetingTxt).toBe(undefined)
-        expect(targetID).toBe(undefined)
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 5', ()=>{
+
+    it('Incorrect input 5 content', ()=>{
         const actInput = inputs[5]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
+        const { error, field, issue,  commID, content } =
+            commentUpdtInputRevise(actInput.id, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('targetId')
+        expect(field[0]).toBe('content')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The targetId is not acceptable!')
+        expect(issue[0]).toBe('The content is not acceptable!')
 
-        expect(targetingTxt).toBe(undefined)
-        expect(targetID).toBe(undefined)
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
-    it('Incorrect input 6 commentId', ()=>{
+    
+    it('Incorrect input 6 all', ()=>{
         const actInput = inputs[6]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
+        const { error, field, issue, commID, content } =
+            commentUpdtInputRevise(actInput.id,actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
-        expect(field).toHaveLength(1)
+        expect(field).toHaveLength(2)
         expect(field[0]).toBe('commentId')
+        expect(field[1]).toBe('content')
         expect(typeof issue).toBe('object')
-        expect(issue).toHaveLength(1)
+        expect(issue).toHaveLength(2)
         expect(issue[0]).toBe('The commentId is not acceptable!')
+        expect(issue[1]).toBe('The content is not acceptable!')
 
-        expect(targetingTxt).toBe(undefined)
-        expect(targetID).toBe(undefined)
-        expect(commID).toBe(undefined)
-        expect(content).toBe(undefined)
-    })
-    it('Incorrect input 7', ()=>{
-        const actInput = inputs[7]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
-
-        expect(error).toBeTruthy()
-        expect(typeof field).toBe('object')
-        expect(field).toHaveLength(1)
-        expect(field[0]).toBe('commentId')
-        expect(typeof issue).toBe('object')
-        expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The commentId is not acceptable!')
-
-        expect(targetingTxt).toBe(undefined)
-        expect(targetID).toBe(undefined)
-        expect(commID).toBe(undefined)
-        expect(content).toBe(undefined)
-    })
-    it('Incorrect input 8 content', ()=>{
-        const actInput = inputs[8]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
-
-        expect(error).toBeTruthy()
-        expect(typeof field).toBe('object')
-        expect(field).toHaveLength(1)
-        expect(field[0]).toBe('content')
-        expect(typeof issue).toBe('object')
-        expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The content is not acceptable!')
-
-        expect(targetingTxt).toBe(undefined)
-        expect(targetID).toBe(undefined)
-        expect(commID).toBe(undefined)
-        expect(content).toBe(undefined)
-    })
-    it('Incorrect input 9', ()=>{
-        const actInput = inputs[9]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
-
-        expect(error).toBeTruthy()
-        expect(typeof field).toBe('object')
-        expect(field).toHaveLength(1)
-        expect(field[0]).toBe('content')
-        expect(typeof issue).toBe('object')
-        expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The content is not acceptable!')
-
-        expect(targetingTxt).toBe(undefined)
-        expect(targetID).toBe(undefined)
-        expect(commID).toBe(undefined)
-        expect(content).toBe(undefined)
-    })
-    it('Incorrect input 10 all', ()=>{
-        const actInput = inputs[10]
-        const { error, field, issue, targetingTxt, targetID, commID, content } =
-            commentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
-
-        expect(error).toBeTruthy()
-        expect(typeof field).toBe('object')
-        expect(field).toHaveLength(4)
-        expect(field[0]).toBe('targetType')
-        expect(field[1]).toBe('targetId')
-        expect(field[2]).toBe('commentId')
-        expect(field[3]).toBe('content')
-        expect(typeof issue).toBe('object')
-        expect(issue).toHaveLength(4)
-        expect(issue[0]).toBe('The targetType is not acceptable!')
-        expect(issue[1]).toBe('The targetId is not acceptable!')
-        expect(issue[2]).toBe('The commentId is not acceptable!')
-        expect(issue[3]).toBe('The content is not acceptable!')
-
-        expect(targetingTxt).toBe(undefined)
-        expect(targetID).toBe(undefined)
         expect(commID).toBe(undefined)
         expect(content).toBe(undefined)
     })
@@ -686,7 +795,7 @@ describe('Mutation, update sentiments input revise', ()=>{
 
     it('Proper input 0', ()=>{
         const actInput = inputs[0]
-        const { error, field, issue, targetingTxt, targetID, sentimID, content } =
+        const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
 
         expect(error).toBe(undefined)
@@ -699,12 +808,12 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(targetID).toBe(actInput.id)
         expect(typeof sentimID).toBe('string')
         expect(sentimID).toBe(actInput.objID)
-        expect(typeof content).toBe('string')
-        expect(content).toBe(actInput.content)
+        expect(typeof sentimCont).toBe('string')
+        expect(sentimCont).toBe(actInput.content)
     })
     it('Incorect input 1 target type', ()=>{
         const actInput = inputs[1]
-        const { error, field, issue, targetingTxt, targetID, sentimID, content } =
+        const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
 
         expect(error).toBeTruthy()
@@ -718,11 +827,11 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetID).toBe(undefined)
         expect(sentimID).toBe(undefined)
-        expect(content).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
     })
     it('Incorect input 2 targetId', ()=>{
         const actInput = inputs[2]
-        const { error, field, issue, targetingTxt, targetID, sentimID, content } =
+        const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
 
         expect(error).toBeTruthy()
@@ -736,11 +845,11 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetID).toBe(undefined)
         expect(sentimID).toBe(undefined)
-        expect(content).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
     })
     it('Incorect input 3', ()=>{
         const actInput = inputs[3]
-        const { error, field, issue, targetingTxt, targetID, sentimID, content } =
+        const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
 
         expect(error).toBeTruthy()
@@ -754,11 +863,11 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetID).toBe(undefined)
         expect(sentimID).toBe(undefined)
-        expect(content).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
     })
     it('Incorect input 4 setntimentId', ()=>{
         const actInput = inputs[4]
-        const { error, field, issue, targetingTxt, targetID, sentimID, content } =
+        const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
 
         expect(error).toBeTruthy()
@@ -772,11 +881,11 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetID).toBe(undefined)
         expect(sentimID).toBe(undefined)
-        expect(content).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
     })
     it('Incorect input 5', ()=>{
         const actInput = inputs[5]
-        const { error, field, issue, targetingTxt, targetID, sentimID, content } =
+        const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
 
         expect(error).toBeTruthy()
@@ -790,47 +899,47 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(targetingTxt).toBe(undefined)
         expect(targetID).toBe(undefined)
         expect(sentimID).toBe(undefined)
-        expect(content).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
     })
     it('Incorect input 6 content', ()=>{
         const actInput = inputs[6]
-        const { error, field, issue, targetingTxt, targetID, sentimID, content } =
+        const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('content')
+        expect(field[0]).toBe('sentimContent')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The content is not acceptable!')
+        expect(issue[0]).toBe('The sentiment content is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
         expect(targetID).toBe(undefined)
         expect(sentimID).toBe(undefined)
-        expect(content).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
     })
     it('Incorect input 7', ()=>{
         const actInput = inputs[7]
-        const { error, field, issue, targetingTxt, targetID, sentimID, content } =
+        const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
 
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
         expect(field).toHaveLength(1)
-        expect(field[0]).toBe('content')
+        expect(field[0]).toBe('sentimContent')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The content is not acceptable!')
+        expect(issue[0]).toBe('The sentiment content is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
         expect(targetID).toBe(undefined)
         expect(sentimID).toBe(undefined)
-        expect(content).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
     })
     it('Incorect input 8 all', ()=>{
         const actInput = inputs[8]
-        const { error, field, issue, targetingTxt, targetID, sentimID, content } =
+        const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
             sentimentUpdtInputRevise(actInput.targ, actInput.id, actInput.objID, actInput.content)
 
         expect(error).toBeTruthy()
@@ -839,18 +948,18 @@ describe('Mutation, update sentiments input revise', ()=>{
         expect(field[0]).toBe('targetType')
         expect(field[1]).toBe('targetId')
         expect(field[2]).toBe('sentimentId')
-        expect(field[3]).toBe('content')
+        expect(field[3]).toBe('sentimContent')
         expect(typeof issue).toBe('object')
         expect(issue).toHaveLength(4)
         expect(issue[0]).toBe('The targetType is not acceptable!')
         expect(issue[1]).toBe('The targetId is not acceptable!')
         expect(issue[2]).toBe('The sentimentId is not acceptable!')
-        expect(issue[3]).toBe('The content is not acceptable!')
+        expect(issue[3]).toBe('The sentiment content is not acceptable!')
 
         expect(targetingTxt).toBe(undefined)
         expect(targetID).toBe(undefined)
         expect(sentimID).toBe(undefined)
-        expect(content).toBe(undefined)
+        expect(sentimCont).toBe(undefined)
     })
 })
 

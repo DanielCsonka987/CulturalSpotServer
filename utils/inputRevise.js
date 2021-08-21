@@ -205,8 +205,8 @@ module.exports.postDeleteInputRevise = (postID)=>{
 
 //OPINION REVISION
 
-module.exports.commentQueryInputRevise = (targetingTxt, targetIDs)=>{
-    const values = { targetingTxt, targetIDs }
+module.exports.commentQueryInputRevise = (targetingTxt, targetID)=>{
+    const values = { targetingTxt, targetID }
     const result = { error: false, field: [], issue: [] }
 
     if(isThereProblemWithTargetTxt(values.targetingTxt)){
@@ -214,15 +214,15 @@ module.exports.commentQueryInputRevise = (targetingTxt, targetIDs)=>{
         result.field.push('targetType')
         result.issue.push('The targetType is not acceptable!')
     }
-    if(isThereProblemWithDBKeyArray(values.targetIDs)){
+    if(isThereProblemWithDBKey(values.targetID)){
         result.error = true;
-        result.field.push('targetIds')
-        result.issue.push('The targetIds are not acceptable!')
+        result.field.push('targetId')
+        result.issue.push('The targetId is not acceptable!')
     }
     return result.error? result : values
 }
 
-module.exports.opinionCreateInputRevise =(targetingTxt, targetID, content)=>{
+module.exports.commentCreateInputRevise =(targetingTxt, targetID, content)=>{
     const values = { targetingTxt, targetID, content }
     const result = { error: false, field: [], issue: [] }
 
@@ -243,9 +243,8 @@ module.exports.opinionCreateInputRevise =(targetingTxt, targetID, content)=>{
     }
     return result.error? result : values
 }
-
-module.exports.commentUpdtInputRevise = (targetingTxt, targetID, commID, content )=>{
-    const values = { targetingTxt, targetID, commID, content }
+module.exports.sentimentCreateInputRevise =(targetingTxt, targetID, sentimCont)=>{
+    const values = { targetingTxt, targetID, sentimCont }
     const result = { error: false, field: [], issue: [] }
 
     if(isThereProblemWithTargetTxt(values.targetingTxt)){
@@ -258,6 +257,19 @@ module.exports.commentUpdtInputRevise = (targetingTxt, targetID, commID, content
         result.field.push('targetId')
         result.issue.push('The targetId is not acceptable!')
     }
+    if(isThereProblemWithSentimentTxt(values.sentimCont)){
+        result.error = true;
+        result.field.push('sentimContent')
+        result.issue.push('The sentiment content is not acceptable!')
+    }
+    return result.error? result : values
+}
+
+
+module.exports.commentUpdtInputRevise = (commID, content )=>{
+    const values = { commID, content }
+    const result = { error: false, field: [], issue: [] }
+
     if(isThereProblemWithDBKey(values.commID)){
         result.error = true;
         result.field.push('commentId')
@@ -270,8 +282,8 @@ module.exports.commentUpdtInputRevise = (targetingTxt, targetID, commID, content
     }
     return result.error? result : values
 }
-module.exports.sentimentUpdtInputRevise = (targetingTxt, targetID, sentimID, content)=>{
-    const values = { targetingTxt, targetID, sentimID, content }
+module.exports.sentimentUpdtInputRevise = (targetingTxt, targetID, sentimID, sentimCont)=>{
+    const values = { targetingTxt, targetID, sentimID, sentimCont }
     const result = { error: false, field: [], issue: [] }
 
     if(isThereProblemWithTargetTxt(values.targetingTxt)){
@@ -289,10 +301,10 @@ module.exports.sentimentUpdtInputRevise = (targetingTxt, targetID, sentimID, con
         result.field.push('sentimentId')
         result.issue.push('The sentimentId is not acceptable!')
     }
-    if(isThereProblemWithSentimentTxt(values.content)){
+    if(isThereProblemWithSentimentTxt(values.sentimCont)){
         result.error = true;
-        result.field.push('content')
-        result.issue.push('The content is not acceptable!')
+        result.field.push('sentimContent')
+        result.issue.push('The sentiment content is not acceptable!')
     }
     return result.error? result : values
 }
@@ -384,20 +396,6 @@ function isThereProblemWithContent(content){
         return true 
     }
     return content.length > 300 || content.length == 0
-}
-function isThereProblemWithDBKeyArray(targetArr){
-    if(!targetArr || !Array.isArray(targetArr) ){
-        return true
-    }
-    if(targetArr.length === 0){
-        return true
-    }
-    for(const item of targetArr){
-        if(isThereProblemWithDBKey(item)){
-            return true
-        }
-    }
-    return false
 }
 
 function isThereProblemWithTargetTxt(target){

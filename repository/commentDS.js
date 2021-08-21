@@ -15,7 +15,7 @@ class CommentDataSource extends MyDataSource{
         }
 
         if(isThisAnEmptyArray(arrayKeys)){
-            return this.didEncounterError( new Error('Empty array were passed!') )
+            return  //no need to go further here
         }
         try{
             for(const commID of arrayKeys){

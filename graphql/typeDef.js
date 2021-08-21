@@ -37,19 +37,25 @@ module.exports = gql`
         postid: String!
         owner: UserFracture!
         dedicatedTo: UserFracture
+        createdAt: String!
+        updatedAt: String!
         content: String!
         sentiments: [Sentiment]!
-        comments: [String]!     ## id-s of other comments
+        comments: Int! 
     }
     type Comment {
         commentid: String!
         owner: UserFracture!
+        createdAt: String!
+        updatedAt: String!
         content: String!
         sentiments: [Sentiment]!
-        comments: [String]!      ## id-s of other comments
+        comments: Int! 
     }
     type Sentiment {
         sentimentid: String!
+        createdAt: String!
+        updatedAt: String!
         owner: UserFracture!
         content: Opinion!
     }
@@ -69,15 +75,12 @@ module.exports = gql`
         resultText: String!
         postid: String!
     }
-    type CommentProcess {
+    type OpinionProcess {
         resultText: String!
-
-    }
-    type SentimentProcess {
-        resultText: String!
+        targetType: TargetType!
+        targetId: String!
+        targetUpdate: String!
         id: String!
-        target: TargetType!
-        content: Opinion!
     }
 
 
@@ -136,7 +139,7 @@ module.exports = gql`
         listOfAllPosts: [Post]         ## own and firends posts
 
         ## comments, sentiments processes
-        listOtTheseComments(targeted: TargetType!, ids: [String]!): [Comment]!
+        listOfTheseComments(targeted: TargetType!, id: String!): [Comment]!
     }
     type Mutation {
 
@@ -168,12 +171,12 @@ module.exports = gql`
 
         ## comments, sentiments processes
             ## for everibody
-        createCommentToHere(targeted: TargetType!, id: String!, commentid: String!, content: String): Comment!
-        createSentimentToHere(targeted: TargetType!, id: String!, sentimentid: String!, content: String): Sentiment!
+        createCommentToHere(targeted: TargetType!, id: String!, content: String): Comment!
+        createSentimentToHere(targeted: TargetType!, id: String!, content: Opinion): Sentiment!
             ## only for the authors
-        updateCommentContent(targeted: TargetType!, id: String!, commentid: String!, content: String!): CommentProcess!
-        deleteThisComment(targeted: TargetType!, id: String!, commentid: String!): CommentProcess!
-        updateSentimentContent(targeted: TargetType!, id: String!, sentimentid: String!, content: String!): SentimentProcess!
-        deleteThisSentiment(targeted: TargetType!, id: String!, sentimentid: String!): SentimentProcess!
+        updateCommentContent(commentid: String!, content: String!): Comment!
+        deleteThisComment(targeted: TargetType!, id: String!, commentid: String!): OpinionProcess!
+        updateSentimentContent(targeted: TargetType!, id: String!, sentimentid: String!, content: String!): Sentiment!
+        deleteThisSentiment(targeted: TargetType!, id: String!, sentimentid: String!): OpinionProcess!
     }
 `;

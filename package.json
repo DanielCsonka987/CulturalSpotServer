@@ -7,7 +7,7 @@
     "test": "jest -o",
     "testPost": "jest postServices.test.js",
     "testAcc": "jest accountServices.test.js",
-    "testA": "jest repositoryHelpers.test.js",
+    "testA": "jest repository.test.js",
     "seedLocalDB": "node ./models/dbSeeder.js local",
     "seedCloudDB": "node ./models/dbSeeder.js cloud",
     "dev": "nodemon server.js",

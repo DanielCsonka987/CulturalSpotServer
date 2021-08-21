@@ -23,9 +23,11 @@ module.exports = {
                     owner: postUnit.owner,
                     dedicatedTo: postUnit.dedicatedTo,
                     content: postUnit.content,
-            
+                    createdAt: postUnit.createdAt,
+                    updatedAt: postUnit.updatedAt,
+
                     sentiments: postUnit.sentiments,
-                    comments: postUnit.comments
+                    comments: postUnit.comments.length
                 }
             })
         },
@@ -43,9 +45,11 @@ module.exports = {
                     owner: postUnit.owner,
                     dedicatedTo: postUnit.dedicatedTo,
                     content: postUnit.content,
-            
+                    createdAt: postUnit.createdAt,
+                    updatedAt: postUnit.updatedAt,
+
                     sentiments: postUnit.sentiments,
-                    comments: postUnit.comments
+                    comments: postUnit.comments.length
                 }
             })
         },
@@ -72,9 +76,11 @@ module.exports = {
                     owner: postUnit.owner,
                     dedicatedTo: postUnit.dedicatedTo,
                     content: postUnit.content,
-            
+                    createdAt: postUnit.createdAt,
+                    updatedAt: postUnit.updatedAt,
+
                     sentiments: postUnit.sentiments,
-                    comments: postUnit.comments
+                    comments: postUnit.comments.length
                 }
             })
         },
@@ -129,7 +135,7 @@ module.exports = {
                 content: thePost.content,
                 createdAt: thePost.createdAt,
                 updatedAt: '',
-                comments: [],
+                comments: 0,
                 sentiments: []
             }
         },
@@ -183,7 +189,8 @@ module.exports = {
                 content: postToUpdate.content,
                 createdAt: postToUpdate.createdAt,
                 updatedAt: postToUpdate.updatedAt,
-                comments: postToUpdate.comments,
+                
+                comments: postToUpdate.comments.length,
                 sentiments: postToUpdate.sentiments
             }
         },
@@ -217,7 +224,7 @@ module.exports = {
                 )
                 await dataSources.profiles.saving(clientUser)
 
-                //await dataSources.comments.recursiveRemovalOfThese(commentsToRemove)
+                await dataSources.comments.recursiveRemovalOfThese(commentsToRemove)
 
                 await dataSources.posts.deleting(postToRemove._id)
             }catch(err){
