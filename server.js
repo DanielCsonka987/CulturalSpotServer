@@ -1,13 +1,14 @@
 const { ApolloServer } = require('apollo-server-express')
 const express = require('express')
 const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
 
 const PORT = process.env.PORT || 4040;
 const DB_CONNECT = (process.env.NODE_ENV === 'production')?
     retquire('./config/dbConfig').dbCloud
     : require('./config/dbConfig').dbLocal
-const { RESETPWD_REST_GET_ROUTE } = require('./config/appConfig').ROUTING;
 const LOCAL_DOMAIN_URL = { url: '' }
+const additionalRoutings = require('./controler/routings')
 
 const typeDefs = require('./graphql/typeDef')
 const resolvers = require('./graphql/resolvers')
@@ -28,7 +29,9 @@ const apolloSrv = new ApolloServer({
     dataSources: ()=>({
         profiles: new ProfileDataSource(),
         posts: new PostDataSource(),
-        comments: new CommentDataSource()
+        comments: new CommentDataSource(),
+        //chattings
+        //wsStorage
     }),
     context: async({ req, res })=>{
         /**
@@ -37,7 +40,7 @@ const apolloSrv = new ApolloServer({
          */
         const authorizRes = await authorizTokenVerify( 
             authorizTokenInputRevise(req) 
-            );
+        );
         /**
          * for the authorization refresh the token consist 
          * -> id (user identification), no exp field!!
@@ -89,19 +92,23 @@ const startServer = async (testPurpose)=>{
     theDBConfig()
     theDBConnect()
     if(!testPurpose){    //it makes JEST erroreous
-        //ReferenceError: You are trying to `import` a file after the Jest environment has been torn down.
+        //ReferenceError: You are trying to `import` 
+        //a file after the Jest environment has been torn down.
         //TypeError: Right-hand side of 'instanceof' is not callable
         await apolloSrv.start()
     }
     apolloSrv.applyMiddleware({ app, path: '/graphql' })
 
-    //publish frontpage to fornt-app
-    app.get("/", (req, res)=>{ res.send("<h1>GET request accepted - frontpage is sent!</h1>")  })
-    //manage GET resetPassword request
-    app.get(RESETPWD_REST_GET_ROUTE, (req, res)=>{ res.send("<h1>GET request accepted 2</h1>")  })
+    //app.use(bodyParser.urlencoded({extended: true}))
+    app.use(express.urlencoded({extended: true}))
+    app.use("/", additionalRoutings)
+    app.use((err, req, res, next)=>{
+        res.status(500).send('Server Internal error occured! ' + err)
+    })
 
     if(!testPurpose){    //it makes to SUPERTEST double configurate the PORT
-        //listen EADDRINUSE: address already in use :::4040
+
+        // " listen EADDRINUSE: address already in use :::4040 "
         app.listen({ port: PORT })
     }
     console.log('Server is running!')

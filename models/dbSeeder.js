@@ -38,7 +38,7 @@ const seedingProcess = new Promise((resolve, reject)=>{
         ProfileModel.insertMany(profiles, (error, report)=>{
             if(error) { console.log('Profiles collection filling up failed!') }
             if(report.length !== profiles.length) { console.log('Profiles collection misses some document!') }
-            console.log('Profiles seeding done!')
+            console.log('Profiles seeding.... done!')
         })
         
     })
@@ -54,7 +54,7 @@ const seedingProcess = new Promise((resolve, reject)=>{
         PostModel.insertMany(posts, (error, report)=>{
             if(error) { console.log('Posts collection filling up failed!') }
             if(report.length !== posts.length) { console.log('Posts collection misses some document!') }
-            console.log('Posts seeding done!')
+            console.log('Posts seeding.... done!')
         })
         
     })
@@ -70,7 +70,7 @@ const seedingProcess = new Promise((resolve, reject)=>{
         CommentModel.insertMany(comments, (error, report)=>{
             if(error) { console.log('Comments collection filling up failed!') }
             if(report.length !== comments.length) { console.log('Comments collection misses some document!') }
-            console.log('Comments seeding done!')
+            console.log('Comments seeding....done!')
         })
         
     })
@@ -86,7 +86,7 @@ const seedingProcess = new Promise((resolve, reject)=>{
         ChattingModel.insertMany(messages, (error, report)=>{
             if(error) { console.log('Messages collection filling up failed!') }
             if(report.length !== messages.length) { console.log('Messages collection misses some document!') }
-            console.log('Messages seeding done!')
+            console.log('Messages seeding.... done!')
         })
         
     })

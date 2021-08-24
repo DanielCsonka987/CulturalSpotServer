@@ -236,7 +236,7 @@ describe('Email tokenkey handle, processes', ()=>{
 
     it('Full encode and verify token', async ()=>{
         const shortHash = 'stgtoimmitatehashtext'
-        const specToken = createTokenToLink('abcdef', shortHash, '123')
+        const specToken = createTokenToLink('0123345', shortHash, '123')
         
         const result = resoluteTokenFromLink(specToken)
         expect(typeof result).toBe('object')
@@ -244,7 +244,7 @@ describe('Email tokenkey handle, processes', ()=>{
         expect(result.takenUserid).toBe('123')
         expect(typeof result.takenText).toBe('string')
         //console.log(result.takenText)
-        const final = await verifyTokenFromLink(result, 'abcdef', shortHash)
+        const final = await verifyTokenFromLink(result, '0123345', shortHash)
         expect(Object.keys(final)).toEqual(
             expect.arrayContaining(['isExpired', 'error', 'passResetPermission'])
         )

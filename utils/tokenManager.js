@@ -121,10 +121,14 @@ module.exports = {
         const keyToEncript = dateToPayloadAndSecret + pwdHashToSecret;
         return jwt.verify(tokenObj.takenText, keyToEncript, (err, decoded)=>{
             if(err){
+                if(err.name === 'TokenExpiredError'){
+                    results.isExpired = true;
+                    return results;
+                }
                 results.error = err;
                 return results
             }
-
+            /*
             const actTimeSecText = new Date().getTime().toString().slice(0,10);
             const actTime = new Number(actTimeSecText).valueOf()
             const expTime = new Number(decoded.exp)
@@ -132,6 +136,7 @@ module.exports = {
                 results.isExpired = true;
                 return results;
             }
+            */
             if(decoded.marker !== dateToPayloadAndSecret){
                 return results
             }

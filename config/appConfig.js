@@ -10,6 +10,5 @@ module.exports = {
 
     ROUTING: {
         RESETPWD_REST_GET_ROUTE: '/resetpassword/',
-        CHATTING_REST_GET_ROUTE: '/chatmessages/'
     }
 }

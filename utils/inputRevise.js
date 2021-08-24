@@ -1,4 +1,6 @@
 
+//ACCOUNT, USER-CONNECTION INPUT REVISIONS
+
 module.exports.loginInputRevise = ( email, pwdText )=>{
     const values = {
         email: email.trim(), 
@@ -48,21 +50,6 @@ module.exports.registerInputRevise = (email, pwdText, pwdTextConf, uname)=>{
         result.error = true;
         result.field.push('username');
         result.issue.push('This username is not acceptable!')
-    }
-    return result.error? result : values;
-}
-
-module.exports.resetPwdInputRevise = (email)=>{
-    const values = {
-        email: email.trim()
-    }
-    const result = {
-        error: false, field: [], issue: []
-    }
-    if(isThereProblemWithEmail(values.email)){
-        result.error = true;
-        result.field.push('email');
-        result.issue.push('This email is not acceptable!')
     }
     return result.error? result : values;
 }
@@ -143,6 +130,7 @@ module.exports.useridInputRevise = (id)=>{
     return result.error? result : values;
 }
 
+//USER-POST INPUT REVISE
 
 module.exports.postInputRevise = (dedicatedID, postContent)=>{
     const values = {
@@ -203,7 +191,7 @@ module.exports.postDeleteInputRevise = (postID)=>{
     return result.error? result : values
 }
 
-//OPINION REVISION
+//OPINION INPUT REVISION
 
 module.exports.commentQueryInputRevise = (targetingTxt, targetID)=>{
     const values = { targetingTxt, targetID }
@@ -332,8 +320,36 @@ module.exports.opinionDeleteInputRevise = (targetingTxt, targetID, ID,)=>{
 
 
 
-//VALUE EVALUATION HELPERS
+//PASSWORD RESETTING - step 1 + step 3
 
+module.exports.resetPwdInputRevise = (email)=>{
+    const values = {
+        email: email.trim()
+    }
+    const result = {
+        error: false, field: [], issue: []
+    }
+    if(isThereProblemWithEmail(values.email)){
+        result.error = true;
+        result.field.push('email');
+        result.issue.push('This email is not acceptable!')
+    }
+    return result.error? result : values;
+}
+
+module.exports.passwordRenewInputRevise = (pwdTxt1, pwdTxt2)=>{
+    if(isThereProblemWithPassword(pwdTxt1)){
+        return false
+    }
+    if(pwdTxt1 !== pwdTxt2){
+        return false
+    }
+    return true
+}
+
+
+
+//VALUE EVALUATION HELPERS
 
 function isThereProblemWithEmail(emailText){
     if(!emailText || typeof emailText !== 'string'){

@@ -1,4 +1,4 @@
-const { resetPwdInputRevise } = require('../inputRevise')
+const { resetPwdInputRevise, passwordRenewInputRevise } = require('../inputRevise')
 
 describe('Password reset email revision tests', ()=>{
     const inputs = [
@@ -97,5 +97,20 @@ describe('Password reset email revision tests', ()=>{
         expect(issue[0]).toBe('This email is not acceptable!')
 
         expect(email).toBe(undefined)
+    })
+})
+
+describe('Password reset password revision tests', ()=>{
+    it('Correct inputs', ()=>{
+        expect( passwordRenewInputRevise('StgToTest', 'StgToTest')).toBeTruthy()
+        expect( passwordRenewInputRevise('Stg2Test', 'Stg2Test')).toBeTruthy()
+        expect( passwordRenewInputRevise('Stg@Here', 'Stg@Here')).toBeTruthy()
+    })
+    it('Incorrect inputs', ()=>{
+        expect( passwordRenewInputRevise('StgToTest', 'StgTo')).toBeFalsy()
+        expect( passwordRenewInputRevise('Stg2Test', '')).toBeFalsy()
+        expect( passwordRenewInputRevise('Stg', 'Stg')).toBeFalsy()
+        expect( passwordRenewInputRevise('Stg@Here', null)).toBeFalsy()
+        expect( passwordRenewInputRevise('', '')).toBeFalsy()
     })
 })

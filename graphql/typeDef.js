@@ -146,7 +146,7 @@ module.exports = gql`
         ## account operations - tested!
         login(email: String!, password: String! ): UserLogging!
         registration(email: String!, username: String!, password: String!, passwordconf: String! ): UserLogging!
-        resetPassword(email: String!): AccountProcess!
+        resetPasswordStep1(email: String!): AccountProcess!
         changePassword(oldpassword: String!, newpassword: String!, newconf: String!): AccountProcess!
         changeAccountDatas(username: String! ): AccountProcess!
         deleteAccount(password: String!, passwordconf: String!): AccountProcess!

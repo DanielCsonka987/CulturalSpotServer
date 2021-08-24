@@ -5,13 +5,16 @@ const { authorizTokenEncoder, createTokenToLink, createRefreshToken } = require(
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
     changePwdInputRevise, deleteAccInputRevise,
-    updateAccDetInputRevise, resetPwdInputRevise } = require('../../utils/inputRevise')
+    updateAccDetInputRevise, resetPwdInputRevise, 
+    passwordRenewInputRevise } = require('../../utils/inputRevise')
 
 const { execMailSending, emailType, emailTypeStringify } = require('../../emailer/emailerSetup')
 const EmailReportModel = require('../../models/EmailReportModel')
+const PWD_REFRESH_PATH = require('../../config/appConfig').ROUTING.RESETPWD_REST_GET_ROUTE
 
 // someHelper function in resolving - not standalone, apollo connected!
-const { authorizEvaluation, tokenRefreshmentEvaluation } = require('./resolveHelpers')
+const { authorizEvaluation, tokenRefreshmentEvaluation, 
+    passwordRenewTokenEvaluation } = require('./resolveHelpers')
 
 async function passwordsMatching(user, pwdText){
     if(!user){
@@ -179,8 +182,9 @@ module.exports = {
  * Resetting forgotten password first step -> email creation with link
  * Href = doman + userid + resetToken
  * resetToken with secretkey of hashPWD and timemark, content of {mark: timemark}
+ * BUT - Jest makes 57*** PORT NUMBER TO THE APP -> Link to click in email wrong port has !!
 */
-        async resetPassword(_, args, { dataSources, domainURL }){
+        async resetPasswordStep1(_, args, { dataSources, domainURL }){
             const { error, field, issue, email } = resetPwdInputRevise( args.email )
 
             if(error){
@@ -192,8 +196,8 @@ module.exports = {
                 return new UserInputError('No such email in system!')
             }
 
-            const datingMarker = new Date().getTime()
-            userToReset.resetPwdMarker = datingMarker.toString()
+            const datingMarker = new Date().getTime().toString()
+            userToReset.resetPwdMarker = datingMarker
             try{
                 await dataSources.profiles.saving(userToReset)
             }catch(err){
@@ -205,7 +209,7 @@ module.exports = {
             )
             //something removes the :// from protocol definition
             const domainUrlAndPath = domainURL.prot + '://' 
-                + domainURL.dom + '/apath/' + complexIdToken //REST GET type
+                + domainURL.dom + PWD_REFRESH_PATH + complexIdToken //REST GET type
             const EMAIL_TYPE_TXT = emailTypeStringify(emailType.PWDRESETING)
 
             execMailSending(email, emailType.PWDRESETING, {
@@ -233,7 +237,6 @@ module.exports = {
 
             }
         },
-
         async changePassword(_, args, { authorizRes, dataSources }){
             const { error, field, issue, pwdTextOld, pwdTextNew } = changePwdInputRevise(
                 args.oldpassword, args.newpassword, args.newconf
