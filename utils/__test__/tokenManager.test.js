@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken')
 
 const { authorizTokenEncoder, authorizTokenInputRevise, authorizTokenVerify, 
-    createTokenToLink, resoluteTokenFromLink, verifyTokenFromLink,
-    createRefreshToken, loginRefreshTokenInputRevise, loginRefreshTokenValidate } 
-    = require('../tokenManager')
+    createSpecTokenToLink, specTokenResoluteFromLink, specTokenverifyFromLink,
+    createLoginRefreshToken, loginRefreshTokenInputRevise, loginRefreshTokenValidate,
+    webSocketAuthenticationRevise } = require('../tokenManager')
 const { TOKEN_SECRET, TOKEN_ACCESS_EXPIRE, 
     TOKEN_RESET_EXPIRE, TOKEN_PREFIX } = require('../../config/appConfig')
 
@@ -185,7 +185,7 @@ describe('Email tokenkey handle, processes', ()=>{
         const token = jwt.sign({ marker: 'abcd' }, '123', { expiresIn: TOKEN_RESET_EXPIRE })
         const url = '12345.'+ token
 
-        const res = resoluteTokenFromLink(url)
+        const res = specTokenResoluteFromLink(url)
         expect(typeof res).toBe('object')
         expect(Object.keys(res)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenUserid', 'takenText'])
@@ -212,9 +212,9 @@ describe('Email tokenkey handle, processes', ()=>{
         const shortHash = 'stgtoimmitatehashtext'        
         const actTime = new Date().getTime().toString().slice(0, 10)
         const theTimeSec = new Number(actTime)
-        const theSpecialToken = createTokenToLink('abcde', shortHash, '12345')
+        const theSpecialToken = createSpecTokenToLink('abcde', shortHash, '12345')
         //console.log(theSpecialToken)
-        const res = resoluteTokenFromLink(theSpecialToken)
+        const res = specTokenResoluteFromLink(theSpecialToken)
 
         expect(typeof res.tokenMissing).toBe('boolean')
         expect(res.tokenMissing).toBeFalsy()
@@ -236,15 +236,15 @@ describe('Email tokenkey handle, processes', ()=>{
 
     it('Full encode and verify token', async ()=>{
         const shortHash = 'stgtoimmitatehashtext'
-        const specToken = createTokenToLink('0123345', shortHash, '123')
+        const specToken = createSpecTokenToLink('0123345', shortHash, '123')
         
-        const result = resoluteTokenFromLink(specToken)
+        const result = specTokenResoluteFromLink(specToken)
         expect(typeof result).toBe('object')
         expect(result.tokenMissing).toBeFalsy()
         expect(result.takenUserid).toBe('123')
         expect(typeof result.takenText).toBe('string')
         //console.log(result.takenText)
-        const final = await verifyTokenFromLink(result, '0123345', shortHash)
+        const final = await specTokenverifyFromLink(result, '0123345', shortHash)
         expect(Object.keys(final)).toEqual(
             expect.arrayContaining(['isExpired', 'error', 'passResetPermission'])
         )
@@ -256,9 +256,9 @@ describe('Email tokenkey handle, processes', ()=>{
 
     it('Faulty encoding, no userid', async ()=>{
         const shortHash = 'stgtoimmitatehashtext'        
-        const specToken = createTokenToLink('abcdef', shortHash, '')
+        const specToken = createSpecTokenToLink('abcdef', shortHash, '')
 
-        const result = await resoluteTokenFromLink(specToken)
+        const result = await specTokenResoluteFromLink(specToken)
         expect(typeof result).toBe('object')
 
         expect(Object.keys(result)).toEqual(
@@ -268,11 +268,11 @@ describe('Email tokenkey handle, processes', ()=>{
     })
     it('Faulty resolution, removed middle', async ()=>{
         const shortHash = 'stgtoimmitatehashtext'
-        const specToken = createTokenToLink('abcdef', shortHash, '123')
+        const specToken = createSpecTokenToLink('abcdef', shortHash, '123')
         const parts = specToken.split('.')
         const newUrl = parts[0] + '.' + parts[2] + '.' + parts[3] 
 
-        const result = resoluteTokenFromLink(newUrl)
+        const result = specTokenResoluteFromLink(newUrl)
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenUserid', 'takenText'])
@@ -282,13 +282,13 @@ describe('Email tokenkey handle, processes', ()=>{
 
     it('Faulty verify, removed passHash', async ()=>{
         const shortHash = 'stgtoimmitatehashtext'
-        const specToken = createTokenToLink('abcdef', shortHash, '123')
+        const specToken = createSpecTokenToLink('abcdef', shortHash, '123')
 
-        const result = resoluteTokenFromLink(specToken)
+        const result = specTokenResoluteFromLink(specToken)
         expect(result.tokenMissing).toBeFalsy()
         expect(result.takenUserid).toBe('123')
 
-        const final = await verifyTokenFromLink(result.takenText, result.takenUserid, '')
+        const final = await specTokenverifyFromLink(result.takenText, result.takenUserid, '')
         expect(typeof final.error).toBe('object')
 
     })
@@ -314,7 +314,7 @@ describe('Refresh token creation tests', ()=>{
         })
     })
     it('Token encoding, revision', ()=>{
-        const token = createRefreshToken({ id: '12345abcde' })
+        const token = createLoginRefreshToken({ id: '12345abcde' })
         const result = loginRefreshTokenInputRevise({headers: {refreshing: token}})
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenText'])
@@ -331,7 +331,7 @@ describe('Refresh token creation tests', ()=>{
         })
     })
     it('Token full process', async ()=>{
-        const token = createRefreshToken({ id: '12345abcde' })
+        const token = createLoginRefreshToken({ id: '12345abcde' })
         const result = loginRefreshTokenInputRevise({headers: {refreshing: token}})
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenText'])
@@ -356,7 +356,7 @@ describe('Refresh token creation tests', ()=>{
     })
 
     it('Refresh token schema fail', ()=>{
-        const token = createRefreshToken({ id: '12345abcde' })
+        const token = createLoginRefreshToken({ id: '12345abcde' })
         const parts = token.split('.')
         const faulty = parts[0] + '.' + parts[2] 
 
@@ -376,4 +376,62 @@ describe('Refresh token creation tests', ()=>{
         )
         expect(typeof final.error).toBe('object')
     })
+})
+
+describe('WebSocket TokenURL revision tests', ()=>{
+    const token = authorizTokenEncoder(
+        {subj: '0123456789fedcba76543210', email: 'stgHere@testing.jp'}
+    )
+    it('Proper inputs', ()=>{
+        const res1 = webSocketAuthenticationRevise({ url: '/' + token})
+        expect(typeof res1).toBe('object')
+        expect(Object.keys(res1)).toEqual(
+            expect.arrayContaining(['tokenMissing', 'takenText'])
+            )
+        expect(res1.tokenMissing).toBeFalsy()
+        expect(res1.takenText).toBe(token)
+            
+            
+        const res2 = webSocketAuthenticationRevise({ url: '/' + token + '/'})
+        expect(typeof res2).toBe('object')
+        expect(Object.keys(res2)).toEqual(
+            expect.arrayContaining(['tokenMissing', 'takenText'])
+            )
+        expect(res2.tokenMissing).toBeFalsy()
+        expect(res2.takenText).toBe(token)
+    })
+
+    it('Faulty inputs', ()=>{
+        const parts = token.split('.')
+
+        const faulty1 = '/'+ parts[0] + parts[1] + '.' + parts[2]
+        const faulty2 = '/'+ parts[0] + '.' + parts[1] + '.' + parts[2] + '.' + parts[2]
+
+        const res1 = webSocketAuthenticationRevise({url: faulty1})
+        expect(typeof res1).toBe('object')
+        expect(Object.keys(res1)).toEqual(
+            expect.arrayContaining(['tokenMissing', 'takenText'])
+            )
+        expect(res1.tokenMissing).toBeTruthy()
+        expect(res1.takenText).toBe(null)
+
+        const res2 = webSocketAuthenticationRevise({ url: faulty1 })
+        expect(typeof res2).toBe('object')
+        expect(Object.keys(res2)).toEqual(
+            expect.arrayContaining(['tokenMissing', 'takenText'])
+            )
+        expect(res2.tokenMissing).toBeTruthy()
+        expect(res2.takenText).toBe(null)
+
+
+        const res3 = webSocketAuthenticationRevise({ url: '' })
+        expect(typeof res3).toBe('object')
+        expect(Object.keys(res3)).toEqual(
+            expect.arrayContaining(['tokenMissing', 'takenText'])
+            )
+        expect(res3.tokenMissing).toBeTruthy()
+        expect(res3.takenText).toBe(null)
+
+    })
+
 })

@@ -253,7 +253,7 @@ module.exports = {
             }
 
         },
-        async removeThisFriendshipRequest(_, args, { authorizRes, dataSources }){
+        async discardThisFriendshipRequest(_, args, { authorizRes, dataSources }){
             authorizEvaluation(authorizRes)
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){

@@ -158,7 +158,7 @@ module.exports = gql`
         removeAFriendshipInitiation(friendid: String): FriendProcess!
             ## for the initiation acceptance-denial by the target
         approveThisFriendshipRequest(friendid: String!): UserMini
-        removeThisFriendshipRequest(friendid: String!): FriendProcess!
+        discardThisFriendshipRequest(friendid: String!): FriendProcess!
             ## for remove a stable friend-conenction
         removeThisFriend(friendid: String!): FriendProcess!
 

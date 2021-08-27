@@ -1,20 +1,23 @@
-const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server-express')
+const { AuthenticationError, UserInputError, ApolloError  
+    } = require('apollo-server-express')
 
 //helper utils, standalone like, models
-const { authorizTokenEncoder, createTokenToLink, createRefreshToken } = require('../../utils/tokenManager')
+const { authorizTokenEncoder, createSpecTokenToLink, createLoginRefreshToken 
+    } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
     changePwdInputRevise, deleteAccInputRevise,
     updateAccDetInputRevise, resetPwdInputRevise, 
-    passwordRenewInputRevise } = require('../../utils/inputRevise')
+ } = require('../../utils/inputRevise')
 
-const { execMailSending, emailType, emailTypeStringify } = require('../../emailer/emailerSetup')
-const EmailReportModel = require('../../models/EmailReportModel')
+const { execMailSending, emailType, emailTypeStringify } = require('../../extensions/emailerClientSetup')
+
+
+//const EmailReportModel = require('../../models/EmailReportModel')
 const PWD_REFRESH_PATH = require('../../config/appConfig').ROUTING.RESETPWD_REST_GET_ROUTE
 
 // someHelper function in resolving - not standalone, apollo connected!
-const { authorizEvaluation, tokenRefreshmentEvaluation, 
-    passwordRenewTokenEvaluation } = require('./resolveHelpers')
+const { authorizEvaluation, tokenRefreshmentEvaluation } = require('./resolveHelpers')
 
 async function passwordsMatching(user, pwdText){
     if(!user){
@@ -29,6 +32,7 @@ async function passwordsMatching(user, pwdText){
     }
 }
 
+/*
 async function saveEmailReportToDB(emailToAddres, emailTypeTxt, emailQuality,
     smtpIdOrErrorMsg){
 
@@ -45,7 +49,7 @@ async function saveEmailReportToDB(emailToAddres, emailTypeTxt, emailQuality,
         console.log('Email-sending registration error: ' + err)
     }
 }
-
+*/
 
 module.exports = {
     Query: {
@@ -95,9 +99,9 @@ module.exports = {
 
             //temporary saving out then update logged timestamp
             const lastLoggedTime = userToLogin.lastLoggedAt
-            const refreshTokenStr = createRefreshToken({id: userToLogin._id.toString()})
+            const refreshTokenStr = createLoginRefreshToken({id: userToLogin._id.toString()})
             userToLogin.lastLoggedAt = new Date().toISOString()
-            userToLogin.resetPwdToken = '';
+            userToLogin.resetPwdMarker = '';
             userToLogin.refreshToken = refreshTokenStr;
             try{
                 dataSources.profiles.saving(userToLogin);
@@ -157,7 +161,7 @@ module.exports = {
             }catch(err){
                 return ApolloError('Registration is not completed!', { err })
             }
-            const refreshToken = createRefreshToken({id: newUser._id.toString()})
+            const refreshToken = createLoginRefreshToken({id: newUser._id.toString()})
             newUser.refreshToken = refreshToken;
             try{
                 await dataSources.profiles.saving(newUser)
@@ -204,7 +208,7 @@ module.exports = {
                 return new ApolloError('Password reset registring error occured!', err)
             }
 
-            const complexIdToken = createTokenToLink(datingMarker, userToReset.pwdHash, 
+            const complexIdToken = createSpecTokenToLink(datingMarker, userToReset.pwdHash, 
                 userToReset._id
             )
             //something removes the :// from protocol definition

@@ -1,3 +1,5 @@
+const { TOKEN_PREFIX } = require('../config/appConfig')
+
 
 //ACCOUNT, USER-CONNECTION INPUT REVISIONS
 
@@ -130,6 +132,13 @@ module.exports.useridInputRevise = (id)=>{
     return result.error? result : values;
 }
 
+
+
+
+
+
+
+
 //USER-POST INPUT REVISE
 
 module.exports.postInputRevise = (dedicatedID, postContent)=>{
@@ -190,6 +199,13 @@ module.exports.postDeleteInputRevise = (postID)=>{
     }
     return result.error? result : values
 }
+
+
+
+
+
+
+
 
 //OPINION INPUT REVISION
 
@@ -320,6 +336,11 @@ module.exports.opinionDeleteInputRevise = (targetingTxt, targetID, ID,)=>{
 
 
 
+
+
+
+
+
 //PASSWORD RESETTING - step 1 + step 3
 
 module.exports.resetPwdInputRevise = (email)=>{
@@ -346,6 +367,70 @@ module.exports.passwordRenewInputRevise = (pwdTxt1, pwdTxt2)=>{
     }
     return true
 }
+
+
+
+
+
+
+//TOKEN CONNECTED INPUTS
+
+module.exports.authorizationHeaderExist = (request)=>{
+    if(!request){ return false }
+    if(!request.headers){ return false; }
+    if(!request.headers.authorization){  return false;  }
+    return true
+}
+
+module.exports.refreshingHeaderExist = (request)=>{
+    if(!request){ return false }
+    if(!request.headers){ return false; }
+    if(!request.headers.refreshing){  return false;  }
+    return true
+}
+
+module.exports.isolateBearerFromHeader = (headerFullTxt)=>{
+    if(typeof headerFullTxt !== 'string'){
+        return false
+    }
+    const tokenText = headerFullTxt.split(TOKEN_PREFIX)[1]
+    if(!tokenText){
+        return false
+    }
+    return tokenText
+}
+
+module.exports.isolateTokenFromURL = (urlText)=>{
+    if(typeof urlText !== 'string' ){
+        return false
+    }
+    const tokenText = urlText.split(/\//)[1]
+    if(!tokenText){
+        return false
+    }
+    return tokenText
+}
+
+module.exports.tokenNormalSchemasFaulty = (theTokenText)=>{
+    return !(theTokenText.split('.').length === 3)
+}
+
+module.exports.tokenSpecRevAndSplitting = (theTokenText)=>{
+    const fourPartedArray = theTokenText.split('.')
+    if(fourPartedArray.length !== 4){
+        return false
+    }
+    if(fourPartedArray.includes('')){
+        return false
+    }
+    return fourPartedArray
+}
+
+module.exports.isThisUserIDMayBeFaulty = (userID)=>{
+    return isThereProblemWithDBKey(userID)
+}
+
+
 
 
 

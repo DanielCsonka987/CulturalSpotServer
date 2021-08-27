@@ -1,7 +1,9 @@
 const router = require('express').Router()
 
-const { resoluteTokenFromLink, verifyTokenFromLink } = require('../utils/tokenManager')
-const { passwordRenewInputRevise } = require('../utils/inputRevise')
+const { specTokenResoluteFromLink, specTokenverifyFromLink
+     } = require('../utils/tokenManager')
+const { passwordRenewInputRevise, isThisUserIDMayBeFaulty 
+    } = require('../utils/inputRevise')
 const { encryptPwd } = require('../utils/bCryptManager')
 
 const ProfileModel = require('../models/ProfileModel')
@@ -9,28 +11,7 @@ const ProfileModel = require('../models/ProfileModel')
 router.get("/", (req, res)=>{ res.send("<h1>GET request accepted - frontpage is sent!</h1>")  })
 
 router.get('/resetpassword/:specToken', [
-    async (req, res, next)=>{
-        const tokenRevised = resoluteTokenFromLink(req.params.specToken)
-        if(tokenRevised.tokenMissing){
-            next(new Error('No authroization to use the endpoint!'))
-        }
-        try{
-            const clientUser = await  ProfileModel.findById(tokenRevised.takenUserid)
-
-            if(!clientUser.resetPwdMarker) { next( new Error('No permission to reset the password!')) }
-            const tokenChargo = await verifyTokenFromLink(
-                tokenRevised, clientUser.resetPwdMarker, clientUser.pwdHash
-            )
-            if(tokenChargo.error){ next( new Error('Verification error!') ) }
-            if(tokenChargo.isExpired){ next() }
-            if(tokenChargo.passResetPermission){
-                req.permissionToContinue = true
-            }
-            next()
-        }catch(err){
-            next(err)
-        }
-    }, 
+    resetTokenEvaluation, 
     (req, res)=>{
         if(req.permissionToContinue){
             res.send('<h3>Permission granted, here is the form</h3>')
@@ -40,34 +21,8 @@ router.get('/resetpassword/:specToken', [
     }
 ])
 
-
-
-
 router.post('/resetpassword/:specToken', [
-    async (req, res, next)=>{
-        const tokenRevised = resoluteTokenFromLink(req.params.specToken)
-
-        if(tokenRevised.tokenMissing){
-            next(new Error('No authroization to use the endpoint!'))
-        }
-        try{
-            const clientUser = await  ProfileModel.findById(tokenRevised.takenUserid)
-
-            if(!clientUser.resetPwdMarker) { next( new Error('No permission to reset the password!')) }
-            const tokenChargo = await verifyTokenFromLink(
-                tokenRevised, clientUser.resetPwdMarker, clientUser.pwdHash
-            )
-            if(tokenChargo.error){ next( new Error('Verification error!') ) }
-            if(tokenChargo.isExpired){ next() }
-            if(tokenChargo.passResetPermission){
-                req.permissionToContinue = true
-                req.theClientObj = clientUser
-            }
-            next()
-        }catch(err){
-            next(err)
-        }
-    },
+    resetTokenEvaluation,
     (req, res, next)=>{
         if(req.permissionToContinue){
             const correction = passwordRenewInputRevise(req.body.password, 
@@ -114,12 +69,33 @@ router.post('/resetpassword/:specToken', [
     }
 ])
 
+async function resetTokenEvaluation(req, res, next){
+    const tokenRevised = specTokenResoluteFromLink(req.params.specToken)
 
+    if(tokenRevised.tokenMissing){
+        next(new Error('No authroization to use the endpoint!'))
+    }
+    try{
+        if(isThisUserIDMayBeFaulty(tokenRevised.takenUserid)){
+            next( new Error('No proper user identification!'))
+        }
+        const clientUser = await  ProfileModel.findById(tokenRevised.takenUserid)
 
-router.get('/feedbacks/', (req, res)=>{
-    res.send("<h1>GET request to WebSocket</h1>")  
-})
-
+        if(!clientUser.resetPwdMarker) { next( new Error('No permission to reset the password!')) }
+        const tokenChargo = await specTokenverifyFromLink(
+            tokenRevised, clientUser.resetPwdMarker, clientUser.pwdHash
+        )
+        if(tokenChargo.error){ next( new Error('Verification error!') ) }
+        if(tokenChargo.isExpired){ next() }
+        if(tokenChargo.passResetPermission){
+            req.permissionToContinue = true
+            req.theClientObj = clientUser
+        }
+        next()
+    }catch(err){
+        next(err)
+    }
+}
 
 router.use((err, req, res, next)=>{
     res.status(500).send('<h3>Some error at router</h3><p>' + err.message + '</p>')

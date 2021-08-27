@@ -6,9 +6,9 @@ const ProfileModel = require('../models/ProfileModel')
 const EmailReportModel = require('../models/EmailReportModel')
 const { createTokenToHeader, userTestDatas, userTestRegister } 
     = require('./helperToTestingServices')
-const { authorizTokenEncoder, createRefreshToken, 
+const { authorizTokenEncoder, createLoginRefreshToken, 
     authorizTokenVerify, authorizTokenInputRevise,
-    createTokenToLink } = require('../utils/tokenManager')
+    createSpecTokenToLink } = require('../utils/tokenManager')
 const { startTestingServer, exitTestingServer } = require('../server')
 
 const userTesting = new Map()
@@ -110,7 +110,7 @@ describe('GET ResetPassword step-2 tests', ()=>{
     })
     it('GET URL - token, no valid Userid', (done)=>{
 
-        const theToken = createTokenToLink('0123456', 'hashPwd', '012345abcd')
+        const theToken = createSpecTokenToLink('0123456', 'hashPwd', '012345abcd')
         request(theSrv)
         .get(`/resetpassword/${theToken}`)
         .expect("Content-Type", /text\/html/)
@@ -120,7 +120,7 @@ describe('GET ResetPassword step-2 tests', ()=>{
             expect(res.body).toBeInstanceOf(Object);
             expect(res.body.errors).toBe(undefined)
             expect(res.text.includes('<h3>Some error at router</h3>')).toBeTruthy()
-            //dtabase error occured
+            expect(res.text.includes('<p>No proper user identification!</p>')).toBeTruthy()
             done()
         })
     })
@@ -129,7 +129,7 @@ describe('GET ResetPassword step-2 tests', ()=>{
         ProfileModel.find({email: targetUserEmail }, (e, d)=>{
             expect(e).toBe(null)
             expect(d[0]).not.toBe(null)
-            const theToken = createTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
+            const theToken = createSpecTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
             request(theSrv)
             .get(`/resetpassword/${theToken}`)
             .expect("Content-Type", /text\/html/)
@@ -153,7 +153,7 @@ describe('GET ResetPassword step-2 tests', ()=>{
             d[0].resetPwdMarker = '0123456'
             await d[0].save()
 
-            const theToken = createTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
+            const theToken = createSpecTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
             request(theSrv)
             .get(`/resetpassword/${theToken}`)
             .expect("Content-Type", /text\/html/)
@@ -244,7 +244,7 @@ describe('POST ResetPassword step-3 tests',()=>{
     })
     it('POST URL - token, no valid Userid', (done)=>{
 
-        const theToken = createTokenToLink('0123456', 'hashPwd', '012345abcd')
+        const theToken = createSpecTokenToLink('0123456', 'hashPwd', '012345abcd')
         request(theSrv)
         .post(`/resetpassword/${theToken}`)
         .expect("Content-Type", /text\/html/)
@@ -263,7 +263,7 @@ describe('POST ResetPassword step-3 tests',()=>{
         ProfileModel.find({email: targetUserEmail }, (e, d)=>{
             expect(e).toBe(null)
             expect(d[0]).not.toBe(null)
-            const theToken = createTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
+            const theToken = createSpecTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
             request(theSrv)
             .post(`/resetpassword/${theToken}`)
             .expect("Content-Type", /text\/html/)
@@ -287,7 +287,7 @@ describe('POST ResetPassword step-3 tests',()=>{
             d[0].resetPwdMarker = '0123456'
             await d[0].save()
 
-            const theToken = createTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
+            const theToken = createSpecTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
             request(theSrv)
             .post(`/resetpassword/${theToken}`)
             .expect("Content-Type", /text\/html/)
@@ -686,7 +686,7 @@ describe('GrapQL profile queries', ()=>{
 
     it('Renew authorization token', (done)=>{
         const userIdTarget = userTesting.get('User 5').id
-        const refToken = createRefreshToken({id: userIdTarget})
+        const refToken = createLoginRefreshToken({id: userIdTarget})
         ProfileModel.findOne({ _id: userIdTarget }, async (error, doc)=>{
             expect(error).toBe(null)
             
@@ -728,7 +728,7 @@ describe('GrapQL profile queries', ()=>{
 
     it('Logout process', (done)=>{
         const userIdTarget = userTesting.get('User 1').id
-        const refToken = createRefreshToken({id: userIdTarget})
+        const refToken = createLoginRefreshToken({id: userIdTarget})
         ProfileModel.findOne({_id: userIdTarget}, async (error, doc)=>{
             expect(error).toBe(null)
             doc.refreshToken = refToken;
@@ -1030,7 +1030,7 @@ describe('Grapql friend mutations', ()=>{
         .post('/graphql')
         .send({query: ` 
             mutation{
-                removeThisFriendshipRequest(friendid: "${userTesting.get('User 5').id}"){
+                discardThisFriendshipRequest(friendid: "${userTesting.get('User 5').id}"){
                     resultText, useridAtProcess
                 }
             }
@@ -1044,9 +1044,9 @@ describe('Grapql friend mutations', ()=>{
             expect(typeof res.body.data).toBe('object')
             expect(res.body.errors).toBe(undefined)
 
-            expect(res.body.data.removeThisFriendshipRequest.useridAtProcess)
+            expect(res.body.data.discardThisFriendshipRequest.useridAtProcess)
                 .toBe(userTesting.get('User 5').id)
-            expect(res.body.data.removeThisFriendshipRequest.resultText).toBe(
+            expect(res.body.data.discardThisFriendshipRequest.resultText).toBe(
                 'Firendship request cancelled!'
             )
 

@@ -1,13 +1,10 @@
 const { ApolloServer } = require('apollo-server-express')
 const express = require('express')
 const mongoose = require('mongoose')
-const bodyParser = require('body-parser')
 
-const PORT = process.env.PORT || 4040;
-const DB_CONNECT = (process.env.NODE_ENV === 'production')?
-    retquire('./config/dbConfig').dbCloud
-    : require('./config/dbConfig').dbLocal
+const PORT_REST = process.env.PORT || 4040;
 const LOCAL_DOMAIN_URL = { url: '' }
+const { theDBConnect, theDBConfig } = require('./extensions/databaseClientSetup')
 const additionalRoutings = require('./controler/routings')
 
 const typeDefs = require('./graphql/typeDef')
@@ -16,11 +13,19 @@ const { authorizTokenInputRevise, authorizTokenVerify,
     loginRefreshTokenInputRevise, loginRefreshTokenValidate } 
     = require('./utils/tokenManager')
     
+
 const getDomainURL = require('./utils/defineDomainURL')
-const emailerTrsp = require('./emailer/emailerSetup')
+const { emailerClienSetup, emailerClienShutdown, 
+      } = require('./extensions/emailerClientSetup')
+const { wsExtensionStart, wsExtensionStop, emailingServices 
+    } = require('./extensions/wsServer')
 const ProfileDataSource = require('./repository/profileDS');
 const PostDataSource = require('./repository/postDS')
 const CommentDataSource = require('./repository/commentDS')
+const UserNotifRepo = require('./extensions/dinamicClientNotifier/userNotifierRepo') 
+    
+const residentNotifierService = new UserNotifRepo()
+
 
 const app = express();
 const apolloSrv = new ApolloServer({
@@ -31,7 +36,6 @@ const apolloSrv = new ApolloServer({
         posts: new PostDataSource(),
         comments: new CommentDataSource(),
         //chattings
-        //wsStorage
     }),
     context: async({ req, res })=>{
         /**
@@ -54,39 +58,13 @@ const apolloSrv = new ApolloServer({
         return {
             authorizRes,
             refreshRes,
+            wsStorage: residentNotifierService,
+            emailingServices,
             domainURL
         }
     }
 
 })
-
-const theDBConnect = ()=>{
-    mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
-} 
-const theDBConfig = ()=>{
-    let dbConnectIsRestored = true
-    mongoose.connection
-    .on('connected', ()=>{
-        dbConnectIsRestored = true;
-        console.log('MongoDB opened!') 
-    })
-    .on('error', err=>{ console.log('MongoDB error occured: ', err) })
-    .once('close', ()=>{
-        console.log('MongoDB connection closed!');
-    })
-    .on('disconnected', ()=>{
-        dbConnectIsRestored = false;
-        const reconRef = setInterval(()=>{ 
-            if(dbConnectIsRestored){
-                clearInterval(reconRef)
-            }else{
-                console.log('MongoDB connection restore...')
-                theDBConnect() 
-            }
-        }, 5000 )
-    })
-    .on('reconnected', ()=>{ console.log('MongoDB connection restored!') })
-}
 
 const startServer = async (testPurpose)=>{
     theDBConfig()
@@ -99,7 +77,6 @@ const startServer = async (testPurpose)=>{
     }
     apolloSrv.applyMiddleware({ app, path: '/graphql' })
 
-    //app.use(bodyParser.urlencoded({extended: true}))
     app.use(express.urlencoded({extended: true}))
     app.use("/", additionalRoutings)
     app.use((err, req, res, next)=>{
@@ -109,15 +86,14 @@ const startServer = async (testPurpose)=>{
     if(!testPurpose){    //it makes to SUPERTEST double configurate the PORT
 
         // " listen EADDRINUSE: address already in use :::4040 "
-        app.listen({ port: PORT })
+        app.listen({ port: PORT_REST })
     }
-    console.log('Server is running!')
+    
+    //extensions
+    await emailerClienSetup()
+    wsExtensionStart(residentNotifierService, testPurpose)
 
-    emailerTrsp.setupTrsp.then(()=>{
-        console.log('Email connection establised!')
-    }).catch(err=>{
-        console.log('Email connection has lost! ' + err)
-    })
+    console.log('Server is running!')
     return app
 }
 
@@ -130,6 +106,8 @@ module.exports.exitTestingServer = async ()=>{
    await apolloSrv.stop()
    await mongoose.connection.removeAllListeners()
    await mongoose.disconnect()
-   await emailerTrsp.shutdown
+   await emailerClienShutdown()
+   wsExtensionStop()
    console.log('Server is stopping!')
 }
+

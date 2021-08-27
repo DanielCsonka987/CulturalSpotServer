@@ -2,6 +2,10 @@ const jwt = require('jsonwebtoken')
 
 const { TOKEN_SECRET, TOKEN_ACCESS_EXPIRE, TOKEN_RESET_EXPIRE,
      TOKEN_PREFIX } = require('../config/appConfig')
+    
+const { authorizationHeaderExist, refreshingHeaderExist, isolateBearerFromHeader, 
+    isolateTokenFromURL, tokenNormalSchemasFaulty, tokenSpecRevAndSplitting 
+    } = require('./inputRevise')
 
 /*
  * general usage methods
@@ -11,11 +15,6 @@ function tokenEncoderWithExp (tokenInput, specSecureKey, expireLength){
         { expiresIn: expireLength }
     )
 }
-function tokenSchemaIsFaulty(theTokenText){
-    return !(theTokenText.split('.').length === 3)
-}
-
-
 
 module.exports = {
     /*
@@ -26,23 +25,24 @@ module.exports = {
             tokenMissing: false,
             takenText: null
         }
+        if(!authorizationHeaderExist(reqToVerif)){
+            results.tokenMissing = true;
+            return results;
+        }
         const headerText = reqToVerif.headers.authorization;
-        if(!headerText){
-            results.tokenMissing = true;
-            return results;
-        }
         //prefix removal
-        const theTokenText = headerText.split(TOKEN_PREFIX)[1];
-        if(!theTokenText){
+        const theTokenTextorFalsy = isolateBearerFromHeader(headerText)
+        if(!theTokenTextorFalsy){
             results.tokenMissing = true;
             return results;
         }
+
         //token schema test
-        if(tokenSchemaIsFaulty(theTokenText)){
+        if(tokenNormalSchemasFaulty(theTokenTextorFalsy)){
             results.tokenMissing = true;
             return results;
         }
-        results.takenText = theTokenText;
+        results.takenText = theTokenTextorFalsy;
         return results;
         
     },
@@ -60,28 +60,34 @@ module.exports = {
         }
         return jwt.verify(tokenObj.takenText, TOKEN_SECRET, (err, decoded)=>{
             if(err){
+                if(err.name === 'TokenExpiredError'){
+                    results.isExpired = true;
+                    return results;
+                }
                 results.error = err;
                 return results
-            }
-
-            const actTimeSecText = new Date().getTime().toString().slice(0,10);
-            const actTime = new Number(actTimeSecText).valueOf()
-            const expTime = new Number(decoded.exp)
-            if(actTime > expTime){
-                results.isExpired = true;
-                return results;
             }
             results.accesPermission = true;
             return Object.assign(results, decoded);
         })
     },
+    
+    /*
+    const actTimeSecText = new Date().getTime().toString().slice(0,10);
+    const actTime = new Number(actTimeSecText).valueOf()
+    const expTime = new Number(decoded.exp)
+    if(actTime > expTime){
+        results.isExpired = true;
+        return results;
+    }
+    */
 
     /*
      * this is for manage forgotten password reset-token
      * content is marker = timemark (integer in ms)
      * secret key consists of user id + user pwdhash
     */
-    createTokenToLink: (dateToPayloadAndSecret, pwdHashToSecret, userIdToLink )=>{
+    createSpecTokenToLink: (dateToPayloadAndSecret, pwdHashToSecret, userIdToLink )=>{
         const keyToEncript = dateToPayloadAndSecret + pwdHashToSecret;
 
         const theToken = tokenEncoderWithExp({ marker: dateToPayloadAndSecret },
@@ -89,26 +95,23 @@ module.exports = {
 
         return userIdToLink + '.' + theToken
     },
-    resoluteTokenFromLink: (tokenInput)=>{
+    specTokenResoluteFromLink: (tokenInput)=>{
         const results = {
             tokenMissing: false,
             takenUserid: null,
             takenText: null
         }
-        const parts = tokenInput.split('.');
-        if(parts.length !== 4){
+        const specTokenPartsOrFalsy = tokenSpecRevAndSplitting(tokenInput);
+        if(!specTokenPartsOrFalsy){
             results.tokenMissing = true
             return results
         }
-        if(parts.includes('')){
-            results.tokenMissing = true
-            return results
-        }
-        results.takenUserid = parts[0]
-        results.takenText = parts[1] + '.' + parts[2] + '.' + parts[3] 
+        results.takenUserid = specTokenPartsOrFalsy[0]
+        results.takenText = specTokenPartsOrFalsy[1] + '.' 
+            + specTokenPartsOrFalsy[2] + '.' + specTokenPartsOrFalsy[3] 
         return results
     },
-    verifyTokenFromLink: (tokenObj, dateToPayloadAndSecret, pwdHashToSecret)=>{
+    specTokenverifyFromLink: (tokenObj, dateToPayloadAndSecret, pwdHashToSecret)=>{
         const results = {
             passResetPermission: false,
             isExpired: false,
@@ -128,15 +131,6 @@ module.exports = {
                 results.error = err;
                 return results
             }
-            /*
-            const actTimeSecText = new Date().getTime().toString().slice(0,10);
-            const actTime = new Number(actTimeSecText).valueOf()
-            const expTime = new Number(decoded.exp)
-            if(actTime > expTime){
-                results.isExpired = true;
-                return results;
-            }
-            */
             if(decoded.marker !== dateToPayloadAndSecret){
                 return results
             }
@@ -144,11 +138,15 @@ module.exports = {
             return results
         })
     },
+
+
+
+
     /*
      * those are for refresh token management
      * content is only id field, no expire
     */
-    createRefreshToken: (tokenContent)=>{
+    createLoginRefreshToken: (tokenContent)=>{
         return  jwt.sign(tokenContent, TOKEN_SECRET)
     },
     loginRefreshTokenInputRevise: (reqToVerif)=>{
@@ -156,12 +154,12 @@ module.exports = {
             tokenMissing: false,
             takenText: null
         }
-        const tokenFromHeader = reqToVerif.headers.refreshing;
-        if(!tokenFromHeader){
+        if(!refreshingHeaderExist(reqToVerif)){
             results.tokenMissing = true;
             return results;
         }
-        if(tokenSchemaIsFaulty(tokenFromHeader)){
+        const tokenFromHeader = reqToVerif.headers.refreshing;
+        if(tokenNormalSchemasFaulty(tokenFromHeader)){
             results.tokenMissing = true
             return results
         }
@@ -186,5 +184,30 @@ module.exports = {
             return Object.assign(results, decoded);
         })
 
+    },
+
+
+    /**
+     * Those for WebSocket authentication - normal JWT as URL content
+     * no "Bearer " prefix; normal, verification the same
+     */
+
+    webSocketAuthenticationRevise: (request)=>{
+        const results = {
+            tokenMissing: false,
+            takenText: null
+        }
+        const tokenFromURLOrFalse = isolateTokenFromURL(request.url)
+        if(!tokenFromURLOrFalse){
+            results.tokenMissing = true;
+            return results
+        }
+        if(tokenNormalSchemasFaulty(tokenFromURLOrFalse)){
+            results.tokenMissing = true;
+            return results
+        }
+        results.takenText = tokenFromURLOrFalse
+        return results
     }
+
 }

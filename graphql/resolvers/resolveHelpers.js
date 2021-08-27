@@ -41,10 +41,6 @@ module.exports.tokenRefreshmentEvaluation = (refreshAuthRes)=>{
     } 
 }
 
-module.exports.passwordRenewTokenEvaluation = (renewToken)=>{
-
-}
-
 module.exports.countTheAmountOfFriends = async (userUnderProc, userClientToCompare, dataSources)=>{
     const userToCompare = (typeof userUnderProc === 'object')? 
         userUnderProc : new mongooseId(userUnderProc)
