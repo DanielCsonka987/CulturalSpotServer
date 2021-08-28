@@ -9,11 +9,17 @@ module.exports = {
         },
         allPosts: async (parent, _, { dataSources })=>{    //Post type return
             //comments and sentiments are needed
-            const clientPosts = await dataSources.posts.getAllOfThese(parent.posts)
-            const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
-
-            const groupsOfPostIDs = friendsArray.map(item=>{ return item.myPosts })
-            const friendsPosts = await dataSources.posts.getAllPostsFromGroups(groupsOfPostIDs)
+            let clientPosts = []
+            if(parent.posts){
+                clientPosts = await dataSources.posts.getAllOfThese(parent.posts)
+            }
+            let friendsPosts = []
+            if(parent.friends){
+               const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
+   
+               const groupsOfPostIDs = friendsArray.map(item=>{ return item.myPosts })
+               const friendsPosts = await dataSources.posts.getAllPostsFromGroups(groupsOfPostIDs)
+            }
 
             const finalPosts = [ ...clientPosts, ...friendsPosts ]
             return finalPosts.map(postTypeDefine)

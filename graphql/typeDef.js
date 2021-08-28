@@ -92,7 +92,7 @@ module.exports = gql`
         username: String!
         token: String!
         tokenExpire: Int!
-        tokenRefresh: String!
+        refreshToken: String!
         registeredAt: String!
         lastLoggedAt: String!
 

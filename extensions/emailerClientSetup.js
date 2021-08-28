@@ -5,10 +5,10 @@ const { EMAIL_CONNECTION_FORTEST, EMAIL_CONNECTION_PRODUCTION,
 const { RESETPWD_REST_GET_ROUTE } = require('../config/appConfig').ROUTING
     
 let theTransporter = null;
-const { EmailerService, emailType, LinkProvider 
+const { EmailingService, emailType, LinkProvider 
     } = require('./emailerComponents/emailerService')
 
-module.exports.emailerClienSetup = new Promise(async (resolve, reject)=>{
+module.exports.emailerClienSetup = new Promise((resolve, reject)=>{
     if(process.env.NODE_ENV === 'production'){
         theTransporter = nodemailer.createTransport(EMAIL_CONNECTION_PRODUCTION)
     }else{
@@ -28,13 +28,13 @@ module.exports.emailerClienShutdown = new Promise((resolve, reject)=>{
     })
 })
 
-module.exports.emailingServices={
+module.exports.emailingServices = {
 
     registrationEmailSending: (domainAddr)=>{
-        return new EmailerService(
+        return new EmailingService(
             emailType.REGISTRATION, theTransporter,
-            ['..', '..'], ['public','emailTextingSrc'],
-            ['registration.html', 'registration.txt'],
+            { toRoot: ['..', '..'] , toContent: ['public','emailTextingSrc'] }, //correlate ot this module!
+            { html: 'registration.html',  txt: 'registration.txt' },
             'Your CulturalSpot registration',
             [   
                 new LinkProvider(
@@ -43,10 +43,10 @@ module.exports.emailingServices={
             ]
         )
     },
-    passwordResettingEmailSending = (domainAddr, URLPayload)=>{
-        return   new EmailerService(
+    passwordResettingEmailSending: (domainAddr, URLPayload)=>{
+        return   new EmailingService(
             emailType.PWDRESETING, theTransporter,
-            ['..', '..'], ['public','emailTextingSrc'],
+            { toRoot: ['..', '..'] , toContent: ['public','emailTextingSrc'] },
             { html: 'resetPassword.html', txt: 'resetPassword.txt'},
             'NO_REPLY! CulturalSpot password resetting',
             [   
@@ -61,11 +61,11 @@ module.exports.emailingServices={
             ]
         )
     },
-    accountRemovalEmailSending = ()=>{
-        return  new EmailerService(
+    accountRemovalEmailSending: (domainAddr)=>{
+        return  new EmailingService(
             emailType.ACCOUNTDELETE, theTransporter,
-            ['..', '..'], ['public','emailTextingSrc'],
-            ['deleteAccount.html', 'deleteAccount.txt'],
+            { toRoot: ['..', '..'] , toContent: ['public','emailTextingSrc'] },
+            { html: 'deleteAccount.html', txt: 'deleteAccount.txt'},
             'Your CulturalSpot account is deleted',
             [   
                 new LinkProvider(

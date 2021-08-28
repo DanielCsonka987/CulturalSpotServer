@@ -3,7 +3,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 
 const PORT_REST = process.env.PORT || 4040;
-const LOCAL_DOMAIN_URL = { url: '' }
+const LOCAL_DOMAIN_URL = { apolloUrl: '' }
 const { theDBConnect, theDBConfig } = require('./extensions/databaseClientSetup')
 const additionalRoutings = require('./controler/routings')
 
@@ -15,9 +15,9 @@ const { authorizTokenInputRevise, authorizTokenVerify,
     
 
 const getDomainURL = require('./utils/defineDomainURL')
-const { emailerClienSetup, emailerClienShutdown, 
+const { emailerClienSetup, emailerClienShutdown, emailingServices
       } = require('./extensions/emailerClientSetup')
-const { wsExtensionStart, wsExtensionStop, emailingServices 
+const { wsExtensionStart, wsExtensionStop 
     } = require('./extensions/wsServer')
 const ProfileDataSource = require('./repository/profileDS');
 const PostDataSource = require('./repository/postDS')
@@ -90,7 +90,7 @@ const startServer = async (testPurpose)=>{
     }
     
     //extensions
-    await emailerClienSetup()
+    await emailerClienSetup
     wsExtensionStart(residentNotifierService, testPurpose)
 
     console.log('Server is running!')
@@ -106,7 +106,7 @@ module.exports.exitTestingServer = async ()=>{
    await apolloSrv.stop()
    await mongoose.connection.removeAllListeners()
    await mongoose.disconnect()
-   await emailerClienShutdown()
+   await emailerClienShutdown
    wsExtensionStop()
    console.log('Server is stopping!')
 }

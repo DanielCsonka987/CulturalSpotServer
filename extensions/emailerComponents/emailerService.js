@@ -108,13 +108,15 @@ class EmailingService{
         if(!theText){
             return ''
         }
+        let resultText = theText
         for(const link of this.linksArray){
-            theText = theText.replace(
+            const temp = resultText.replace(
                 link.getTheDestinationMarkerText(),
                 link.getTheProperLink(type)
             )
+            resultText = temp
         }
-        return theText
+        return resultText
     }
 
     getTheComponentPath(){

@@ -10,9 +10,6 @@ const { loginInputRevise, registerInputRevise,
     updateAccDetInputRevise, resetPwdInputRevise, 
  } = require('../../utils/inputRevise')
 
-const { execMailSending, emailType, emailTypeStringify } = require('../../extensions/emailerClientSetup')
-
-
 //const EmailReportModel = require('../../models/EmailReportModel')
 const PWD_REFRESH_PATH = require('../../config/appConfig').ROUTING.RESETPWD_REST_GET_ROUTE
 
@@ -124,7 +121,7 @@ module.exports = {
             }
         },
 
-        async registration(_, args, { dataSources }){
+        async registration(_, args, { dataSources, domainURL, emailingServices }){
             const { error, field, issue, email, pwdText, username } = registerInputRevise(
                 args.email, args.password, args.passwordconf, args.username
             )
@@ -168,6 +165,10 @@ module.exports = {
             }catch(err){
                 return ApolloError('Login is not completed!', { err })
             }
+
+            await emailingServices.registrationEmailSending(domainURL.apolloUrl)
+                .executeEmailSending(newUser.email)
+
             return {
                 id: newUser._id,
                 token: authorizTokenEncoder({ subj: newUser._id.toString(), email: newUser.email }),
@@ -188,7 +189,7 @@ module.exports = {
  * resetToken with secretkey of hashPWD and timemark, content of {mark: timemark}
  * BUT - Jest makes 57*** PORT NUMBER TO THE APP -> Link to click in email wrong port has !!
 */
-        async resetPasswordStep1(_, args, { dataSources, domainURL }){
+        async resetPasswordStep1(_, args, { dataSources, domainURL, emailingServices }){
             const { error, field, issue, email } = resetPwdInputRevise( args.email )
 
             if(error){
@@ -208,31 +209,14 @@ module.exports = {
                 return new ApolloError('Password reset registring error occured!', err)
             }
 
-            const complexIdToken = createSpecTokenToLink(datingMarker, userToReset.pwdHash, 
+            const specIdTokenToPath = createSpecTokenToLink(datingMarker, userToReset.pwdHash, 
                 userToReset._id
             )
-            //something removes the :// from protocol definition
-            const domainUrlAndPath = domainURL.prot + '://' 
-                + domainURL.dom + PWD_REFRESH_PATH + complexIdToken //REST GET type
-            const EMAIL_TYPE_TXT = emailTypeStringify(emailType.PWDRESETING)
 
-            execMailSending(email, emailType.PWDRESETING, {
-                anchUrl: domainUrlAndPath,
-                anchTxt: 'Click here!'
-            }).then(async (sendingProc)=>{
-                await saveEmailReportToDB(email, EMAIL_TYPE_TXT, sendingProc.integrity,
-                    sendingProc.resultId)
-                })
-            .catch(async (err)=>{
-                if(sendingProc.progress === 'errorAtAssemble' || sendingProc.progress === 'errorAtSending'){
-                    await saveEmailReportToDB(email, EMAIL_TYPE_TXT, sendingProc.integrity, 
-                        sendingProc.progress)
-                    return new ApolloError('Password reset email error occured!', { general: 'email stucked' })
-                }else{
-                    await saveEmailReportToDB(email, EMAIL_TYPE_TXT, 'none', 'errorenousResolvation')
-                    return new ApolloError('Password reset email error occured!', err.err)
-                }
-            })
+            await emailingServices
+                .passwordResettingEmailSending(domainURL.apolloUrl, specIdTokenToPath)
+                .executeEmailSending(userToReset.email)
+                
             return {
                 resultText: 'Password reset email is sent!',
                 id: 'none',
@@ -305,7 +289,7 @@ module.exports = {
             }
         },
 
-        async deleteAccount(_, args, { authorizRes, dataSources }){
+        async deleteAccount(_, args, { authorizRes, dataSources, domainURL, emailingServices }){
             const { error, field, issue, pwdTextOld } = deleteAccInputRevise(
                 args.password,
                 args.passwordconf
@@ -326,9 +310,11 @@ module.exports = {
                 await dataSources.profiles.deleting(authorizRes.subj)
             }catch(err){               
                 return new ApolloError('Server error occured', err)
-                
             }
 
+            await emailingServices.accountRemovalEmailSending(domainURL.apolloUrl)
+                .executeEmailSending(tempDatas.email)
+                
             return {
                 resultText: 'Account deleted!',
                 id: authorizRes.subj,

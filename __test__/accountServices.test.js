@@ -518,7 +518,16 @@ describe('GrapQL profile queries', ()=>{
                 expect(result.username).toBe(userTestRegister.username)
 
                 userTesting.set(result.username, { id: result._id.toString(), email: result.email, obj: result._id })
-                done()
+                EmailReportModel.findOne({ msgto: result.email }, (errorObj, doc)=>{
+                    expect(errorObj).toBe(null)
+                    expect(doc).not.toBe(null)
+
+                    EmailReportModel.deleteOne({_id: doc._id }, (e, r)=>{
+                        expect(e).toBe(null)
+                        
+                        done()
+                    })
+                })
             })
         })
     })
@@ -637,6 +646,18 @@ describe('GrapQL profile queries', ()=>{
                 expect(error).toBe(null)
                 expect(doc).toBe(null)
                 userTesting.delete('User 0')
+
+                EmailReportModel.findOne({ msgto: userEmailTarget }, (errorObj, doc)=>{
+                    expect(errorObj).toBe(null)
+                    expect(doc).not.toBe(null)
+
+                    EmailReportModel.deleteOne({_id: doc._id }, (e, r)=>{
+                        expect(e).toBe(null)
+                        
+                        done()
+                    })
+                })
+
                 done()
             })  
         })
@@ -674,7 +695,11 @@ describe('GrapQL profile queries', ()=>{
                         expect(errObj).toBe(null)
                         expect(docObj).not.toBe(null)
                         expect(docObj.resetPwdMarker).not.toBe(undefined)
-                        done()
+
+                        EmailReportModel.deleteOne({ _id: doc._id}, (e, r)=>{
+                            expect(e).toBe(null)
+                            done()
+                        })
                     })
 
                 })  
@@ -769,7 +794,7 @@ describe('GrapQL profile queries', ()=>{
     })
 })
 
-describe('Graphql frrend queries', ()=>{
+describe('Graphql friend queries', ()=>{
     it('My friends query', (done)=>{
         const userEmailTarget = userTesting.get('User 1').email;
         const userIdTarget = userTesting.get('User 1').id;
