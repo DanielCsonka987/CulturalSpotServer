@@ -1,5 +1,5 @@
 
-const userNotifUnit = require('./userNotifierUnit')
+const { userNotifierUnit } = require('./userNotifierUnit')
 
 class UserNotifierRepository{
     constructor(){
@@ -11,27 +11,27 @@ class UserNotifierRepository{
      * @param {*} userIDStr user as addressee of warning
      * @param {*} targetID objectID that changed
      * @param {*} msgObj updated obj, if needed
-     * @param {*} superType global type of change
-     * FRIEND, POST COMMENT, CHAT
-     * @param {*} subType message objective
+     * @param {*} msgType message objective
      */
-    makeNotification(userIDStr, targetID, msgObj, superType, subType){
+    sendNotification(userIDStr, targetID, msgObj, msgType){
 
         this.userMap.get(userIDStr).makeNotification(
-            targetID, msgObj, superType, subType
+            targetID, msgObj, msgType
         )
-
     }
-    
+
     /**
      * Set the new user in notification service
      * @param {*} userIDStr userID as identifier
      * @param {*} socket websocket connection
      */
     subscribeUser(userIDStr, socket){
+        if(typeof userIDStr !== 'string'){
+            return
+        }
         this.userMap.set(
             userIDStr, 
-            new userNotifUnit(userIDStr, socket, this.userMap)
+            new userNotifierUnit(userIDStr, socket, this.userMap)
         )
     }
 
@@ -40,6 +40,9 @@ class UserNotifierRepository{
      * @param {*} userIDStr 
      */
     unSubscribeUser(userIDStr){
+        if(typeof userIDStr !== 'string'){
+            return
+        }
         this.userMap.get(userIDStr).stopConnection()
         this.userMap.delete(userIDStr)
     }

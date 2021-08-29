@@ -8,7 +8,9 @@
     "testPost": "jest postServices.test.js",
     "testAcc": "jest accountServices.test.js",
     "testWs": "jest wsConnectedServices.test.js",
-    "testA": "jest emailerServicesTest.test.js",
+
+    "testA": "jest notifierService.test.js",
+
     "seedLocalDB": "node ./models/dbSeeder.js local",
     "seedCloudDB": "node ./models/dbSeeder.js cloud",
     "dev": "nodemon server.js",
