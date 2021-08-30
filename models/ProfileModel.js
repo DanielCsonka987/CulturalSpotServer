@@ -10,10 +10,9 @@ const ProfileSchema = new mongoose.Schema({
     refreshToken: String,
 
     myPosts: [mongoose.Schema.Types.ObjectId],
-    myComments: [mongoose.Schema.Types.ObjectId],
     friends: [mongoose.Schema.Types.ObjectId],
-    initiatedCon: [mongoose.Schema.Types.ObjectId],
-    undecidedCon: [mongoose.Schema.Types.ObjectId]
+    myInvitations: [mongoose.Schema.Types.ObjectId],
+    myFriendRequests: [mongoose.Schema.Types.ObjectId]
 })
 
 module.exports = mongoose.model('profiles', ProfileSchema)

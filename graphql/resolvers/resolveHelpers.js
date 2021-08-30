@@ -79,13 +79,13 @@ module.exports.defineUserConnections = (userUnderProc,  userClientToCompare)=>{
             return 'FRIEND'
         }
     }
-    if(Array.isArray(userClientToCompare.initiatedCon)){
-        if(userClientToCompare.initiatedCon.includes(userToCompare)){
+    if(Array.isArray(userClientToCompare.myInvitations)){
+        if(userClientToCompare.myInvitations.includes(userToCompare)){
             return 'INITIATED'
         }
     }
-    if(Array.isArray(userClientToCompare.undecidedCon)){
-        if(userClientToCompare.undecidedCon.includes(userToCompare)){
+    if(Array.isArray(userClientToCompare.myFriendRequests)){
+        if(userClientToCompare.myFriendRequests.includes(userToCompare)){
             return 'UNCERTAIN'
         }
     }

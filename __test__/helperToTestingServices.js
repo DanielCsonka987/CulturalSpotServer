@@ -19,8 +19,8 @@ module.exports.userTestDatas = [
 
         myPosts: [],
         friends: [],
-        initiatedCon: [],
-        undecidedCont: []
+        myInvitations: [],
+        myFriendRequestst: []
     },
     {
         email: 'testmail@easymail.com',
@@ -33,8 +33,8 @@ module.exports.userTestDatas = [
 
         myPosts: [],
         friends: [],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         email: 'examplemail@easymail.com',
@@ -47,8 +47,8 @@ module.exports.userTestDatas = [
 
         myPosts: [],
         friends: [],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         email: 'papermail@easymail.com',
@@ -61,8 +61,8 @@ module.exports.userTestDatas = [
 
         myPosts: [],
         friends: [],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         email: 'golden@easymail.com',
@@ -75,8 +75,8 @@ module.exports.userTestDatas = [
 
         myPosts: [],
         friends: [],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         email: 'silvern@easymail.com',
@@ -89,8 +89,8 @@ module.exports.userTestDatas = [
 
         myPosts: [],
         friends: [],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         email: 'copper@easymail.com',
@@ -103,8 +103,8 @@ module.exports.userTestDatas = [
 
         myPosts: [],
         friends: [],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     }
 ]
 

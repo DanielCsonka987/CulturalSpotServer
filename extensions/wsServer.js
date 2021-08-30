@@ -29,6 +29,10 @@ module.exports.wsExtensionStart = (residentNotifierService, testPurpose)=>{
             const tokenRes = await authorizTokenVerify(tokenObj)
             if(!tokenRes.isExpired || !tokenRes.error || tokenRes.accesPermission){
                 //console.log('Token verified, sessionID: ' + tokenRes.subj)
+                
+                if(residentNotifierService.getThisUser(tokenRes.subj)){
+                    return
+                }
                 wss.handleUpgrade(request, socket, head, function done(ws) {
                     request.sessionID = tokenRes.subj
                     wss.emit('connection', ws, request);

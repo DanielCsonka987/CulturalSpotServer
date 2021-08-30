@@ -29,8 +29,8 @@ module.exports.profiles = [
 
         myPosts: [postids[0], postids[5]],
         friends: [userids[1], userids[3]],
-        initiatedCon: [],
-        undecidedCon: [userids[5]]
+        myInvitations: [],
+        myFriendRequests: [userids[5]]
     },
     {
         _id: userids[1],
@@ -44,8 +44,8 @@ module.exports.profiles = [
 
         myPosts: [postids[3], postids[4]],
         friends: [userids[0], userids[2], userids[7], userids[8]],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         _id: userids[2],
@@ -59,8 +59,8 @@ module.exports.profiles = [
 
         myPosts: [postids[2]],
         friends: [userids[1]],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         _id: userids[3],
@@ -74,8 +74,8 @@ module.exports.profiles = [
 
         myPosts: [postids[1], postids[6]],
         friends: [userids[0]],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         _id: userids[4],
@@ -89,8 +89,8 @@ module.exports.profiles = [
 
         myPosts: [],
         friends: [],
-        initiatedCon: [],
-        undecidedCon: [userids[5]]
+        myInvitations: [],
+        myFriendRequests: [userids[5]]
     },
     {
         _id: userids[5],
@@ -104,8 +104,8 @@ module.exports.profiles = [
 
         myPosts: [postids[7]],
         friends: [userids[9]],
-        initiatedCon: [userids[4], userids[0]],
-        undecidedCon: []
+        myInvitations: [userids[4], userids[0]],
+        myFriendRequests: []
     },
     {
         _id: userids[6],
@@ -119,8 +119,8 @@ module.exports.profiles = [
 
         myPosts: [],
         friends: [],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         _id: userids[7],
@@ -134,8 +134,8 @@ module.exports.profiles = [
 
         myPosts: [postids[9]],
         friends: [userids[1]],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         _id: userids[8],
@@ -149,8 +149,8 @@ module.exports.profiles = [
 
         myPosts: [],
         friends: [userids[1]],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     },
     {
         _id: userids[9],
@@ -164,8 +164,8 @@ module.exports.profiles = [
 
         myPosts: [postids[8]],
         friends: [userids[5]],
-        initiatedCon: [],
-        undecidedCon: []
+        myInvitations: [],
+        myFriendRequests: []
     }
 ]
 

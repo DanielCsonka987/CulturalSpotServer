@@ -15,9 +15,10 @@ class UserNotifierRepository{
      */
     sendNotification(userIDStr, targetID, msgObj, msgType){
 
-        this.userMap.get(userIDStr).makeNotification(
-            targetID, msgObj, msgType
-        )
+        const usr = this.userMap.get(userIDStr)
+        if(usr){
+            usr.makeNotification(targetID, msgObj, msgType)
+        }
     }
 
     /**

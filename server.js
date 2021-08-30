@@ -58,7 +58,7 @@ const apolloSrv = new ApolloServer({
         return {
             authorizRes,
             refreshRes,
-            wsStorage: residentNotifierService,
+            wsNotifier: residentNotifierService,
             emailingServices,
             domainURL
         }

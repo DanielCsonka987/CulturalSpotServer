@@ -2,19 +2,19 @@
 
 const notifyTypes = {
     FRIEND: {
-        INVITATION_CREATED: [ 0, 'invitationCreated'],
-        INVITATION_CANCELLED: [ 0, 'invitationCancelled'],
-        CONNECTION_DISCARDED: [ 0, 'connectionDiscarded'],
-        REQUEST_CREATED: [ 0, 'requestCreated'],
-        REQUEST_DISCARDED: [ 0, 'requestDiscarded'],
+        INVITATION_CREATED: [ 0, 'createdInvitation', 'add'],
+        INVITATION_CANCELLED: [ 0, 'cancelledInvitation', 'remove'],
+        REQUEST_APPROVED: [ 0, 'approvedRequest', 'add'],
+        REQUEST_DISCARDED: [ 0, 'discardedRequest', 'remove'],
+        CONNECTION_DISCARDED: [ 0, 'removedFriendship', 'remove'],
     },
     POST: {
-        CONTENT_CHANGED: [ 1, 'contentChanged'],
-        DEDICATED_POST: [ 1, 'dedicatedPost'],
-        COMMENTED: [ 1, 'commented'],
-        UNCOMMENTED: [ 1, 'unCommented'],
-        OPINION_ADDED: [ 1, 'opinionedAdded'],
-        OPINION_REMOVED: [ 1, 'opinionRemoved']
+        NEW_POST: [1, 'postMade', 'add'],
+        CONTENT_CHANGED: [ 1, 'contentChanged', 'update'],
+        COMMENTED: [ 1, 'commented', 'add'],
+        UNCOMMENTED: [ 1, 'unCommented', 'removed'],
+        OPINION_ADDED: [ 1, 'opinionedAdded', 'add'],
+        OPINION_REMOVED: [ 1, 'opinionRemoved', 'remove']
     }, 
     COMMENT: {
         CONTENT_CHANGED: [ 2, 'contentChanged'],
@@ -92,7 +92,8 @@ class UserNotifierUnit {
 
         const msg = JSON.stringify({
             event: notifySuperTypes[msgType[0]],
-            eventType: msgType[1],
+            eventMethod: msgType[1],
+            properAction: msgType[2],
             connectedTo: targetID,
             payload: msgObj
         })

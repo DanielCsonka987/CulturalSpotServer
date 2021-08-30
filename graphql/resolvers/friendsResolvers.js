@@ -4,6 +4,8 @@ const { authorizEvaluation, countTheAmountOfFriends,
     defineUserConnections, getTheUsernameFromId } = require('./resolveHelpers')
 const { useridInputRevise } = require('../../utils/inputRevise')
 
+const { notifyTypes } = require('../../extensions/dinamicClientNotifier/userNotifierUnit')
+
 module.exports = {
 
     Query: {
@@ -32,7 +34,7 @@ module.exports = {
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
             const usersUndecidedFriends = await dataSources.profiles.getAllOfThese(
-                myAccount.undecidedCon
+                myAccount.myFriendRequests
             )
             return  usersUndecidedFriends.map(async frnd=>{
                 return { 
@@ -54,7 +56,7 @@ module.exports = {
             }
 
             const usersInitiatedFriendships = await dataSources.profiles.getAllOfThese(
-                myAccount.initiatedCon 
+                myAccount.myInvitations 
             )
             return  usersInitiatedFriendships.map(async frnd=>{
                 return { 
@@ -97,7 +99,7 @@ module.exports = {
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
             const possibleFriendOutput = []
-            for( const undecCon of clientUser.undecidedCon){
+            for( const undecCon of clientUser.myFriendRequests){
                 possibleFriendOutput.push({ 
                     id: undecCon._id,
                     username: await getTheUsernameFromId(
@@ -133,7 +135,7 @@ module.exports = {
         }
     },
     Mutation: {
-        async createAFriendshipInvitation(_, args, { authorizRes, dataSources }){
+        async createAFriendshipInvitation(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
@@ -150,27 +152,37 @@ module.exports = {
             }
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
-            if(clientUser.initiatedCon.includes(targetUser._id)){
+            if(clientUser.myInvitations.includes(targetUser._id)){
                 return new UserInputError('This userid is marked as initiated connection!')
             }
             try{
-                clientUser.initiatedCon.push(targetUser._id)
+                clientUser.myInvitations.push(targetUser._id)
                 await dataSources.profiles.saving(clientUser)
-                targetUser.undecidedCon.push(clientUser._id)
+                targetUser.myFriendRequests.push(clientUser._id)
                 await dataSources.profiles.saving(targetUser)
             }catch(err){
                 throw new ApolloError('Persistence error occured', err)
             }
+
+            const mutalFriends = await countTheAmountOfFriends(
+                targetUser._id, clientUser, dataSources
+            )
+            wsNotifier.sendNotification(targetUser._id.toString(), '', {
+                    id: clientUser._id.toString(),
+                    username: clientUser.username,
+                    relation: 'UNCERTAIN',
+                    mutualFriendCount: mutalFriends
+                },  notifyTypes.FRIEND.INVITATION_CREATED
+            )
+
             return {
-                id: userid,
+                id: targetUser._id.toString(),
                 username: targetUser.username,
                 relation: 'INITIATED',
-                mutualFriendCount: await countTheAmountOfFriends(
-                    targetUser._id, clientUser, dataSources
-                )
+                mutualFriendCount: mutalFriends
             }
         },
-        async removeAFriendshipInitiation(_, args, { authorizRes, dataSources }){
+        async removeAFriendshipInitiation(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
@@ -187,15 +199,15 @@ module.exports = {
             }
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
-            if(!clientUser.initiatedCon.includes(targetUser._id)){
+            if(!clientUser.myInvitations.includes(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as initiated connection!')
             }
             try{
-                clientUser.initiatedCon = clientUser.initiatedCon.filter(
+                clientUser.myInvitations = clientUser.myInvitations.filter(
                     item=>{ return !item.equals(targetUser._id) }
                 )
                 await dataSources.profiles.saving(clientUser)
-                targetUser.undecidedCon = targetUser.undecidedCon.filter(
+                targetUser.myFriendRequests = targetUser.myFriendRequests.filter(
                     item=>{ return !item.equals(clientUser._id) }
                 )
                 await dataSources.profiles.saving(targetUser)
@@ -203,12 +215,17 @@ module.exports = {
                 throw new ApolloError('Persistence error occured', err)
             }
 
+            wsNotifier.sendNotification(targetUser._id.toString(), 
+                clientUser._id.toString(), '',
+                notifyTypes.FRIEND.INVITATION_CANCELLED
+            )
+
             return {
-                useridAtProcess: userid,
-                resultText: 'Firendship initiation cancelled!'
+                useridAtProcess: targetUser._id.toString(),
+                resultText: 'Friendship initiation cancelled!'
             }
         },
-        async approveThisFriendshipRequest(_, args, { authorizRes, dataSources }){
+        async approveThisFriendshipRequest(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
@@ -228,17 +245,17 @@ module.exports = {
             if(clientUser.friends.includes(targetUser._id)){
                 return new UserInputError('This userid is already marked as your friend!')
             }
-            if(!clientUser.undecidedCon.includes(targetUser._id)){
+            if(!clientUser.myFriendRequests.includes(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as undecided connection!')
             }
             try{
-                clientUser.undecidedCon = clientUser.undecidedCon.filter(
+                clientUser.myFriendRequests = clientUser.myFriendRequests.filter(
                     item=>{ return !item.equals(targetUser._id) }
                 )
                 clientUser.friends.push(targetUser._id)
                 await dataSources.profiles.saving(clientUser)
 
-                targetUser.initiatedCon = targetUser.initiatedCon.filter(
+                targetUser.myInvitations = targetUser.myInvitations.filter(
                     item=>{ return !item.equals(clientUser._id) }
                 )
                 targetUser.friends.push(clientUser._id)
@@ -246,14 +263,22 @@ module.exports = {
             }catch(err){
                 throw new ApolloError('Persistence error occured', err)
             }
+
+            wsNotifier.sendNotification(targetUser._id.toString(), '', {
+                    id: clientUser._id.toString(),
+                    username: clientUser.username,
+                    email: clientUser.email
+                }, notifyTypes.FRIEND.REQUEST_APPROVED
+            )
+
             return{
-                id: userid,
+                id: targetUser._id.toString(),
                 username: targetUser.username,
                 email: targetUser.email
             }
 
         },
-        async discardThisFriendshipRequest(_, args, { authorizRes, dataSources }){
+        async discardThisFriendshipRequest(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
             if(error){
@@ -269,28 +294,32 @@ module.exports = {
             }
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
-            if(!clientUser.undecidedCon.includes(targetUser._id)){
+            if(!clientUser.myFriendRequests.includes(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as undecided connection!')
             }
             try{
-                clientUser.undecidedCon = clientUser.undecidedCon.filter(
+                clientUser.myFriendRequests = clientUser.myFriendRequests.filter(
                     item=> { return !item._id.equals(targetUser._id)}
                 )
                 await dataSources.profiles.saving(clientUser)
 
-                targetUser.initiatedCon = targetUser.initiatedCon.filter(
+                targetUser.myInvitations = targetUser.myInvitations.filter(
                     item=>{ return !item._id.equals(clientUser._id) }
                 )
                 await dataSources.profiles.saving(targetUser)
             }catch(err){
                 throw new ApolloError('Persistence error occured', err)
             }
+
+            wsNotifier.sendNotification(targetUser._id.toString(), 
+                clientUser._id.toString(), '', notifyTypes.FRIEND.REQUEST_DISCARDED
+            )
             return{
-                useridAtProcess: userid,
-                resultText: 'Firendship request cancelled!'
+                useridAtProcess: targetUser._id.toString(),
+                resultText: 'Friendship request discarded!'
             }
         },
-        async removeThisFriend(_, args, { authorizRes, dataSources }){
+        async removeThisFriend(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
             const { error, issue, field, userid} = useridInputRevise(args.friendid)
@@ -323,9 +352,13 @@ module.exports = {
             }catch(err){
                 throw new ApolloError('Persistence error occured', err)
             }
+            
+            wsNotifier.sendNotification(targetUser._id.toString(), 
+                clientUser._id.toString(), '', notifyTypes.FRIEND.CONNECTION_DISCARDED
+            )
             return{
-                useridAtProcess: userid,
-                resultText: 'Firendship removed!'
+                useridAtProcess: targetUser._id.toString(),
+                resultText: 'Friendship removed!'
             }
         }
     }

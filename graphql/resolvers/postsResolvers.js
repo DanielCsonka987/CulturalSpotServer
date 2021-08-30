@@ -3,6 +3,7 @@ const MongooseID = require('mongoose').Types.ObjectId
 
 const { authorizEvaluation } = require('./resolveHelpers')
 const { postInputRevise, postUpdateInputRevise, postDeleteInputRevise } = require('../../utils/inputRevise')
+const { notifyTypes } = require('../../extensions/dinamicClientNotifier/userNotifierUnit')
 
 module.exports = {
     Query: {
@@ -86,7 +87,7 @@ module.exports = {
         },
     },
     Mutation: {
-        async makeAPost(_, args, { authorizRes, dataSources }){
+        async makeAPost(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
             const {error, field, issue, dedicatedID, postContent} = postInputRevise(
@@ -128,6 +129,20 @@ module.exports = {
             }catch(err){
                 return new ApolloError('Post persisting is not completed!', { err })
             }
+
+            for(const frnd of clientUser.friends){
+                wsNotifier.sendNotification(frnd.toString(), '', {
+                    postid: thePost._id,
+                    owner: thePost.owner,
+                    dedicatedTo: thePost.dedicatedTo,
+                    content: thePost.content,
+                    createdAt: thePost.createdAt,
+                    updatedAt: '',
+                    comments: 0,
+                    sentiments: []
+                }, notifyTypes.POST.NEW_POST)
+            }
+
             return {
                 postid: thePost._id,
                 owner: thePost.owner,

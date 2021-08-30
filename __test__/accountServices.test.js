@@ -34,9 +34,9 @@ beforeAll( async ()=>{
             for(const item of report){
                 if(item._id.toString() === userTesting.get('User 1').id){
                     item.friends.push(userTesting.get('User 2').obj)   //at mut.5 removed
-                    item.initiatedCon.push(userTesting.get('User 3').obj)
-                    item.undecidedCon.push(userTesting.get('User 4').obj)  //at mut.4 accepted
-                    item.undecidedCon.push(userTesting.get('User 5').obj)  //at mut.3 removed
+                    item.myInvitations.push(userTesting.get('User 3').obj)
+                    item.myFriendRequests.push(userTesting.get('User 4').obj)  //at mut.4 accepted
+                    item.myFriendRequests.push(userTesting.get('User 5').obj)  //at mut.3 removed
                     await item.save()
                 }
                 if(item._id.toString() === userTesting.get('User 2').id){
@@ -45,16 +45,16 @@ beforeAll( async ()=>{
                     await item.save()
                 }
                 if(item._id.toString() === userTesting.get('User 3').id){
-                    item.undecidedCon.push(userTesting.get('User 1').obj)
+                    item.myFriendRequests.push(userTesting.get('User 1').obj)
                     item.friends.push(userTesting.get('User 2').obj)
                     await item.save()
                 }
                 if(item._id.toString() === userTesting.get('User 4').id){
-                    item.initiatedCon.push(userTesting.get('User 1').obj)
+                    item.myInvitations.push(userTesting.get('User 1').obj)
                     await item.save()
                 }
                 if(item._id.toString() === userTesting.get('User 5').id){
-                    item.initiatedCon.push(userTesting.get('User 1').obj)
+                    item.myInvitations.push(userTesting.get('User 1').obj)
                     await item.save()
                 }
             }
@@ -996,12 +996,12 @@ describe('Grapql friend mutations', ()=>{
             ProfileModel.findOne({_id: userTesting.get('User 1').id}, (error, doc)=>{
                 expect(error).toBe(null)
                 expect(doc).not.toBe(null)
-                expect(doc.initiatedCon.includes(userTesting.get('User 6').obj)).toBeTruthy()
+                expect(doc.myInvitations.includes(userTesting.get('User 6').obj)).toBeTruthy()
 
                 ProfileModel.findOne({ _id: userTesting.get('User 6').id }, (e, d)=>{
                     expect(e).toBe(null)
                     expect(d).not.toBe(null)
-                    expect(d.undecidedCon.includes(userTesting.get('User 1').obj)).toBeTruthy()
+                    expect(d.myFriendRequests.includes(userTesting.get('User 1').obj)).toBeTruthy()
                     done()
                 })
             })
@@ -1032,15 +1032,15 @@ describe('Grapql friend mutations', ()=>{
             expect(res.body.data.removeAFriendshipInitiation.useridAtProcess)
                 .toBe( userTesting.get('User 3').id )
             expect(res.body.data.removeAFriendshipInitiation.resultText)
-                .toBe( 'Firendship initiation cancelled!' )
+                .toBe( 'Friendship initiation cancelled!' )
 
             ProfileModel.findOne({_id: userTesting.get('User 1').id}, (error, doc)=>{
                 expect(error).toBe(null)
-                expect(doc.initiatedCon.includes(userTesting.get('User 3').obj)).toBeFalsy()
+                expect(doc.myInvitations.includes(userTesting.get('User 3').obj)).toBeFalsy()
 
                 ProfileModel.findOne({ _id: userTesting.get('User 3').id}, (e, d)=>{
                     expect(e).toBe(null)
-                    expect(d.undecidedCon.includes(userTesting.get('User 1').obj)).toBeFalsy()
+                    expect(d.myFriendRequests.includes(userTesting.get('User 1').obj)).toBeFalsy()
                     done()
                 })
             })
@@ -1072,18 +1072,18 @@ describe('Grapql friend mutations', ()=>{
             expect(res.body.data.discardThisFriendshipRequest.useridAtProcess)
                 .toBe(userTesting.get('User 5').id)
             expect(res.body.data.discardThisFriendshipRequest.resultText).toBe(
-                'Firendship request cancelled!'
+                'Friendship request discarded!'
             )
 
             ProfileModel.findOne({_id: userTesting.get('User 1').id }, (error, doc)=>{
                 expect(error).toBe(null)
                 expect(doc).not.toBe(null)
-                expect(doc.undecidedCon.includes(userTesting.get('User 5').obj)).toBeFalsy()
+                expect(doc.myFriendRequests.includes(userTesting.get('User 5').obj)).toBeFalsy()
 
                 ProfileModel.findOne({ _id: userTesting.get('User 5').id}, (e, d)=>{
                     expect(e).toBe(null)
                     expect(d).not.toBe(null)
-                    expect(d.initiatedCon.includes(userTesting.get('User 1').obj)).toBeFalsy()
+                    expect(d.myInvitations.includes(userTesting.get('User 1').obj)).toBeFalsy()
                     done()
                 })
             })
@@ -1119,13 +1119,13 @@ describe('Grapql friend mutations', ()=>{
             ProfileModel.findOne({_id: userTesting.get('User 1').id}, (error, doc)=>{
                 expect(error).toBe(null)
                 expect(doc).not.toBe(null)
-                expect(doc.undecidedCon.includes(userTesting.get('User 4').obj)).toBeFalsy()
+                expect(doc.myFriendRequests.includes(userTesting.get('User 4').obj)).toBeFalsy()
                 expect(doc.friends.includes(userTesting.get('User 4').obj)).toBeTruthy()
 
                 ProfileModel.findOne({ _id: userTesting.get('User 4').id}, (e, d)=>{
                     expect(e).toBe(null)
                     expect(d).not.toBe(null)
-                    expect(d.initiatedCon.includes(userTesting.get('User 1').obj)).toBeFalsy()
+                    expect(d.myInvitations.includes(userTesting.get('User 1').obj)).toBeFalsy()
                     expect(d.friends.includes(userTesting.get('User 1').obj)).toBeTruthy()
                     done()
                 })
@@ -1159,7 +1159,7 @@ describe('Grapql friend mutations', ()=>{
                 userTesting.get('User 2').id
             )
             expect(res.body.data.removeThisFriend.resultText).toBe(
-                'Firendship removed!'
+                'Friendship removed!'
             )
             ProfileModel.findOne({_id: userTesting.get('User 1').id}, (error, doc)=>{
                 expect(error).toBe(null)
