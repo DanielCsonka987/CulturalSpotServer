@@ -154,7 +154,7 @@ module.exports = {
                 sentiments: []
             }
         },
-        async updateThisPost(_, args, { authorizRes, dataSources }){
+        async updateThisPost(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
             const { error, field, issue, postID, newContent, dedicatedID} =
@@ -197,6 +197,17 @@ module.exports = {
                 return new ApolloError('Post update is not completed!', { err })
             }
 
+            for(const frnd of clientUser.friends){
+
+                wsNotifier.sendNotification(frnd.toString(), '', {
+                    postid: postToUpdate._id,
+                    owner: postToUpdate.owner,
+                    dedicatedTo: postToUpdate.dedicatedTo,
+                    content: postToUpdate.content,
+                    updatedAt: postToUpdate.updatedAt
+                }, notifyTypes.POST.CONTENT_CHANGED)
+            }
+
             return {
                 postid: postToUpdate._id,
                 owner: postToUpdate.owner,
@@ -209,7 +220,7 @@ module.exports = {
                 sentiments: postToUpdate.sentiments
             }
         },
-        async removeThisPost(_, args, { authorizRes, dataSources }){
+        async removeThisPost(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
             const { error, field, issue, postID} = postDeleteInputRevise(args.postid)
@@ -244,6 +255,12 @@ module.exports = {
                 await dataSources.posts.deleting(postToRemove._id)
             }catch(err){
                 return new ApolloError('Post removal is not completed!', { err })
+            }
+
+            for(const frnd of clientUser.friends){
+
+                wsNotifier.sendNotification(frnd.toString(), postToRemove._id.toString(), 
+                    '', notifyTypes.POST.POST_REMOVED)
             }
 
             return {

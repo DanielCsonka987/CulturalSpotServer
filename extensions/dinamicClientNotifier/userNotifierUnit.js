@@ -11,10 +11,7 @@ const notifyTypes = {
     POST: {
         NEW_POST: [1, 'postMade', 'add'],
         CONTENT_CHANGED: [ 1, 'contentChanged', 'update'],
-        COMMENTED: [ 1, 'commented', 'add'],
-        UNCOMMENTED: [ 1, 'unCommented', 'removed'],
-        OPINION_ADDED: [ 1, 'opinionedAdded', 'add'],
-        OPINION_REMOVED: [ 1, 'opinionRemoved', 'remove']
+        POST_REMOVED: [ 1, 'postRemoved', 'remove'],
     }, 
     COMMENT: {
         CONTENT_CHANGED: [ 2, 'contentChanged'],

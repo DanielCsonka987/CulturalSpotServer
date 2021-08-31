@@ -13,10 +13,14 @@ let apolloServer = null
 const users = []
 const posts = []
 const otherPosts = []
+
+let notifyCounter = 0
+let theWsOf0 = null
+
 beforeAll((done)=>{
     
     const usersToDel = userTestDatas.map(item=>item.email)
-    ProfileModel.deleteMany({usersToDel}, async (e1, d1)=>{
+    ProfileModel.deleteMany({email: usersToDel}, async (e1, d1)=>{
         expect(e1).toBe(null)
         expect(typeof d1).toBe('object')
         apolloServer = await startTestingServer(true)
@@ -89,7 +93,6 @@ beforeAll((done)=>{
                     expect(e4).toBe(null)
                     expect(typeof psts).toBe('object')
 
-
                     usrs[0].myPosts.push(psts[0]._id)
                     usrs[0].myPosts.push(psts[1]._id)
                     await usrs[0].save()
@@ -109,6 +112,9 @@ beforeAll((done)=>{
                     await psts[3].save()
                     posts.push({ id: psts[2]._id.toString()})
                     posts.push({ id: psts[3]._id.toString()})
+
+                    const pathID = authorizTokenEncoder({ subj: users[0].id, email: users[0].email})
+                    theWsOf0 = new WebSocket(`ws://localhost:3030/${pathID}`)
                     done()
                 })
             })
@@ -125,16 +131,18 @@ beforeAll((done)=>{
     User0 <- user5 (x at 4), User6*
     
     user0 - post0, post1, (post4 add at 6)
-    user3 - post2, post3
+    user3 - post2 (content change at 7), post3 (deleted at 8)
 */
 
 afterAll(()=>{
-  return exitTestingServer()
+
+    expect(notifyCounter).toBe(8)
+    return exitTestingServer()
 })
 
 
 describe('Friends mutations tests', ()=>{
-
+    
     it('1 - User0 initiate friendship to User2', (done)=>{
         const user0 = users[0]
         const user2 = users[2]
@@ -145,6 +153,7 @@ describe('Friends mutations tests', ()=>{
         theWsOf2.on('message', (msg)=>{
             expect(typeof msg).toBe('string')
             console.log('Mutation 1 notification sent!')
+            notifyCounter++;
 
             const env = JSON.parse(msg)
             expect(env).not.toBe(null)
@@ -200,6 +209,7 @@ describe('Friends mutations tests', ()=>{
         theWsOf4.on('message', (msg)=>{
             expect(typeof msg).toBe('string')
             console.log('Mutation 2 notification sent!')
+            notifyCounter++;
 
             const env = JSON.parse(msg)
             expect(env).not.toBe(null)
@@ -248,29 +258,31 @@ describe('Friends mutations tests', ()=>{
         const user0 = users[0]
         const user3 = users[3]
 
-        const pathID = authorizTokenEncoder({ subj: user0.id, email: user0.email})
-        const theWsOf0 = new WebSocket(`ws://localhost:3030/${pathID}`)
+        //const pathID = authorizTokenEncoder({ subj: user0.id, email: user0.email})
+        //const theWsOf0 = new WebSocket(`ws://localhost:3030/${pathID}`)
         
         theWsOf0.on('message', (msg)=>{
             expect(typeof msg).toBe('string')
-            console.log('Mutation 3 notification sent!')
-
             const env = JSON.parse(msg)
             expect(env).not.toBe(null)
 
-            expect(typeof env.event).toBe('string')
-            expect(env.event).toBe('friend')
-            expect(typeof env.eventMethod).toBe('string')
-            expect(env.eventMethod).toBe('approvedRequest')
-            expect(typeof env.properAction).toBe('string')
-            expect(env.properAction).toBe('add')
-            expect(env.connectedTo).toBe('')
-            expect(typeof env.payload).toBe('object')
-            expect(env.payload.id).toBe(user3.id)
-            expect(env.payload.username).toBe('User 3')
-            expect(env.payload.email).toBe(user3.email)
+            if(env.eventMethod === 'approvedRequest'){
+                console.log('Mutation 3 notification sent!')
+                notifyCounter++;
+    
+                expect(typeof env.event).toBe('string')
+                expect(env.event).toBe('friend')
+                expect(typeof env.eventMethod).toBe('string')
+                expect(env.eventMethod).toBe('approvedRequest')
+                expect(typeof env.properAction).toBe('string')
+                expect(env.properAction).toBe('add')
+                expect(env.connectedTo).toBe('')
+                expect(typeof env.payload).toBe('object')
+                expect(env.payload.id).toBe(user3.id)
+                expect(env.payload.username).toBe('User 3')
+                expect(env.payload.email).toBe(user3.email)
+            }
 
-            theWsOf0.close()
         })
 
         request(apolloServer)
@@ -315,6 +327,7 @@ describe('Friends mutations tests', ()=>{
         theWsOf5.on('message', (msg)=>{
             expect(typeof msg).toBe('string')
             console.log('Mutation 4 notification sent!')
+            notifyCounter++;
 
             const env = JSON.parse(msg)
             expect(env).not.toBe(null)
@@ -370,6 +383,7 @@ describe('Friends mutations tests', ()=>{
         theWsOf1.on('message', (msg)=>{
             expect(typeof msg).toBe('string')
             console.log('Mutation 5 notification sent!')
+            notifyCounter++;
 
             const env = JSON.parse(msg)
             expect(env).not.toBe(null)
@@ -416,6 +430,7 @@ describe('Friends mutations tests', ()=>{
 
 
 describe('Posts mutations tests', ()=>{
+
     it('6 - User0 make a post dedicated to User3 ', (done)=>{
         const user0 = users[0]
         const user3 = users[3]
@@ -426,6 +441,7 @@ describe('Posts mutations tests', ()=>{
         theWsOf3.on('message', (msg)=>{
             expect(typeof msg).toBe('string')
             console.log('Mutation 6 notification sent!')
+            notifyCounter++;
 
             const env = JSON.parse(msg)
             expect(env).not.toBe(null)
@@ -472,6 +488,128 @@ describe('Posts mutations tests', ()=>{
                 .toBe(user0.id)
             expect(res.body.data.makeAPost.dedicatedTo.id)
                 .toBe(user3.id)
+            done()
+        })
+    })
+
+
+    it('7 - User3 change its post2, user0 have a notify', (done)=>{
+        const user3 = users[3]
+
+        theWsOf0.on('message', (msg)=>{
+            expect(typeof msg).toBe('string')
+            const env = JSON.parse(msg)
+            expect(env).not.toBe(null)
+
+            if(env.eventMethod === 'contentChanged'){
+                console.log('Mutation 7 notification sent!')
+                notifyCounter++;
+    
+                expect(typeof env.event).toBe('string')
+                expect(env.event).toBe('post')
+                expect(typeof env.eventMethod).toBe('string')
+                expect(env.eventMethod).toBe('contentChanged')
+                expect(typeof env.properAction).toBe('string')
+                expect(env.properAction).toBe('update')
+                expect(env.connectedTo).toBe('')
+                expect(typeof env.payload).toBe('object')
+    
+                expect(env.payload.postid).toBe(posts[2].id)
+                expect(env.payload.owner).toBe(user3.id)
+                expect(env.payload.dedicatedTo).toBe(undefined)
+                expect(env.payload.content).toBe(otherPosts[1].content)
+                expect(typeof env.payload.updatedAt).toBe('string')
+            }
+
+
+        })
+
+        request(apolloServer)
+        .post('/graphql')
+        .send({ "query":`mutation{
+            updateThisPost(postid: "${posts[2].id}", 
+                newcontent: "${otherPosts[1].content}"){
+                postid, content, owner{
+                    id, username
+                }, dedicatedTo{
+                    id, username
+                }, content
+            }
+            
+        }`})
+        .set('Authorization', createTokenToHeader(
+            authorizTokenEncoder({ subj: user3.id})
+        ))
+        .set('Accept', 'application/json')
+        .expect('Content-Type', 'application/json; charset=utf-8')
+        .expect(200)
+        .end((err, res)=>{
+            expect(err).toBe(null)
+            expect(res.body.errors).toBe(undefined)
+            expect(typeof res.body.data).toBe('object')
+
+            expect(res.body.data.updateThisPost.owner.id)
+                .toBe(user3.id)
+            expect(res.body.data.updateThisPost.dedicatedTo)
+                .toBe(null)
+            expect(res.body.data.updateThisPost.postid)
+                .toBe(posts[2].id)
+            expect(res.body.data.updateThisPost.content)
+                .toBe(otherPosts[1].content)
+            done()
+        })
+    })
+
+    it('8 - User3 delets its post3, user0 have a notify', (done)=>{
+        const user3 = users[3]
+
+        theWsOf0.on('message', (msg)=>{
+            expect(typeof msg).toBe('string')
+            const env = JSON.parse(msg)
+            expect(env).not.toBe(null)
+
+            if(env.eventMethod === 'postRemoved'){
+                console.log('Mutation 7 notification sent!')
+                notifyCounter++;
+    
+                expect(typeof env.event).toBe('string')
+                expect(env.event).toBe('post')
+                expect(typeof env.eventMethod).toBe('string')
+                expect(env.eventMethod).toBe('postRemoved')
+                expect(typeof env.properAction).toBe('string')
+                expect(env.properAction).toBe('remove')
+                expect(env.connectedTo).toBe(posts[3].id)
+                expect(typeof env.payload).toBe('string')
+                expect(env.payload).toBe('')
+
+            }
+
+
+        })
+
+        request(apolloServer)
+        .post('/graphql')
+        .send({ "query":`mutation{
+            removeThisPost(postid: "${posts[3].id}"){
+                postid, resultText
+            }
+            
+        }`})
+        .set('Authorization', createTokenToHeader(
+            authorizTokenEncoder({ subj: user3.id})
+        ))
+        .set('Accept', 'application/json')
+        .expect('Content-Type', 'application/json; charset=utf-8')
+        .expect(200)
+        .end((err, res)=>{
+            expect(err).toBe(null)
+            expect(res.body.errors).toBe(undefined)
+            expect(typeof res.body.data).toBe('object')
+
+            expect(res.body.data.removeThisPost.postid)
+                .toBe(posts[3].id)
+            expect(res.body.data.removeThisPost.resultText)
+                .toBe('Your post has been removed!')
             done()
         })
     })
