@@ -5,6 +5,7 @@ const { authorizEvaluation } = require('./resolveHelpers')
 const { commentQueryInputRevise, commentCreateInputRevise, sentimentCreateInputRevise,
     commentUpdtInputRevise, sentimentUpdtInputRevise,  opinionDeleteInputRevise } 
     = require('../../utils/inputRevise')
+const { notifyTypes } = require('../../extensions/dinamicClientNotifier/userNotifierUnit')
 
 module.exports = {
     Query: {
@@ -54,7 +55,7 @@ module.exports = {
         }
     },
     Mutation: {
-        async createCommentToHere(_, args, { authorizRes, dataSources }){
+        async createCommentToHere(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
             const { error, field, issue, targetingTxt, targetID, content } 
                 = commentCreateInputRevise(args.targeted, args.id, args.content)
@@ -66,34 +67,41 @@ module.exports = {
                 return AuthenticationError('No user found', { general: 'No target of Token id' })
             }
             let newComment = null
+            let notifyEventConfig = null
             try{
                 if(targetingTxt === 'POST'){
-                    const targetObject = await dataSources.posts.get(targetID)
+                    const targetPost = await dataSources.posts.get(targetID)
 
                     newComment = await dataSources.comments.create({
                         owner: clientUser._id,
+                        parentNode: targetPost._id,
+                        rootPost: targetPost._id,
                         createdAt: new Date().toISOString(),
                         updatedAt: '',
                         content: content,
                         comments: [],
                         sentiments: []
                     })
-                    targetObject.comments.push(newComment._id)
-                    await dataSources.posts.saving(targetObject)
+                    targetPost.comments.push(newComment._id)
+                    await dataSources.posts.saving(targetPost)
+                    notifyEventConfig = notifyTypes.POST.COMMENT_CREATED
                 }
                 if(targetingTxt === 'COMMENT'){
-                    const targetObject = await dataSources.comments.get(targetID)
+                    const targetComment = await dataSources.comments.get(targetID)
 
                     newComment = await dataSources.comments.create({
                         owner: clientUser._id,
+                        parentNode: targetComment._id,
+                        rootPost: targetComment.rootPost,
                         createdAt: new Date().toISOString(),
                         updatedAt: '',
                         content: content,
                         comments: [],
                         sentiments: []
                     })
-                    targetObject.comments.push(newComment._id)
-                    await dataSources.comments.saving(targetObject)
+                    targetComment.comments.push(newComment._id)
+                    await dataSources.comments.saving(targetComment)
+                    notifyEventConfig = notifyTypes.COMMENT.COMMENT_CREATED
                 }
             }catch(err){
                 return new ApolloError('Comment creation error', { err })
@@ -101,6 +109,23 @@ module.exports = {
             if(!newComment){
                 return new ApolloError('Comment creation error', { general: 'Unknown error' })
             }
+
+            for(const frnd of clientUser.friends){
+                wsNotifier.sendNotification(frnd.toString(), {
+                    parent: newComment.parentNode,
+                    root: newComment.rootPost
+                }, {
+                    commentid: newComment._id.toString(),
+                    owner: newComment.owner,
+                    content: newComment.content,
+                    createdAt: newComment.createdAt,
+                    updatedAt: newComment.updatedAt,
+    
+                    comments: 0,
+                    sentiments: []
+                }, notifyEventConfig )
+            }
+
             return {
                 commentid: newComment._id.toString(),
                 owner: newComment.owner,
@@ -113,7 +138,7 @@ module.exports = {
             }
             
         },        
-        async createSentimentToHere(_, args, { authorizRes, dataSources }){
+        async createSentimentToHere(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
             const { error, field, issue, targetingTxt, targetID, sentimCont } 
                 = sentimentCreateInputRevise(args.targeted, args.id, args.content)
@@ -124,6 +149,7 @@ module.exports = {
             if(!clientUser){
                 return AuthenticationError('No user found', { general: 'No target of Token id' })
             }
+            let targetObject = null
             const newSentim = {
                 _id: new MongooseID(),
                 owner: clientUser._id,
@@ -133,17 +159,35 @@ module.exports = {
             }
             try{
                 if(targetingTxt === 'POST'){
-                    const targetObject = await dataSources.posts.get(targetID)
+                    targetObject = await dataSources.posts.get(targetID)
                     targetObject.sentiments.push(newSentim)
                     await dataSources.posts.saving(targetObject)
                 }
                 if(targetingTxt === 'COMMENT'){
-                    const targetObject = await dataSources.comments.get(targetID)
+                    targetObject = await dataSources.comments.get(targetID)
                     targetObject.sentiments.push(newSentim)
                     await dataSources.comments.saving(targetObject)
                 }
             }catch(err){
                 return new ApolloError('Sentiment creation error', { err })
+            }
+
+            const rootVal = (targetingTxt === 'POST')? '' : targetObject.rootPost
+            const notifyEventConfig = (targetingTxt === 'POST')? 
+                notifyTypes.POST.OPINION_ADDED : notifyTypes.COMMENT.OPINION_ADDED
+            for(const frnd of clientUser.friends){
+
+                wsNotifier.sendNotification(frnd.toString(), {
+                    parent: targetObject._id,
+                    root: rootVal,
+                    parentUpdate: newSentim.createdAt
+                },{
+                    sentimentid: newSentim._id.toString(),
+                    owner: newSentim.owner,
+                    content: newSentim.content,
+                    createdAt: newSentim.createdAt,
+                    updatedAt: newSentim.updatedAt
+                }, notifyEventConfig)
             }
 
             return {
@@ -154,7 +198,7 @@ module.exports = {
                 updatedAt: newSentim.updatedAt
             }
         },
-        async updateCommentContent(_, args, { authorizRes, dataSources }){
+        async updateCommentContent(_, args, { authorizRes, dataSources, wsNotifier }){
 
             authorizEvaluation(authorizRes)
             const { error, field, issue, commID, content} =
@@ -186,6 +230,18 @@ module.exports = {
             }catch(err){
                 return new ApolloError('Comment updating error', { err })
             }
+            
+            for( const frnd of clientUser.friends){
+                wsNotifier.sendNotification(frnd.toString(), {
+                    parent: commentToUpdate.parentNode,
+                    root: commentToUpdate.rootPost
+                }, {
+                    commentid: commentToUpdate._id.toString(),
+                    content: commentToUpdate.content,
+                    updatedAt: commentToUpdate.updatedAt,
+                }, (commentToUpdate.parentNode.equals(commentToUpdate.rootPost))? 
+                notifyTypes.POST.COMMENT_UPDATED : notifyTypes.COMMENT.COMMENT_UPDATED)
+            }
 
             return {
                 commentid: commentToUpdate._id.toString(),
@@ -199,7 +255,7 @@ module.exports = {
             }
             
         },
-        async updateSentimentContent(_, args, { authorizRes, dataSources }){
+        async updateSentimentContent(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
             const { error, field, issue, targetingTxt, targetID, sentimID, sentimCont } =
                 sentimentUpdtInputRevise(args.targeted, args.id, args.sentimentid, args.content)
@@ -252,6 +308,22 @@ module.exports = {
                 return new ApolloError('Sentiment creation error', { err })
             }
 
+            const rootVal = (targetingTxt === 'POST')? '' : targetObject.rootPost
+            const notifyEventConfig = (targetingTxt === 'POST')? 
+                notifyTypes.POST.OPINION_UPDATED : notifyTypes.COMMENT.OPINION_UPDATED
+            for(const frnd of clientUser.friends){
+                wsNotifier.sendNotification(frnd.toString(), {
+                    parent: targetObject._id,
+                    root: rootVal,
+                    parentUpdate: sentimToUpdate.updatedAt
+                },{
+                    sentimentid: sentimToUpdate._id.toString(),
+                    owner: sentimToUpdate.owner,
+                    content: sentimToUpdate.content,
+                    createdAt: sentimToUpdate.createdAt,
+                    updatedAt: sentimToUpdate.updatedAt
+                }, notifyEventConfig)
+            }
 
             return{
                 sentimentid: sentimToUpdate._id.toString(),
@@ -261,7 +333,7 @@ module.exports = {
                 updatedAt: sentimToUpdate.updatedAt
             }
         },
-        async deleteThisComment(_, args, { authorizRes, dataSources }){
+        async deleteThisComment(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
             const { error, field, issue, targetingTxt, targetID, ID } 
                 = opinionDeleteInputRevise(args.targeted, args.id, args.commentid)
@@ -313,6 +385,17 @@ module.exports = {
                 return new ApolloError('Comment deletion error', { err })
             }
             
+            for(const frnd of clientUser.friends){
+
+                wsNotifier.sendNotification(frnd.toString(), {
+                    root: commentToDel.rootPost, 
+                    parent: targetID, 
+                    parentUpdate: targetObject.updatedAt,
+                }, {
+                    id: ID
+                }, notifyTypes.COMMENT.COMMENT_DELETED)
+            }
+
             return {
                 targetType: targetingTxt,
                 targetId: targetID,
@@ -321,7 +404,7 @@ module.exports = {
                 resultText: 'Comment deletion done!'
             }
         },
-        async deleteThisSentiment(_, args, { authorizRes, dataSources }){
+        async deleteThisSentiment(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
             const { error, field, issue, targetingTxt, targetID, ID } 
                 = opinionDeleteInputRevise(args.targeted, args.id, args.sentimentid)
@@ -359,15 +442,30 @@ module.exports = {
                 item=>{ return item._id.toString() !== ID}
             )
             targetObject.updatedAt = new Date().toISOString()
+            let notifyEventConfig = null
             try{
                 if(targetingTxt === 'POST'){
                     await dataSources.posts.saving(targetObject)
+                    notifyEventConfig = notifyTypes.POST.OPINION_REMOVED
                 }
                 if(targetingTxt === 'COMMENT'){
                     await dataSources.comments.saving(targetObject)
+                    notifyEventConfig = notifyTypes.COMMENT.OPINION_REMOVED
                 }
             }catch(err){
                 return new ApolloError('Sentiment deletion error', { err })
+            }
+
+            const rootVal = (targetingTxt === 'POST')? '' : targetObject.rootPost.toString()
+            for(const frnd of clientUser.friends){
+
+                wsNotifier.sendNotification(frnd.toString(), {
+                    parent: targetObject._id.toString(),
+                    root: rootVal,
+                    parentUpdate: targetObject.updatedAt
+                },{
+                    id: ID
+                },notifyEventConfig)
             }
 
             return {

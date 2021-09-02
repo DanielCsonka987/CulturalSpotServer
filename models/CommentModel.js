@@ -7,6 +7,8 @@ const CommentSchema = new mongoose.Schema({
     content: String,
     createdAt: String,
     updatedAt: String,
+    parentNode: mongoose.Schema.Types.ObjectId,
+    rootPost: mongoose.Schema.Types.ObjectId,
     comments: [mongoose.Schema.Types.ObjectId],
     sentiments: [SentimentSchema]
 })

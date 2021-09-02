@@ -172,11 +172,11 @@ module.exports = gql`
         ## comments, sentiments processes
             ## for everibody
         createCommentToHere(targeted: TargetType!, id: String!, content: String): Comment!
-        createSentimentToHere(targeted: TargetType!, id: String!, content: Opinion): Sentiment!
+        createSentimentToHere(targeted: TargetType!, id: String!, content: Opinion!): Sentiment!
             ## only for the authors
         updateCommentContent(commentid: String!, content: String!): Comment!
         deleteThisComment(targeted: TargetType!, id: String!, commentid: String!): OpinionProcess!
-        updateSentimentContent(targeted: TargetType!, id: String!, sentimentid: String!, content: String!): Sentiment!
+        updateSentimentContent(targeted: TargetType!, id: String!, sentimentid: String!, content: Opinion!): Sentiment!
         deleteThisSentiment(targeted: TargetType!, id: String!, sentimentid: String!): OpinionProcess!
     }
 `;

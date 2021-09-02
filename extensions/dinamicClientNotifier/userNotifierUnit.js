@@ -12,14 +12,22 @@ const notifyTypes = {
         NEW_POST: [1, 'postMade', 'add'],
         CONTENT_CHANGED: [ 1, 'contentChanged', 'update'],
         POST_REMOVED: [ 1, 'postRemoved', 'remove'],
+        COMMENT_CREATED: [ 1, 'commentCreated', 'add'],
+        COMMENT_UPDATED: [ 1, 'commentUpdated', 'update' ],
+        COMMENT_DELETED: [ 1, 'commentDeleted', 'remove'],
+        OPINION_ADDED: [ 1, 'opinionedAdded', 'add'],
+        OPINION_UPDATED: [ 1, 'opinionedUpdated', 'update'],
+        OPINION_REMOVED: [ 1, 'opinionRemoved', 'remove']
     }, 
     COMMENT: {
-        CONTENT_CHANGED: [ 2, 'contentChanged'],
-        COMMENTED: [ 2, 'commented'],
-        UNCOMMENTED: [ 2, 'unCommented'],
-        OPINION_ADDED: [ 2, 'opinionedAdded'],
-        OPINION_REMOVED: [ 2, 'opinionRemoved']
+        COMMENT_CREATED: [ 2, 'commentCreated', 'add'],
+        COMMENT_UPDATED: [ 2, 'commentUpdated', 'update' ],
+        COMMENT_DELETED: [ 2, 'commentDeleted', 'remove'],
+        OPINION_ADDED: [ 2, 'opinionedAdded', 'add'],
+        OPINION_UPDATED: [ 2, 'opinionedUpdated', 'update'],
+        OPINION_REMOVED: [ 2, 'opinionRemoved', 'remove']
     },
+    
     CHAT:{
         NEW_MESSAGE: [ 3, 'newMessage'],
         MESSAGE_EDITED: [ 3, 'messageEdited' ],

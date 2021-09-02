@@ -150,25 +150,32 @@ module.exports.postTestDatas1 = [   //owner-s are defined at the test
         updatedAt: '',
         comments: [],
         sentiments: []
+    },
+    {
+        content: 'Post content 6',
+        createdAt: new Date('30 May 2020 23:04 UTC').toISOString(),
+        updatedAt: '',
+        comments: [],
+        sentiments: []
     }
 ]
 module.exports.postTestDatas2 = [
     {
-        content: 'Post content 6',
+        content: 'Post content 7',
         createdAt: new Date('23 October 2020 17:10 UTC').toISOString(),
         updatedAt: '',
         comments: [],
         sentiments: []
     },
     {
-        content: 'Post content 7',
+        content: 'Post content 8',
         createdAt: new Date('04 March 2021 19:56 UTC').toISOString(),
         updatedAt: '',
         comments: [],
         sentiments: []
     },
     {
-        content: 'Post content 8',
+        content: 'Post content 9',
         createdAt: new Date('19 August 2020 14:43 UTC').toISOString(),
         updatedAt: '',
         comments: [],

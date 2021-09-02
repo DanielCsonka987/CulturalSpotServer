@@ -99,6 +99,8 @@ beforeAll((done)=>{
                             await usersDocs[1].save()
                             commentIds.set(commObj[0].content, commObj[0]._id.toString())
                             commObj[0].owner = usersDocs[0]._id
+                            commObj[0].rootPost = postObj[1]._id
+                            commObj[0].parentNode = postObj[1]._id
                             await commObj[0].save()
     
                             //user3 -> post2 -> comment2, comment3
@@ -109,7 +111,11 @@ beforeAll((done)=>{
                             commentIds.set(commObj[2].content, commObj[2]._id.toString())
                             commentIds.set(commObj[3].content, commObj[3]._id.toString())
                             commObj[2].owner = usersDocs[1]._id
+                            commObj[2].rootPost = postObj[2]._id
+                            commObj[2].parentNode = postObj[2]._id
                             commObj[3].owner = usersDocs[1]._id
+                            commObj[3].rootPost = postObj[2]._id
+                            commObj[3].parentNode = postObj[2]._id
                             await commObj[2].save()
                             await commObj[3].save()
                             //user3 -> post5 -> X
@@ -125,6 +131,8 @@ beforeAll((done)=>{
                             postObj[4].comments.push(commObj[1]._id)
                             commentIds.set(commObj[1].content, commObj[1]._id.toString())
                             commObj[1].owner = usersDocs[0]._id
+                            commObj[1].rootPost = postObj[4]._id
+                            commObj[1].parentNode = postObj[4]._id
                             await commObj[1].save()
                             const sentimID1 = new mongooseID()
                             sentimentIds.set(1, sentimID1.toString())
@@ -149,15 +157,21 @@ beforeAll((done)=>{
                             await commObj[3].save()
                             commObj[4].comments.push(commObj[5]._id)
                             commObj[4].owner = usersDocs[0]._id
+                            commObj[4].rootPost = postObj[2]._id
+                            commObj[4].parentNode = commObj[3]._id
                             await commObj[4].save()
                             commentIds.set(commObj[4].content, commObj[4]._id.toString())
 
                             commObj[5].comments.push(commObj[6]._id)
                             commObj[5].owner = usersDocs[1]._id
+                            commObj[5].rootPost = postObj[2]._id
+                            commObj[5].parentNode = commObj[4]._id
                             await commObj[5].save()
                             commentIds.set(commObj[5].content, commObj[5]._id.toString())
 
                             commObj[6].owner = usersDocs[0]._id
+                            commObj[6].rootPost = postObj[2]._id
+                            commObj[6].parentNode = commObj[5]._id
                             await commObj[6].save()
                             commentIds.set(commObj[6].content, commObj[6]._id.toString())
     
