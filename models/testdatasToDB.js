@@ -12,9 +12,12 @@ const commentids = [
     new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId
 ]
 const chatids = [
-    new mongooseId, new mongooseId
+    new mongooseId, new mongooseId, new mongooseId
 ]
-
+const messageids = [
+    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
+    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId
+]
 
 module.exports.profiles = [
     {
@@ -28,6 +31,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [postids[0], postids[5]],
+        myChats: [chatids[0]],
         friends: [userids[1], userids[3]],
         myInvitations: [],
         myFriendRequests: [userids[5]]
@@ -43,6 +47,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [postids[3], postids[4]],
+        myChats: [chatids[0], chatids[1], chatids[2]],
         friends: [userids[0], userids[2], userids[7], userids[8]],
         myInvitations: [],
         myFriendRequests: []
@@ -58,6 +63,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [postids[2]],
+        myChats: [chatids[1], chatids[2]],
         friends: [userids[1]],
         myInvitations: [],
         myFriendRequests: []
@@ -73,6 +79,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [postids[1], postids[6]],
+        myChats: [chatids[0]],
         friends: [userids[0]],
         myInvitations: [],
         myFriendRequests: []
@@ -88,6 +95,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [],
+        myChats: [],
         friends: [],
         myInvitations: [],
         myFriendRequests: [userids[5]]
@@ -103,6 +111,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [postids[7]],
+        myChats: [],
         friends: [userids[9]],
         myInvitations: [userids[4], userids[0]],
         myFriendRequests: []
@@ -118,6 +127,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [],
+        myChats: [],
         friends: [],
         myInvitations: [],
         myFriendRequests: []
@@ -133,6 +143,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [postids[9]],
+        myChats: [chatids[1]],
         friends: [userids[1]],
         myInvitations: [],
         myFriendRequests: []
@@ -148,6 +159,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [],
+        myChats: [],
         friends: [userids[1]],
         myInvitations: [],
         myFriendRequests: []
@@ -163,6 +175,7 @@ module.exports.profiles = [
         refreshToken: '',
 
         myPosts: [postids[8]],
+        myChats: [],
         friends: [userids[5]],
         myInvitations: [],
         myFriendRequests: []
@@ -424,59 +437,161 @@ module.exports.comments = [
     }
 ]
 
-module.exports.messages = [
+
+module.exports.chattings = [
     {
         _id: chatids[0],
-        startedAt: '',
+        owner: userids[0],
+        title: 'Discussion',
+        startedAt: new Date('14 May 2021 09:46 UTC'),
         partners: [
-            userids[0], userids[1], userids[3]
-        ],
-        content: [
-            {
-                id: 1,
-                sentAt: '',
-                from: userids[0],
-                message: 'Hi people! Whatsup?'
-            },
-            {
-                id: 2,
-                sentAt: '',
-                from: userids[1],
-                message: 'Hi! Good to here about you! I fine, as always... And you?'
-            },
-            {
-                id: 3,
-                sentAt: '',
-                from: userids[3],
-                message: 'Ahh, hi, fine, and you? I hope you could have some rest!'
-            }
+            userids[1], userids[3]
         ]
     },
     {
         _id: chatids[1],
-        startedAt: '',
+        owner: userids[1],
+        title: 'Cinema experience',
+        startedAt: new Date('15 May 2021 07:26 UTC'),
         partners: [
-            userids[1], userids[2]
-        ],
-        content: [
-            {
-                id: 1,
-                sentAt: '',
-                from: userids[1],
-                message: 'Hi! Do you have some time?'
-            },
-            {
-                id: 2,
-                sentAt: '',
-                from: userids[1],
-                message: 'I have a good idea about the business!'
-            },
-            {
-                id: 3,
-                sentAt: '',
-                from: userids[2],
-                message: 'Hi partner! Dont hold up, im listening!'
-            }
+           userids[2], userids[7]
         ]
+    },
+    {
+        _id: chatids[2],
+        owner: userids[2],
+        title: 'Urgent help needed',
+        startedAt: new Date('15 May 2021 07:26 UTC'),
+        partners: [
+           userids[1]
+        ]
+    }
+]
+
+
+module.exports.messages = [
+    {
+        _id: messageids[0],
+        chatid: chatids[0],
+        owner: userids[0],
+
+        sentAt: new Date('14 May 2021 09:46 UTC'),
+        content: 'Hy people!',
+        prevMsg: null,
+        nextMsg: messageids[1],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[1],
+        chatid: chatids[0],
+        owner: userids[1],
+
+        sentAt: new Date('14 May 2021 09:49 UTC'),
+        content: 'Hy what is up? What is this chatting for?',
+        prevMsg: messageids[0],
+        nextMsg: messageids[2],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[2],
+        chatid: chatids[0],
+        owner: userids[0],
+
+        sentAt: new Date('14 May 2021 09:53 UTC'),
+        content: 'For arguing some things...',
+        prevMsg: messageids[1],
+        nextMsg: messageids[4],
+
+        sentiments: []
+    },
+
+
+    {
+        _id: messageids[3],
+        chatid: chatids[1],
+        owner: userids[1],
+
+        sentAt: new Date('15 May 2021 07:26 UTC'),
+        content: 'Hy, what was it like in the cinema?',
+        prevMsg: null,
+        nextMsg: messageids[5],
+
+        sentiments: []
+    },
+
+
+    {
+        _id: messageids[4],
+        chatid: chatids[0],
+        owner: userids[3],
+
+        sentAt: new Date('14 May 2021 09:54 UTC'),
+        content: 'Please, we are listening!',
+        prevMsg: messageids[2],
+        nextMsg: messageids[6],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[5],
+        chatid: chatids[1],
+        owner: userids[2],
+
+        sentAt: new Date('15 May 2021 07:43 UTC'),
+        content: 'Well, ive seen better movie before - i survived',
+        prevMsg: messageids[3],
+        nextMsg: messageids[7],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[6],
+        chatid: chatids[0],
+        owner: userids[1],
+
+        sentAt: new Date('14 May 2021 09:58 UTC'),
+        content: 'Dont hold you back!',
+        prevMsg: messageids[4],
+        nextMsg: messageids[8],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[7],
+        chatid: chatids[1],
+        owner: userids[7],
+
+        sentAt: new Date('15 May 2021 07:44 UTC'),
+        content: 'It was not soo bad, but true, i could wish better one',
+        prevMsg: messageids[5],
+        nextMsg: null,
+
+        sentiments: []
+    },
+    {
+        _id: messageids[8],
+        chatid: chatids[0],
+        owner: userids[0],
+
+        sentAt: new Date('14 May 2021 09:58 UTC'),
+        content: 'Next week, i got a promotion, we need to celebrate! What ideas you have?',
+        prevMsg: messageids[6],
+        nextMsg: null,
+
+        sentiments: []
+    },
+    {
+        _id: messageids[9],
+        chatid: chatids[2],
+        owner: userids[2],
+
+        sentAt: new Date('19 May 2021 01:58 UTC'),
+        content: 'Are you up?',
+        prevMsg: null,
+        nextMsg: null,
+
+        sentiments: []
     }
 ]

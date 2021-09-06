@@ -2,20 +2,26 @@ const mongoose = require('mongoose')
 const { InMemoryLRUCache } = require('apollo-server-caching')
 const DocType = require('mongoose').Document
 
-const url = require('../../config/dbConfig').dbLocal
+const url = require('../../config/dbConfig').dbCloud
 const ProfileModel = require('../../models/ProfileModel')
 const PostModel = require('../../models/PostModel')
 const CommentModel = require('../../models/CommentModel')
+const ChattingModel = require('../../models/ChattingModel')
+const MessageModel = require('../../models/MessageModel')
 const ParentDs = require('../generalDataSource')
 const ProfDs = require('../profileDS')
 const PostDs = require('../postDS')
 const CommDs = require('../commentDS')
+//const ChatDs = require('../chatDS')
+const MsgDs = require('../messageDS')
 
 //it uses the seeded datas as testdata!!!
 
 let docProfiles = []
 let docPosts = []
 let docComments = null
+let docChats = null
+let docMessages = null
 beforeAll((done)=>{
     mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
     ProfileModel.find({}, async (err, docs)=>{
@@ -29,7 +35,18 @@ beforeAll((done)=>{
             CommentModel.find({}, (ex, dc)=>{
                 expect(ex).toBe(null)
                 docComments = dc
-                done()
+
+                ChattingModel.find({}, (e4, d4)=>{
+                    expect(e4).toBe(null)
+                    docChats = d4
+
+                    MessageModel.find({}, (e5, d5)=>{
+                        expect(e5).toBe(null)
+                        docMessages = d5
+
+                        done()
+                    })
+                })
             })
         })
     })
@@ -329,25 +346,30 @@ describe('Specialised DataSource testing', ()=>{
         expect(res1[0].owner).toStrictEqual(res1[1].owner)
     })
 
-    it('Simple post processes - deletAllOfThese', async ()=>{
+    it('Simple post processes - deletAllOfThese', (done)=>{
 
-        const dsPost = new PostDs()
-        dsPost.initialize({ context: 'stg' })
+        setTimeout(async ()=>{
+            const dsPost = new PostDs()
+            dsPost.initialize({ context: 'stg' })
+    
+            const postsToRegenerate = [ docPosts[7], docPosts[8]] //from user5, user9
+            const idsOfAll = postsToRegenerate.map(item=>{return item._id})
+            await dsPost.deletingAllOfThese(idsOfAll)
+     
+            PostModel.find({_id: idsOfAll}, (err, res)=>{
+                expect(err).toBe(null)
+                expect(res).toBeInstanceOf(Array)
+                expect(res).toHaveLength(0)
+                
+                PostModel.insertMany(postsToRegenerate, (e, r)=>{
+                    expect(e).toBe(null)
+                    expect(r).toHaveLength(2)
+                    console.log('Post reinsertion done')
 
-        const postsToRegenerate = [ docPosts[7], docPosts[8]] //from user5, user9
-        const idsOfAll = postsToRegenerate.map(item=>{return item._id})
-        await dsPost.deletingAllOfThese(idsOfAll)
- 
-        return PostModel.find({_id: idsOfAll}, (err, res)=>{
-            expect(err).toBe(null)
-            expect(res).toBeInstanceOf(Array)
-            expect(res).toHaveLength(0)
-            
-            return PostModel.insertMany(postsToRegenerate, (e, r)=>{
-                expect(e).toBe(null)
-                expect(r).toHaveLength(2)
-                console.log('Post reinsertion done')
+                    done()
+                })
             })
+
         })
  
     })
@@ -387,19 +409,259 @@ describe('Specialised DataSource testing', ()=>{
             }catch(err){
                 expect(err).toBe(null)
             }
+            setTimeout( ()=>{
             
-            return CommentModel.find({}, (e2, d2)=>{
-                expect(e2).toBe(null)
-                expect(d2.length + 4).toBe(originAmount)
+                CommentModel.find({}, (e2, d2)=>{
+                    expect(e2).toBe(null)
+                    expect(d2.length + 4).toBe(originAmount)
+    
+                    CommentModel.insertMany(commToReinsert,(ex, re)=>{
+                        expect(ex).toBe(null)
+                        expect(re).not.toBe(null)
+    
+                        expect(re.length).toBe(4)
+                        done()
+                    })
+                })
 
-                return CommentModel.insertMany(commToReinsert,(ex, re)=>{
-                    expect(ex).toBe(null)
-                    expect(re).not.toBe(null)
+            }, 1500)
+        })
+    })
+})
 
-                    expect(re.length).toBe(4)
+describe('Messages DataSource tests', ()=>{
+
+    it('Fetching datas by Date and Offset', async ()=>{
+
+        const dsMess = new MsgDs()
+        dsMess.initialize({ context: 'stg' })
+
+        const chatID = docMessages[6].chatid
+        const dateStarter = docMessages[6].sentAt
+        const amount = 3
+        const res = await dsMess.getChattingWithPreciseDate(
+            chatID, dateStarter, amount)
+
+        expect(res).toHaveLength(3)
+        expect(res[0]._id.toString()).toBe(docMessages[6]._id.toString())
+        expect(res[1]._id.toString()).toBe(docMessages[4]._id.toString())
+        expect(res[2]._id.toString()).toBe(docMessages[2]._id.toString())
+
+        
+    })
+
+    it('Create new message to a chatting', (done)=>{
+
+        setTimeout(async ()=>{
+
+            const dsMess = new MsgDs()
+            dsMess.initialize({ context: 'stg' })
+            const ownerID = docProfiles[0]._id
+            const chatID = docMessages[8].chatid
+            const prevMsgID = docMessages[8]._id
+    
+    
+            const newMsg = await dsMess.create({
+                chatid: chatID,
+                owner: ownerID,
+                content: 'Str to recoginise'
+            })
+            setTimeout(()=>{
+                MessageModel.find({ content: 'Str to recoginise' }, (e, d)=>{
+                    expect(e).toBe(null)
+                    expect(d).toHaveLength(1)
+                    expect(d[0]._id.toString()).toBe(newMsg._id.toString())
+                    expect(d[0].prevMsg.toString()).toBe(prevMsgID.toString())
+    
+                    MessageModel.findById(prevMsgID, async (e2, d2)=>{
+                        expect(e2).toBe(null)
+                        expect(d2).not.toBe(null)
+                        expect(d2.nextMsg.toString()).toBe(newMsg._id.toString())
+                        d2.nextMsg = null
+                        await d2.save()
+    
+                        MessageModel.deleteOne({_id: d[0]._id }, (e3, r)=>{
+                            expect(e3).toBe(null)
+                            done()
+                        })
+                    })
+                })
+            }, 500)
+        })
+    }, 6000)
+
+    it('Delete one in the middle', (done)=>{
+
+        const dsMess = new MsgDs()
+        dsMess.initialize({ context: 'stg' })
+
+        const prevDoc = docMessages[2]
+        const docMiddle = docMessages[4]
+        const nextDoc = docMessages[6]
+
+        expect(prevDoc.nextMsg.toString()).toBe(docMiddle._id.toString())
+        expect(docMiddle.prevMsg.toString()).toBe(prevDoc._id.toString())
+        expect(docMiddle.nextMsg.toString()).toBe(nextDoc._id.toString())
+        expect(nextDoc.prevMsg.toString()).toBe(docMiddle._id.toString())
+
+        setTimeout(async ()=>{
+            await dsMess.deleting(docMiddle._id)
+
+            MessageModel.findById(prevDoc._id, (e1, prv)=>{
+                expect(e1).toBe(null)
+                expect(prv.nextMsg.toString()).toBe(nextDoc._id.toString())
+
+                MessageModel.findById(nextDoc._id, (e2, nxt)=>{
+                    expect(e2).toBe(null)
+                    expect(nxt.prevMsg.toString()).toBe(prevDoc._id.toString())
+
+                    MessageModel.findById(docMiddle._id, (e3, mddl)=>{
+                        expect(e3).toBe(null)
+                        expect(mddl).toBe(null)
+
+                        const newDoc = {
+                            content: docMiddle.content,
+                            sentAt: docMiddle.sentAt,
+                            owner: docMiddle.owner,
+                            prevMsg: prv._id,
+                            nextMsg: nxt._id,
+                            sentiments: []
+                        }
+                        MessageModel.create(newDoc, async (err, doc)=>{
+                            expect(err).toBe(null)
+
+                            prv.nextMsg = doc._id
+                            await prv.save()
+    
+                            nxt.prevMsg = doc._id
+                            await nxt.save()
+
+                            done()
+                        })
+
+
+                    })
+                })
+
+
+            })
+        })
+    })
+    it('Delete one in the end', (done)=>{
+        const dsMess = new MsgDs()
+        dsMess.initialize({ context: 'stg' })
+
+        const prevDoc = docMessages[5]
+        const docEnd = docMessages[7]
+        expect(prevDoc.nextMsg.toString()).toBe(docEnd._id.toString())
+        expect(docEnd.prevMsg.toString()).toBe(prevDoc._id.toString())
+        expect(docEnd.nextMsg).toBe(null)
+
+        setTimeout(async ()=>{
+            await dsMess.deleting(docEnd._id)
+
+            MessageModel.findById(prevDoc, (e1, prv)=>{
+                expect(e1).toBe(null)
+                expect(prv.nextMsg).toBe(null)
+
+                MessageModel.findById(docEnd._id, (e2, nnd)=>{
+                    expect(e2).toBe(null)
+                    expect(nnd).toBe(null)
+
+                    const newDoc = {
+                        content: docEnd.content,
+                        sentAt: docEnd.sentAt,
+                        owner: docEnd.owner,
+                        prevMsg: prv._id,
+                        nextMsg: null,
+                        sentiments: []
+                    }
+                    MessageModel.create(newDoc, async (e3, doc)=>{
+                        expect(e3).toBe(null)
+
+                        prevDoc.nextMsg = doc._id
+                        await prevDoc.save()
+
+                        done()
+                    })
+                })
+            })
+        })
+    })
+    it('Delete one in the begining', (done)=>{
+        const dsMess = new MsgDs()
+        dsMess.initialize({ context: 'stg' })
+
+        const begDoc = docMessages[0]
+        const nextDoc = docMessages[1]
+        expect(begDoc.prevMsg).toBe(null)
+        expect(begDoc.nextMsg.toString()).toBe(nextDoc._id.toString())
+        expect(nextDoc.prevMsg.toString()).toBe(begDoc._id.toString())
+
+        setTimeout(async ()=>{
+            await dsMess.deleting(begDoc._id)
+
+            MessageModel.findById(nextDoc._id, (e1, nxt)=>{
+                expect(e1).toBe(null)
+                expect(nxt.prevMsg).toBe(null)
+
+                MessageModel.findById(begDoc._id, (e2, bgn)=>{
+                    expect(e2).toBe(null)
+                    expect(bgn).toBe(null)
+
+                    const newDoc = {
+                        content: begDoc.content,
+                        sentAt: begDoc.sentAt,
+                        owner: begDoc.owner,
+                        prevMsg: null,
+                        nextMsg: nxt._id,
+                        sentiments: []
+                    }
+                    MessageModel.create(newDoc, async (e3, doc)=>{
+                        expect(e3).toBe(null)
+                        
+                        nxt.prevMsg = doc._id
+                        await nxt.save()
+
+                        done()
+                    })
+                })
+            })
+        })
+    })
+
+    it('Delete one, that has no any answer', (done)=>{
+        const dsMess = new MsgDs()
+        dsMess.initialize({ context: 'stg' })
+
+        const singleDoc = docMessages[9]
+
+        expect(singleDoc.prevMsg).toBe(null)
+        expect(singleDoc.nextMsg).toBe(null)
+
+        setTimeout(async ()=>{
+            await dsMess.deleting(singleDoc._id)
+
+            MessageModel.findById(singleDoc._id, (err, sngl)=>{
+                expect(err).toBe(null)
+                expect(sngl).toBe(null)
+
+                const newDoc = {
+                    content: singleDoc.content,
+                    sentAt: singleDoc.sentAt,
+                    owner: singleDoc.owner,
+                    prevMsg: null,
+                    nextMsg: null,
+                    sentiments: []
+                }
+                MessageModel.create(newDoc, (error, doc)=>{
+                    expect(error).toBe(null)
+                    expect(doc).not.toBe(null)
+
                     done()
                 })
             })
         })
+
     })
 })

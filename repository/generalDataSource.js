@@ -42,10 +42,9 @@ class CSDataSource extends DataSource{
         throw error
     }
 
-    cacheKey(key, typeDef){
+    cacheKey(key){
         const keystr = (typeof key === 'object')? key.toString() : key;
-        const typestr = typeDef? typeDef + '-' : '';
-        return `CS-${this.dbModel.modelName}-${typestr}${keystr}`
+        return `CS-${this.dbModel.modelName}-${keystr}`
     }
     /**
      * Load in a document from pointed collection of database
@@ -126,13 +125,7 @@ class CSDataSource extends DataSource{
         }
         try{
             await docObj.save()
-            this.cache.delete(this.cacheKey(docObj._id))
-            if (ttlInSeconds || this.globalTTLinSec) {
-                const ttlValue = ttlInSeconds || this.globalTTLinSec
-                this.cache.set(
-                    this.cacheKey(docObj._id), JSON.stringify(docObj), { ttl: ttlValue }
-                )
-            }
+            this.updateTheCache(docObj, { ttlInSeconds })
         }catch(err){
             this.didEncounterError(err)
         }
@@ -157,7 +150,16 @@ class CSDataSource extends DataSource{
         }catch(err){
             this.didEncounterError(err)
         }
+    }
 
+    updateTheCache(docObj, { ttlInSeconds } = {}){
+        this.cache.delete(this.cacheKey(docObj._id))
+        if (ttlInSeconds || this.globalTTLinSec) {
+            const ttlValue = ttlInSeconds || this.globalTTLinSec
+            this.cache.set(
+                this.cacheKey(docObj._id), JSON.stringify(docObj), { ttl: ttlValue }
+            )
+        }
     }
 }
 

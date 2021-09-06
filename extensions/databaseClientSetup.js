@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
-const DB_CONNECT = (process.env.NODE_ENV === 'production')?
-    retquire('../config/dbConfig').dbCloud
-    : require('../config/dbConfig').dbLocal
+const DB_CONNECT = retquire('../config/dbConfig').dbCloud
+
 
 const theDBConnect = ()=>{
     mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })

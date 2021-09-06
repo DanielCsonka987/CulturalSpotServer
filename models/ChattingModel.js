@@ -1,19 +1,9 @@
 const mongoose = require('mongoose')
 
-
-const MessageSchema = new mongoose.Schema({
-    id: Number,
-    sentAt: String,
-    from: mongoose.Types.ObjectId,
-    message: String
-})
-
 const ChatSchema = new mongoose.Schema({
     owner: mongoose.Types.ObjectId,
-    startedAt: String,
-    partners: [
-        mongoose.Types.ObjectId,
-    ],
-    content: [ MessageSchema ]
+    startedAt: Date,
+    title: String,
+    partners: [ mongoose.Schema.Types.ObjectId ]
 })
 module.exports = mongoose.model('chattings', ChatSchema)

@@ -3,10 +3,11 @@ const ProfileModel = require('./ProfileModel')
 const PostModel = require('./PostModel')
 const CommentModel = require('./CommentModel')
 const ChattingModel = require('./ChattingModel')
+const MessageModel = require('./MessageModel')
 const EmailReportModel = require('./EmailReportModel')
 
 const { dbLocal, dbCloud } = require('../config/dbConfig')
-const { profiles, posts, comments, messages } = require('./testdatasToDB')
+const { profiles, posts, comments, chattings, messages } = require('./testdatasToDB')
 
 
 const seedingProcess = new Promise((resolve, reject)=>{
@@ -79,19 +80,34 @@ const seedingProcess = new Promise((resolve, reject)=>{
     mongoose.connection.collections.chattings.drop(err=>{
         if(err) {  
             if(err.code !== 26) { 
+                console.log('Chattings collection removal failed! ' + err) 
+                return;
+            }
+        }
+        ChattingModel.insertMany(chattings, (error, report)=>{
+            if(error) { console.log('Chattings collection filling up failed!') }
+            if(report.length !== chattings.length) { console.log('Chatting collection misses some document!') }
+            console.log('Chattings seeding.... done!')
+        })
+        
+    })
+}).then(()=>{
+    //manage messages collection
+    mongoose.connection.collections.messages.drop(err=>{
+        if(err) {  
+            if(err.code !== 26) { 
                 console.log('Messages collection removal failed! ' + err) 
                 return;
             }
         }
-        ChattingModel.insertMany(messages, (error, report)=>{
+        MessageModel.insertMany(messages, (error, report)=>{
             if(error) { console.log('Messages collection filling up failed!') }
             if(report.length !== messages.length) { console.log('Messages collection misses some document!') }
             console.log('Messages seeding.... done!')
         })
         
     })
-})
-.then(()=>{
+}).then(()=>{
     //emailreports collection clearing
     EmailReportModel.deleteMany({}, (err, rep)=>{
         if(err){

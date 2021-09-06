@@ -10,6 +10,7 @@ const ProfileSchema = new mongoose.Schema({
     refreshToken: String,
 
     myPosts: [mongoose.Schema.Types.ObjectId],
+    myChats: [mongoose.Schema.Types.ObjectId],
     friends: [mongoose.Schema.Types.ObjectId],
     myInvitations: [mongoose.Schema.Types.ObjectId],
     myFriendRequests: [mongoose.Schema.Types.ObjectId]
