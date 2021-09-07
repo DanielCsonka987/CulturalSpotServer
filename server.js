@@ -22,6 +22,8 @@ const { wsExtensionStart, wsExtensionStop
 const ProfileDataSource = require('./repository/profileDS');
 const PostDataSource = require('./repository/postDS')
 const CommentDataSource = require('./repository/commentDS')
+const ChatDataSource = require('./repository/chatDS')
+const MessageDataSource = require('./repository/messageDS')
 const UserNotifRepo = require('./extensions/dinamicClientNotifier/userNotifierRepo') 
     
 const residentNotifierService = new UserNotifRepo()
@@ -35,7 +37,8 @@ const apolloSrv = new ApolloServer({
         profiles: new ProfileDataSource(),
         posts: new PostDataSource(),
         comments: new CommentDataSource(),
-        //chattings
+        chats: new ChatDataSource(),
+        messages: new MessageDataSource()
     }),
     context: async({ req, res })=>{
         /**

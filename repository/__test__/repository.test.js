@@ -520,6 +520,7 @@ describe('Messages DataSource tests', ()=>{
                         expect(mddl).toBe(null)
 
                         const newDoc = {
+                            chatid: docMiddle.chatid,
                             content: docMiddle.content,
                             sentAt: docMiddle.sentAt,
                             owner: docMiddle.owner,
@@ -569,6 +570,7 @@ describe('Messages DataSource tests', ()=>{
                     expect(nnd).toBe(null)
 
                     const newDoc = {
+                        chatid: docEnd.chatid,
                         content: docEnd.content,
                         sentAt: docEnd.sentAt,
                         owner: docEnd.owner,
@@ -610,6 +612,7 @@ describe('Messages DataSource tests', ()=>{
                     expect(bgn).toBe(null)
 
                     const newDoc = {
+                        chatid: begDoc.chatid,
                         content: begDoc.content,
                         sentAt: begDoc.sentAt,
                         owner: begDoc.owner,
@@ -647,6 +650,7 @@ describe('Messages DataSource tests', ()=>{
                 expect(sngl).toBe(null)
 
                 const newDoc = {
+                    chatid: singleDoc.chatid,
                     content: singleDoc.content,
                     sentAt: singleDoc.sentAt,
                     owner: singleDoc.owner,
@@ -662,6 +666,5 @@ describe('Messages DataSource tests', ()=>{
                 })
             })
         })
-
     })
 })

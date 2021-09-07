@@ -2,6 +2,8 @@ const accountAPI = require('./resolvers/accountResolvers')
 const friendsAPI = require('./resolvers/friendsResolvers')
 const postsAPI = require('./resolvers/postsResolvers')
 const commentAPI = require('./resolvers/commentResolvers')
+const chattingAPI = require('./resolvers/chattingResolvers')
+const sentimentAPI = require('./resolvers/sentimentResolvers')
 const chainings = require('./resolvers/chainingResolvers')
 
 module.exports = {
@@ -14,12 +16,16 @@ module.exports = {
         ...accountAPI.Query,
         ...friendsAPI.Query,
         ...postsAPI.Query,
-        ...commentAPI.Query
+        ...commentAPI.Query,
+        ...sentimentAPI.Query,
+        ...chattingAPI.Query
     },
     Mutation: {
         ...accountAPI.Mutation,
         ...friendsAPI.Mutation,
         ...postsAPI.Mutation,
-        ...commentAPI.Mutation
+        ...commentAPI.Mutation,
+        ...sentimentAPI.Mutation,
+        ...chattingAPI.Mutation
     }
 }

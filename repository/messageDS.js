@@ -7,7 +7,10 @@ const { isThisProperDocID, isThisProperForDocParts, isThisAnArray }
     = require('./dataSourceHelpers')
 
 /**
- * 
+ * DataSource implementation for manage the messages of chattings
+ * Messages have DoubleLinked connections as graph and have MongoID as well
+ * all alteration use transaction - updating the previous-next links is essential part
+ * the chatting informations are managed elsewhere
  * 
  * sources
  * https://mongoosejs.com/docs/transactions.html

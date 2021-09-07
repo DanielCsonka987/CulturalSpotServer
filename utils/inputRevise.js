@@ -338,6 +338,127 @@ module.exports.opinionDeleteInputRevise = (targetingTxt, targetID, ID,)=>{
 
 
 
+// CHATROOM AND MESSAGES REVISION
+
+module.exports.chatRoomCreateInputRevise = (partners, title, content)=>{
+    const values = { partners, title, content }
+    const result = { error: false, field: [], issue: [] }
+
+    if(isThereProblemWithArray(values.partners)){
+        result.error = true;
+        result.field.push('partners')
+        result.issue.push('No partners were passed!')
+    }else{
+        if(isThereProblemWithPartnersArray(values.partners)){
+            result.error = true;
+            result.field.push('partners')
+            result.issue.push('The partners array have not proper friendid!')
+        }
+    }
+    if(isThereProblemWithChatTitle(values.title)){
+        result.error = true;
+        result.field.push('title')
+        result.issue.push('The title of chatroom is not acceptable!')
+    }
+    if(isThereProblemWithMessage(values.content)){
+        result.error = true;
+        result.field.push('message')
+        result.issue.push('The message to the chatroom is not acceptable!')
+    }
+    return result.error? result : values
+}
+module.exports.chatRoomAddRemovePartnersInputRevise = (chatid, partners)=>{
+    const values = { chatid, partners }
+    const result = { error: false, field: [], issue: [] }
+    if(isThereProblemWithDBKey(values.chatid)){
+        result.error = true
+        result.field.push('chatid')
+        result.issue.push('The chatid is not acceptable!')
+    }
+    if(isThereProblemWithArray(values.partners)){
+        result.error = true;
+        result.field.push('partners')
+        result.issue.push('The partners is not an array!')
+    }else{
+        if(isThereProblemWithPartnersArray(values.partners)){
+            result.error = true;
+            result.field.push('partners')
+            result.issue.push('The partners array have not proper friendid!')
+        }
+    }
+    return result.error? result : values
+}
+module.exports.chatRoomUpdateInputRevise = (chatid, title)=>{
+    const values = { chatid, title }
+    const result = { error: false, field: [], issue: [] }
+    if(isThereProblemWithDBKey(values.chatid)){
+        result.error = true
+        result.field.push('chatid')
+        result.issue.push('The chatid is not acceptable!')
+    }
+    if(isThereProblemWithChatTitle(values.title)){
+        result.error = true;
+        result.field.push('title')
+        result.issue.push('The title of chatroom is not acceptable!')
+    }
+    return result.error? result : values
+}
+module.exports.chatRoomDelteInputRevise = (chatid)=>{
+    const values = { chatid }
+    const result = { error: false, field: [], issue: [] }
+    if(isThereProblemWithDBKey(values.chatid)){
+        result.error = true
+        result.field.push('chatid')
+        result.issue.push('The chatid is not acceptable!')
+    }
+    return result.error? result : values
+}
+
+module.exports.sendMessageInputRevise = (chatid, message)=>{
+    const values = { chatid, message }
+    const result = { error: false, field: [], issue: [] }
+    if(isThereProblemWithDBKey(values.chatid)){
+        result.error = true
+        result.field.push('chatid')
+        result.issue.push('The chatid is not acceptable!')
+    }
+    if(isThereProblemWithMessage(values.message)){
+        result.error = true;
+        result.field.push('message')
+        result.issue.push('The message to the chatroom is not acceptable!')
+    }
+    return result.error? result : values
+}
+module.exports.updateMessageInputRvise = (chatid, messageid, message)=>{
+    const values = { chatid, messageid, message }
+    const result = { error: false, field: [], issue: [] }
+    if(isThereProblemWithDBKey(values.chatid)){
+        result.error = true
+        result.field.push('chatid')
+        result.issue.push('The chatid is not acceptable!')
+    }
+    if(isThereProblemWithDBKey(values.messageid)){
+        result.error = true
+        result.field.push('messageid')
+        result.issue.push('The messageid is not acceptable!')
+    }
+    if(isThereProblemWithMessage(values.message)){
+        result.error = true;
+        result.field.push('message')
+        result.issue.push('The message to the chatroom is not acceptable!')
+    }
+    return result.error? result : values
+}
+module.exports.deleteMessageInputRevise = (messageid)=>{
+    const values = { messageid }
+    const result = { error: false, field: [], issue: [] }
+    if(isThereProblemWithDBKey(values.messageid)){
+        result.error = true
+        result.field.push('messageid')
+        result.issue.push('The messageid is not acceptable!')
+    }
+    return result.error? result : values
+}
 
 
 
@@ -500,10 +621,38 @@ function isThereProblemWithContent(content){
 }
 
 function isThereProblemWithTargetTxt(target){
-    return (target !== 'POST' && target !== 'COMMENT' )
+    return (target !== 'POST' && target !== 'COMMENT' && target !== 'MESSAGE' )
 }
 
 function isThereProblemWithSentimentTxt(target){
     const templates = [ 'LIKE', 'DISLIKE', 'LOVE', 'FUNNY', 'SAD', 'MAD']
     return !templates.includes(target)
+}
+
+function isThereProblemWithArray(target){
+    if(Array.isArray(target)){
+        return target.length === 0
+    }
+    return true
+}
+
+function isThereProblemWithPartnersArray(target){
+    for(const item of target){
+        if(isThereProblemWithDBKey(item)){ return true }
+    }
+    return false
+}
+
+function isThereProblemWithChatTitle(target){
+    if(!target || typeof target !== 'string'){ 
+        return true 
+    }
+    return target.length > 70 || target.length == 0
+}
+
+function isThereProblemWithMessage(target){
+    if(!target || typeof target !== 'string'){ 
+        return true 
+    }
+    return target.length > 150 || target.length == 0
 }
