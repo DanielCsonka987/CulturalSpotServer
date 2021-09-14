@@ -269,34 +269,122 @@ module.exports.commentTestDatas2 = [
 module.exports.sentimentTestDatas = [
     {
         content: 'LIKE',
-        createdAt: new Date('04 May 2020 12:33 UTC').toISOString()
+        createdAt: new Date('04 May 2020 12:33 UTC').toISOString(),
+        updatedAt: null
     },
     {
         content: 'LIKE',
-        createdAt: new Date('11 June 2021 02:51 UTC').toISOString()
+        createdAt: new Date('11 June 2021 02:51 UTC').toISOString(),
+        updatedAt: null
     },
     {
         content: 'DISLIKE',
-        createdAt: new Date('19 November 2020 16:23 UTC').toISOString()
+        createdAt: new Date('19 November 2020 16:23 UTC').toISOString(),
+        updatedAt: null
     },
     {
         content: 'SAD',     //no.3
-        createdAt: new Date('23 December 2020 04:30 UTC').toISOString()
+        createdAt: new Date('23 December 2020 04:30 UTC').toISOString(),
+        updatedAt: null
     },
     {
         content: 'FUNNY',   //no.4
-        createdAt: new Date('05 September 2020 20:17 UTC').toISOString()
+        createdAt: new Date('05 September 2020 20:17 UTC').toISOString(),
+        updatedAt: null
     },
     {
         content: 'LOVE',    //no.5
-        createdAt: new Date('26 October 2020 16:44 UTC').toISOString()
+        createdAt: new Date('26 October 2020 16:44 UTC').toISOString(),
+        updatedAt: null
     },
     {
         content: 'MAD', //no.6
-        createdAt: new Date('03 March 2020 14:49 UTC').toISOString()
+        createdAt: new Date('03 March 2020 14:49 UTC').toISOString(),
+        updatedAt: null
     },
     {
         content: 'LIKE',
-        createdAt: new Date('01 MAy 2021 12:31 UTC').toISOString()
+        createdAt: new Date('01 May 2021 12:31 UTC').toISOString(),
+        updatedAt: null
     },
+]
+
+module.exports.chatTestDatas1 = [
+    {
+        owner: null,
+        startedAt: new Date('01 September 2021 12:37 UTC'),
+        title: 'Chatroom 1',
+        partners: []
+    }
+]
+module.exports.chatTestDatas2 = [
+    {
+        title: 'Chatroom 2',
+    },
+    {
+        title: 'Chatroom 3',
+    },
+]
+
+module.exports.messageTestDatas1 = [
+    {
+        sentAt: new Date('01 September 2021 12:37 UTC'),
+        owner: null,
+        content: 'Message 0',
+        prevMsg: null,
+        nextMsg: null,
+        sentiments: []
+    },
+    {
+        sentAt: new Date('01 September 2021 12:56 UTC'),
+        owner: null,
+        content: 'Message 1',
+        prevMsg: null,
+        nextMsg: null,
+        sentiments: []
+    },
+    {
+        sentAt: new Date('01 September 2021 13:32 UTC'),
+        owner: null,
+        content: 'Message 2',
+        prevMsg: null,
+        nextMsg: null,
+        sentiments: []
+    },
+    {
+        sentAt: new Date('01 September 2021 14:12 UTC'),
+        owner: null,
+        content: 'Message 3',
+        prevMsg: null,
+        nextMsg: null,
+        sentiments: []
+    },
+    {
+        sentAt: new Date('01 September 2021 14:25 UTC'),
+        owner: null,
+        content: 'Message 4',
+        prevMsg: null,
+        nextMsg: null,
+        sentiments: []
+    },
+    {
+        sentAt: new Date('01 September 2021 14:34 UTC'),
+        owner: null,
+        content: 'Message 5',
+        prevMsg: null,
+        nextMsg: null,
+        sentiments: []
+    },
+]
+
+module.exports.messageTestDatas2 = [
+    {
+        content: 'Message 7',
+    },
+    {
+        content: 'Message 8',
+    },
+    {
+        content: 'Message 9',
+    }
 ]

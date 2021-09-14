@@ -9,6 +9,10 @@ const { notifyTypes } = require('../../extensions/dinamicClientNotifier/userNoti
 module.exports = {
 
     Query: {
+        async searchSomeUser(_, args, { authorizRes, dataSources }){
+
+            return []
+        },
         async listOfMyFriends(_, __, { authorizRes, dataSources }){
             authorizEvaluation(authorizRes)
 

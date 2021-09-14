@@ -113,7 +113,7 @@ module.exports = gql`
     type Sentiment {
         sentimentid: String!
         createdAt: String!
-        updatedAt: String!
+        updatedAt: String
         owner: UserFracture!
         content: Opinion!
     }
@@ -132,24 +132,26 @@ module.exports = gql`
     ## for chattings
     type ChatRoom {
         chatid: String!
-        partners: [UserMini]!
-        owner: UserMini!
+        partners: [UserFracture]!
+        owner: UserFracture!
         title: String!
         startedAt: String!
         messages: [MessageUnit]!
     }
     type MessageUnit {
         chatid: String!
+        messageid: String!
         sentAt: String!
-        owner: UserMini!
-        contnet: String!
-        sentiments: [Opinion]!
+        owner: UserFracture!
+        content: String!
+        sentiments: [Sentiment]!
     }
     type ChatRoomProcess {
         chatid: String!
         resultText: String!
-        alterationType: ChatRoomProcess!
-        alteredUsers: [String]!
+        alterationType: ChatProcess!
+        addedUsers: [UserFracture]!
+        removedUsers: [String]!
         updatedTitle: String
     }
     type MessageProcess {
@@ -157,23 +159,26 @@ module.exports = gql`
         messageid: String
         resultText: String!
     }
-    enum ChatRoomProcess {
-        ADD_PARTNERS
-        REMOVE_PARTNERS
-        UPDATE_ROOMTITLE
-        DELETE_ROOM
+    enum ChatProcess {
+        ADDED_PARTNERS
+        REMOVED_PARTNERS
+        UPDATED_CHATROOM
+        DELETED_CHATROOM
     }
-
 
 
  
     type Query {
-        testquery: String!
 
+        ## generals
+        testquery: String!
+        
         ## account processes
         refreshAuth: TokenAuth!
-
+        
         ## friend processes
+        searchSomeUser(username: String, email: String): [UserFracture]!
+
         listOfMyFriends: [UserMini]!
         listOfUndecidedFriendships: [UserFracture]!
         listOfInitiatedFriendships: [UserFracture]!
@@ -190,7 +195,7 @@ module.exports = gql`
         listOfTheseComments(targeted: TargetType!, id: String!): [Comment]!
 
         ## chatting, messaging processes
-        listOfMessagesFromChatting(chatid: String!, dating: String!, amount: Int): ChatRoom!
+        listOfMessagesFromChatting(chatid: String!, dating: String, amount: Int): ChatRoom!
 
     }
     type Mutation {
@@ -236,15 +241,15 @@ module.exports = gql`
             ## for all users
         createChatRoom(partners: [String]!, title: String!, firstContent: String!): ChatRoom!
             ## only for member users
-        addPartnersToChatRoom(partners: [String]!, chatid): ChatRoomProcess!
+        addPartnersToChatRoom(partners: [String]!, chatid: String!): ChatRoomProcess!
         sendNewMessage(chatid: String!, content: String!): MessageUnit!
             ## privilage for a specific owner/starter user
-        removePartnersFromChatRoom(partners: [String]!, chatid): ChatRoomProcess!
+        removePartnersFromChatRoom(partners: [String]!, chatid: String!): ChatRoomProcess!
         updateChatRoom(chatid: String!, title: String!): ChatRoomProcess!
         deleteChatRoom(chatid: String!): ChatRoomProcess!
             ## only for the authors of the message
-        updateThisMessage(chatid: String!, messageid: String!, content: String!): MessageUnit!
-        deleteThisMessage(chatid: String!, messageid: String!): MessageProcess!
+        updateThisMessage(messageid: String!, content: String!): MessageUnit!
+        deleteThisMessage(messageid: String!): MessageProcess!
 
 
         ## sentiment processes
@@ -256,3 +261,58 @@ module.exports = gql`
 
     }
 `;
+
+
+/**
+ * WebSocket output collection
+ * 
+ * general elveloping structure:
+ * {
+ *      event: reflects what king of procces occured (post, comment, etc.)
+ *      eventMethod: reflects that method was called, that sent this data
+ *      properAction: dedicated action, the front application should do
+ *      connectedTo: identifier, that needs to be updated at front
+ *      payload: dataunit, that front should use to update the front
+ * }
+ * 
+ *      connectedTo (-) and payload (=) types at different mutation methods
+ *      createAFriendshipInvitation -'' ={UserFracture}
+ *      removeAFriendshipInitiation -friendid =''
+ *      approveThisFriendshipRequest -'' ={UserMini}
+ *      discardThisFriendshipRequest && removeThisFriend -friendid =''
+ * 
+ * 
+ *      makeAPost   -'' ={Post}
+ *      updateThisPost -'' ={Post part}
+ *      removeThisPost -postid, =''
+ * 
+ *      
+ *          (if parent and root same => connecting to a Post)
+ *      createCommentToHere -{ parent: id, root: id } ={Comment}
+ *      updateCommentContent -{ parent: id, root: id } ={Comment part}
+ *      deleteThisComment   -{parent: id, root: id, parentUpdate: DateStr }
+ *                          = { commentid: id }
+ * 
+ * 
+ *      createChatRoom  - '' = { ChatRoom part }
+ *      addPartnersToChatRoom - '' = { ChatRoom part }
+ *      removePartnersFromChatRoom - '' = { ChatRoom part }
+ *      updateChatRoom - '' = { ChatRoom part }
+ *      deleteChatRoom - '' = { ChatRoom part }
+ *      sendNewMessage -{ chatid: id } ={MessageUnit part}
+ *      updateThisMessage -{ chatid: id } ={MessageUnit part}
+ *      deleteThisMessage -{ chatid: id, messageid: id } =''
+ * 
+ * 
+ *      createSentimentToHere   
+ *              ={Sentiment}
+ *      updateSentimentContent 
+ *              ={Sentiment}
+ *          POST -{parent: id, root: '', parentUpdate: DateStr }
+ *          COMMENT -{ parent id, root id, parentUpdate: DateStr }
+ *          CHAT    -{ chatid: id, messageid: id }
+ * 
+ *      deleteThisSentiment
+ *          CHAT    -{ chatid: id, messageid: id, rentimentid: id }
+ *              =''
+ */

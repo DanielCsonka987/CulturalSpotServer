@@ -53,7 +53,9 @@ describe('Testing WsExtension 1', ()=>{
                 expect(typeof pollRes.event).toBe('string')
                 expect(pollRes.event).toBe('comment')
                 expect(typeof pollRes.eventMethod).toBe('string')
-                expect(pollRes.eventMethod).toBe('contentChanged')
+                expect(pollRes.eventMethod).toBe('commentUpdated')
+                expect(typeof pollRes.properAction).toBe('string')
+                expect(pollRes.properAction).toBe('update')
 
                 expect(typeof pollRes.connectedTo).toBe('string')
                 expect(pollRes.connectedTo).toBe('0123')
@@ -77,7 +79,7 @@ describe('Testing WsExtension 1', ()=>{
 
             activeRepo.sendNotification('0123456789abcdef0123456a', 
                 '0123', { commentid: 'abcdef', content: 'Stg', comments: [], sentiments: [] }, 
-                notifyTypes.COMMENT.CONTENT_CHANGED
+                notifyTypes.COMMENT.COMMENT_UPDATED
             )
             setTimeout(()=>{
                 done()  //time for proper msg evaluation at client

@@ -340,6 +340,33 @@ module.exports.opinionDeleteInputRevise = (targetingTxt, targetID, ID,)=>{
 
 // CHATROOM AND MESSAGES REVISION
 
+
+module.exports.chatMessagesQueryInputRevise = (chatid, date, amount)=>{
+    const values = { chatid }
+    const result = { error: false, field: [], issue: [] }
+
+    if(isThereProblemWithDBKey(values.chatid)){
+        result.error = true
+        result.field.push('chatid')
+        result.issue.push('The chatid is not acceptable!')
+    }
+    if(itThereProblemWithDate(date)){
+        result.error = true
+        result.field.push('date')
+        result.issue.push('The date is not acceptable!')
+    }else{
+        if(date){ values.date = new Date(date) }
+    }
+    if(isThereProblemWithOffsetAmount(amount)){
+        result.error = true
+        result.field.push('amount')
+        result.issue.push('The amount is not acceptable!')
+    }else{
+        values.amount = amount
+    }
+    return result.error? result : values
+}
+
 module.exports.chatRoomCreateInputRevise = (partners, title, content)=>{
     const values = { partners, title, content }
     const result = { error: false, field: [], issue: [] }
@@ -429,14 +456,9 @@ module.exports.sendMessageInputRevise = (chatid, message)=>{
     }
     return result.error? result : values
 }
-module.exports.updateMessageInputRvise = (chatid, messageid, message)=>{
-    const values = { chatid, messageid, message }
+module.exports.updateMessageInputRvise = (messageid, message)=>{
+    const values = { messageid, message }
     const result = { error: false, field: [], issue: [] }
-    if(isThereProblemWithDBKey(values.chatid)){
-        result.error = true
-        result.field.push('chatid')
-        result.issue.push('The chatid is not acceptable!')
-    }
     if(isThereProblemWithDBKey(values.messageid)){
         result.error = true
         result.field.push('messageid')
@@ -655,4 +677,21 @@ function isThereProblemWithMessage(target){
         return true 
     }
     return target.length > 150 || target.length == 0
+}
+
+function itThereProblemWithDate(target){
+    if(!target) { return false }
+    if(typeof target !== 'string'){ return true }
+    if(target.length !== 24) { return true }
+    if(!target.endsWith('000Z')) { return true}
+    // based on normal ISOString format - 2021-02-03T13:37:00.000Z
+    const analyze = new RegExp(/[0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}\.000Z/)
+    return !analyze.test(target)
+
+}
+
+function isThereProblemWithOffsetAmount(target){
+    if(target === undefined || target === null){ return false }
+    if(typeof target !== 'number'){ return true }
+    return !(target > 0 && target < 100)
 }

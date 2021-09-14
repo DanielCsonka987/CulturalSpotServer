@@ -953,7 +953,7 @@ describe('GQL Comments mutation processes', ()=>{
             .post('/graphql')
             .send({query: `mutation{
                 updateSentimentContent(targeted: POST, id: "${post2ID}",
-                    sentimentid: "${sentimID}" content: "${newContent}")
+                    sentimentid: "${sentimID}" content: ${newContent})
                 {
                     sentimentid, owner{
                         id, username, relation, mutualFriendCount
@@ -1006,7 +1006,7 @@ describe('GQL Comments mutation processes', ()=>{
             .post('/graphql')
             .send({query: `mutation{
                 updateSentimentContent(targeted: COMMENT, id: "${comm3ID}",
-                    sentimentid: "${sentimID}" content: "${newContent}")
+                    sentimentid: "${sentimID}" content: ${newContent})
                 {
                     sentimentid, owner{
                         id, username, relation, mutualFriendCount

@@ -12,9 +12,11 @@ const commentids = [
     new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId
 ]
 const chatids = [
-    new mongooseId, new mongooseId, new mongooseId
+    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId
 ]
 const messageids = [
+    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
+    new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
     new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId,
     new mongooseId, new mongooseId, new mongooseId, new mongooseId, new mongooseId
 ]
@@ -465,6 +467,24 @@ module.exports.chattings = [
         partners: [
            userids[1]
         ]
+    },
+    {
+        _id: chatids[3],
+        owner: userids[5],
+        title: 'Marketting list and argue',
+        startedAt: new Date('21 June 2021 08:14 UTC'),
+        partners: [
+           userids[9]
+        ]
+    },
+    {
+        _id: chatids[4],
+        owner: userids[0],
+        title: 'Gaming news',
+        startedAt: new Date('14 June 2021 17:20 UTC'),
+        partners: [
+           userids[3]
+        ]
     }
 ]
 
@@ -593,5 +613,125 @@ module.exports.messages = [
         nextMsg: null,
 
         sentiments: []
-    }
+    },
+    {
+        _id: messageids[10],
+        chatid: chatids[3],
+        owner: userids[5],
+
+        sentAt: new Date('21 June 2021 08:14 UTC'),
+        content: 'Hy, we need to talk about tonns of things',
+        prevMsg: null,
+        nextMsg: messageids[11],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[11],
+        chatid: chatids[3],
+        owner: userids[9],
+
+        sentAt: new Date('21 June 2021 08:18 UTC'),
+        content: 'Yeh, i am here - buying new stuff',
+        prevMsg: messageids[10],
+        nextMsg: messageids[13],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[12],
+        chatid: chatids[4],
+        owner: userids[0],
+
+        sentAt: new Date('21 June 2021 08:14 UTC'),
+        content: 'Gaming news chatroom created - i hope some peuple may join with time...',
+        prevMsg: null,
+        nextMsg: messageids[14],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[13],
+        chatid: chatids[3],
+        owner: userids[5],
+
+        sentAt: new Date('21 June 2021 08:23 UTC'),
+        content: 'Good, so we need some mic for the vocalists',
+        prevMsg: messageids[11],
+        nextMsg: messageids[16],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[14],
+        chatid: chatids[4],
+        owner: userids[3],
+
+        sentAt: new Date('21 June 2021 08:54 UTC'),
+        content: 'Perhaps soon... what mistakes did you do this season?',
+        prevMsg: messageids[12],
+        nextMsg: messageids[15],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[15],
+        chatid: chatids[4],
+        owner: userids[0],
+
+        sentAt: new Date('21 June 2021 08:55 UTC'),
+        content: 'I could not block tonns of attacks - annoying',
+        prevMsg: messageids[14],
+        nextMsg: messageids[17],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[16],
+        chatid: chatids[3],
+        owner: userids[9],
+
+        sentAt: new Date('21 June 2021 10:03 UTC'),
+        content: 'Yes, but some sheets for them may not great money',
+        prevMsg: messageids[13],
+        nextMsg: messageids[18],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[17],
+        chatid: chatids[4],
+        owner: userids[3],
+
+        sentAt: new Date('21 June 2021 09:02 UTC'),
+        content: 'Dont let it cheer you down - i see some of that - you are getting always strong attackers!',
+        prevMsg: messageids[15],
+        nextMsg: null,
+
+        sentiments: []
+    },
+    {
+        _id: messageids[18],
+        chatid: chatids[3],
+        owner: userids[5],
+
+        sentAt: new Date('21 June 2021 10:10 UTC'),
+        content: 'Shure...',
+        prevMsg: messageids[16],
+        nextMsg: messageids[19],
+
+        sentiments: []
+    },
+    {
+        _id: messageids[19],
+        chatid: chatids[3],
+        owner: userids[5],
+
+        sentAt: new Date('21 June 2021 10:19 UTC'),
+        content: 'And dont forget the guittar reparation. John crashed it again his one!',
+        prevMsg: messageids[18],
+        nextMsg: null,
+
+        sentiments: []
+    },
 ]

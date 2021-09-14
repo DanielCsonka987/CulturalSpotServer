@@ -29,11 +29,18 @@ const notifyTypes = {
     },
     
     CHAT:{
-        NEW_MESSAGE: [ 3, 'newMessage'],
-        MESSAGE_EDITED: [ 3, 'messageEdited' ],
-        MESSAGE_REMOVED: [ 3, 'messageRemoved' ],
-        OPINION_ADDED: [ 3, 'opinionedAdded'],
-        OPINION_REMOVED: [ 3, 'opinionRemoved']
+        CHATROOM_CREATED: [3, 'createdChatRoom', 'add'],
+        CHATROOM_CLIENT_ADDED: [3, 'partnerAddedToChatRoom', 'add'],
+        CHATROOM_CLIENT_REMOVED: [3, 'partnerRemovedFromChatroom', 'remove'],
+        CHATROOM_UPDATED: [3, 'updatedChatRoom', 'update' ], 
+        CHATROOM_REMOVED: [3, 'deletedChatRoom', 'remove'],
+
+        NEW_MESSAGE: [ 3, 'sentMessage', 'add'],
+        MESSAGE_EDITED: [ 3, 'messageEdited', 'update' ],
+        MESSAGE_REMOVED: [ 3, 'messageRemoved', 'remove' ],
+        OPINION_ADDED: [ 3, 'opinionedAdded', 'add'],
+        OPINION_UPDATED: [ 3, 'opinionedUpdated', 'update'],
+        OPINION_REMOVED: [ 3, 'opinionRemoved', 'remove' ]
     }
 }
 module.exports.notifyTypes = Object.freeze(notifyTypes)

@@ -1,8 +1,310 @@
-const { chatRoomCreateInputRevise, 
+const { chatRoomCreateInputRevise, chatMessagesQueryInputRevise,
     chatRoomAddRemovePartnersInputRevise, chatRoomUpdateInputRevise,
     chatRoomDelteInputRevise, sendMessageInputRevise,
     updateMessageInputRvise, deleteMessageInputRevise
     } = require('../inputRevise')
+
+describe('Chat messages query input reviseion tests', ()=>{
+    const inputs = [
+        { id: '0123456789abcdef01234567', date: '2020-12-11T10:34:00.000Z', amount: 1 },
+        { id: '0123456789abcdef01234567', date: '2020-12-11T10:34:00.000Z', amount: 14 },
+        { id: '0123456789abcdef01234567', date: '2020-12-11T10:34:00.000Z', amount: null },
+        { id: '0123456789abcdef01234567', date: '2020-12-11T10:34:00.000Z' },
+        { id: '0123456789abcdef01234567', date: null, amount: 2 },
+        { id: '0123456789abcdef01234567', amount: 2 },
+        // pointer 6
+        { id: '0123456789abcdef01', date: '2020-12-11T10:34:00.000Z', amount: 14 },
+        // pointer 7
+        { id: '0123456789abcdef01234567', date: 2001, amount: 2 },
+        { id: '0123456789abcdef01234567', date: '04 May 2020 12:33 UTC', amount: 3 },
+        { id: '0123456789abcdef01234567', date: '2020-12-11T10:34:00.000', amount: 4 },
+        { id: '0123456789abcdef01234567', date: '2020-12-11 10:34:00.000Z', amount: 5 },
+        // pointer 12
+        { id: '0123456789abcdef01234567', date: '2020-12-11T10:34:00.000Z', amount: -1 },
+        { id: '0123456789abcdef01234567', date: '2020-12-11T10:34:00.000Z', amount: 0 },
+        { id: '0123456789abcdef01234567', date: '2020-12-11T10:34:00.000Z', amount: 'five'},
+        // pointer 14
+        { id: '0123456789abcde', date: 2011, amount: 'five' },
+        { id: '0123456789abcde', date: '2011', amount: -1 }
+    ]
+
+    it('Proper input 0', ()=>{
+        const actInput = inputs[0]
+        const {error, field, issue, chatid, date, amount} =
+            chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+        expect(typeof chatid).toBe('string')
+        expect(chatid).toEqual(actInput.id)
+        expect(typeof date).toBe('object')
+        expect(date.toISOString()).toMatch('2020-12-11T10:34:00.000Z')
+        expect(typeof amount).toBe('number')
+        expect(amount).toBe(1)
+
+        expect(error).toBe(undefined)
+        expect(field).toBe(undefined)
+        expect(issue).toBe(undefined)
+    })
+    it('Proper input 1', ()=>{
+        const actInput = inputs[1]
+        const {error, field, issue, chatid, date, amount} =
+            chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+        expect(typeof chatid).toBe('string')
+        expect(chatid).toEqual(actInput.id)
+        expect(typeof date).toBe('object')
+        expect(date.toISOString()).toMatch('2020-12-11T10:34:00.000Z')
+        expect(typeof amount).toBe('number')
+        expect(amount).toBe(14)
+
+        expect(error).toBe(undefined)
+        expect(field).toBe(undefined)
+        expect(issue).toBe(undefined)
+    })
+    it('Proper input 2', ()=>{
+        const actInput = inputs[2]
+        const {error, field, issue, chatid, date, amount} =
+            chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+        expect(typeof chatid).toBe('string')
+        expect(chatid).toEqual(actInput.id)
+        expect(typeof date).toBe('object')
+        expect(date.toISOString()).toMatch('2020-12-11T10:34:00.000Z')
+        expect(typeof amount).toBe('object')
+        expect(amount).toBe(null)
+
+        expect(error).toBe(undefined)
+        expect(field).toBe(undefined)
+        expect(issue).toBe(undefined)
+    })
+    it('Proper input 3 - no amount value', ()=>{
+        const actInput = inputs[3]
+        const {error, field, issue, chatid, date, amount} =
+            chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+        expect(typeof chatid).toBe('string')
+        expect(chatid).toEqual(actInput.id)
+        expect(typeof date).toBe('object')
+        expect(date.toISOString()).toMatch('2020-12-11T10:34:00.000Z')
+        expect(typeof amount).toBe('undefined')
+
+        expect(error).toBe(undefined)
+        expect(field).toBe(undefined)
+        expect(issue).toBe(undefined)
+    })
+    it('Proper input 4 - no date value', ()=>{
+        const actInput = inputs[4]
+        const {error, field, issue, chatid, date, amount} =
+            chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+        expect(typeof chatid).toBe('string')
+        expect(chatid).toEqual(actInput.id)
+        expect(typeof date).toMatch('undefined')
+        expect(typeof amount).toBe('number')
+        expect(amount).toBe(2)
+
+        expect(error).toBe(undefined)
+        expect(field).toBe(undefined)
+        expect(issue).toBe(undefined)
+    })
+    it('Proper input 5', ()=>{
+        const actInput = inputs[5]
+        const {error, field, issue, chatid, date, amount} =
+            chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+        expect(typeof chatid).toBe('string')
+        expect(chatid).toEqual(actInput.id)
+        expect(typeof date).toMatch('undefined')
+        expect(typeof amount).toBe('number')
+        expect(amount).toBe(2)
+
+        expect(error).toBe(undefined)
+        expect(field).toBe(undefined)
+        expect(issue).toBe(undefined)
+    })
+    it('Inproper inputs 6 - chatid', ()=>{
+        const actInput = inputs[6]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('chatid')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The chatid is not acceptable!')
+    })
+    it('Inproper inputs 7 - date format fail', ()=>{
+        const actInput = inputs[7]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('date')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The date is not acceptable!')
+    })
+    it('Inproper inputs 8', ()=>{
+        const actInput = inputs[7]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('date')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The date is not acceptable!')
+    })
+    it('Inproper inputs 9', ()=>{
+        const actInput = inputs[9]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('date')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The date is not acceptable!')
+    })
+    it('Inproper inputs 10', ()=>{
+        const actInput = inputs[10]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('date')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The date is not acceptable!')
+    })
+    it('Inproper inputs 11 - amount', ()=>{
+        const actInput = inputs[11]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('amount')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The amount is not acceptable!')
+    })
+    it('Inproper inputs 12', ()=>{
+        const actInput = inputs[12]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('amount')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The amount is not acceptable!')
+    })
+    it('Inproper inputs 13', ()=>{
+        const actInput = inputs[13]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(1)
+        expect(field[0]).toBe('amount')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(1)
+        expect(issue[0]).toBe('The amount is not acceptable!')
+    })
+    it('Inproper inputs 14 - all', ()=>{
+        const actInput = inputs[14]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(3)
+        expect(field[0]).toBe('chatid')
+        expect(field[1]).toBe('date')
+        expect(field[2]).toBe('amount')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(3)
+        expect(issue[0]).toBe('The chatid is not acceptable!')
+        expect(issue[1]).toBe('The date is not acceptable!')
+        expect(issue[2]).toBe('The amount is not acceptable!')
+    })
+    it('Inproper inputs 15', ()=>{
+        const actInput = inputs[14]
+        const {error, field, issue, chatid, date, amount} =
+        chatMessagesQueryInputRevise(actInput.id, actInput.date, actInput.amount)
+
+        expect(chatid).toBe(undefined)
+        expect(date).toBe(undefined)
+        expect(amount).toBe(undefined)
+
+        expect(typeof error).toBe('boolean')
+        expect(error).toBeTruthy()
+        expect(typeof field).toBe('object')
+        expect(field).toHaveLength(3)
+        expect(field[0]).toBe('chatid')
+        expect(field[1]).toBe('date')
+        expect(field[2]).toBe('amount')
+        expect(typeof issue).toBe('object')
+        expect(issue).toHaveLength(3)
+        expect(issue[0]).toBe('The chatid is not acceptable!')
+        expect(issue[1]).toBe('The date is not acceptable!')
+        expect(issue[2]).toBe('The amount is not acceptable!')
+    })
+})
+
 
 describe('Chatroom creation processes input revision tests', ()=>{
     const inputs = [
@@ -577,33 +879,23 @@ describe('Message updating input revision tests', ()=>{
 
     const inputs = [
         { 
-            chat: '0123456789abcdef01234567', 
             msg: 'abcdef0123456789abcdef01', cont: 'A message' 
         },
         { 
-            chat: '0123456789ab', 
-            msg: 'abcdef0123456789abcdef01', cont: 'A message' 
-        },
-        { 
-            chat: '0123456789abcdef01234567', 
             msg: 'abcdef012', cont: 'A message' 
         },
         { 
-            chat: '0123456789abcdef01234567', 
             msg: 'abcdef0123456789abcdef01', cont: '' 
         },
         { 
-            chat: '0123456789abcd', 
             msg: '', cont: '' 
         }
     ]
     it('Proper input 0', ()=>{
         const actInput = inputs[0]
-        const { error, field, issue, chatid, messageid, message } = 
-            updateMessageInputRvise( actInput.chat, actInput.msg, actInput.cont)
+        const { error, field, issue, messageid, message } = 
+            updateMessageInputRvise( actInput.msg, actInput.cont)
 
-        expect(typeof chatid).toBe('string')
-        expect(chatid).toBe(actInput.chat)
         expect(typeof messageid).toBe('string')
         expect(messageid).toBe(actInput.msg)
         expect(typeof message).toBe('string')
@@ -613,28 +905,10 @@ describe('Message updating input revision tests', ()=>{
         expect(field).toBe(undefined)
         expect(issue).toBe(undefined)
     })
-    it('Inproper input 1 - chatid', ()=>{
+    it('Inproper input 1 - messageid', ()=>{
         const actInput = inputs[1]
-        const { error, field, issue, chatid, messageid, message } = 
-            updateMessageInputRvise( actInput.chat, actInput.msg, actInput.cont)
-
-        expect(typeof error).toBe('boolean')
-        expect(error).toBeTruthy()
-        expect(typeof field).toBe('object')
-        expect(field).toHaveLength(1)
-        expect(field[0]).toBe('chatid')
-        expect(typeof issue).toBe('object')
-        expect(issue).toHaveLength(1)
-        expect(issue[0]).toBe('The chatid is not acceptable!')
-
-        expect(chatid).toBe(undefined)
-        expect(messageid).toBe(undefined)
-        expect(message).toBe(undefined)
-    })
-    it('Inproper input 2 - messageid', ()=>{
-        const actInput = inputs[2]
-        const { error, field, issue, chatid, messageid, message } = 
-            updateMessageInputRvise( actInput.chat, actInput.msg, actInput.cont)
+        const { error, field, issue, messageid, message } = 
+            updateMessageInputRvise( actInput.msg, actInput.cont)
 
         expect(typeof error).toBe('boolean')
         expect(error).toBeTruthy()
@@ -645,14 +919,13 @@ describe('Message updating input revision tests', ()=>{
         expect(issue).toHaveLength(1)
         expect(issue[0]).toBe('The messageid is not acceptable!')
 
-        expect(chatid).toBe(undefined)
         expect(messageid).toBe(undefined)
         expect(message).toBe(undefined)
     })
-    it('Inproper input 3 - message', ()=>{
-        const actInput = inputs[3]
-        const { error, field, issue, chatid, messageid, message } = 
-            updateMessageInputRvise( actInput.chat, actInput.msg, actInput.cont)
+    it('Inproper input 2 - message', ()=>{
+        const actInput = inputs[2]
+        const { error, field, issue, messageid, message } = 
+            updateMessageInputRvise( actInput.msg, actInput.cont)
 
         expect(typeof error).toBe('boolean')
         expect(error).toBeTruthy()
@@ -663,29 +936,25 @@ describe('Message updating input revision tests', ()=>{
         expect(issue).toHaveLength(1)
         expect(issue[0]).toBe('The message to the chatroom is not acceptable!')
 
-        expect(chatid).toBe(undefined)
         expect(messageid).toBe(undefined)
         expect(message).toBe(undefined)
     })
-    it('Inproper input 4 - all', ()=>{
-        const actInput = inputs[4]
-        const { error, field, issue, chatid, messageid, message } = 
-            updateMessageInputRvise( actInput.chat, actInput.msg, actInput.cont)
+    it('Inproper input 3 - all', ()=>{
+        const actInput = inputs[3]
+        const { error, field, issue,  messageid, message } = 
+            updateMessageInputRvise( actInput.msg, actInput.cont)
 
         expect(typeof error).toBe('boolean')
         expect(error).toBeTruthy()
         expect(typeof field).toBe('object')
-        expect(field).toHaveLength(3)
-        expect(field[0]).toBe('chatid')
-        expect(field[1]).toBe('messageid')
-        expect(field[2]).toBe('message')
+        expect(field).toHaveLength(2)
+        expect(field[0]).toBe('messageid')
+        expect(field[1]).toBe('message')
         expect(typeof issue).toBe('object')
-        expect(issue).toHaveLength(3)
-        expect(issue[0]).toBe('The chatid is not acceptable!')
-        expect(issue[1]).toBe('The messageid is not acceptable!')
-        expect(issue[2]).toBe('The message to the chatroom is not acceptable!')
+        expect(issue).toHaveLength(2)
+        expect(issue[0]).toBe('The messageid is not acceptable!')
+        expect(issue[1]).toBe('The message to the chatroom is not acceptable!')
 
-        expect(chatid).toBe(undefined)
         expect(messageid).toBe(undefined)
         expect(message).toBe(undefined)
     })

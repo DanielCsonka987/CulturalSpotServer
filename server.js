@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 
 const PORT_REST = process.env.PORT || 4040;
 const LOCAL_DOMAIN_URL = { apolloUrl: '' }
-const { theDBConnect, theDBConfig } = require('./extensions/databaseClientSetup')
+const { theDBConnect, theDBConfig, theDBExit } = require('./extensions/databaseClientSetup')
 const additionalRoutings = require('./controler/routings')
 
 const typeDefs = require('./graphql/typeDef')
@@ -106,11 +106,10 @@ startServer();
 module.exports.startTestingServer = startServer
 
 module.exports.exitTestingServer = async ()=>{
-   await apolloSrv.stop()
-   await mongoose.connection.removeAllListeners()
-   await mongoose.disconnect()
-   await emailerClienShutdown
-   wsExtensionStop()
-   console.log('Server is stopping!')
+    await apolloSrv.stop()
+    await theDBExit
+    await emailerClienShutdown
+    wsExtensionStop()
+    console.log('Server is stopping!')
 }
 

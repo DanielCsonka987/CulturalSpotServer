@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
-const DB_CONNECT = retquire('../config/dbConfig').dbCloud
+const DB_CONNECT = require('../config/dbConfig').dbCloud
 
+let reconnectionDesired = true
 
 const theDBConnect = ()=>{
     mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
@@ -17,19 +18,25 @@ const theDBConfig = ()=>{
         console.log('MongoDB connection closed!');
     })
     .on('disconnected', ()=>{
-        dbConnectIsRestored = false;
-        const reconRef = setInterval(()=>{ 
-            if(dbConnectIsRestored){
-                clearInterval(reconRef)
-            }else{
-                console.log('MongoDB connection restore...')
-                theDBConnect() 
-            }
-        }, 5000 )
+        if(reconnectionDesired){
+            dbConnectIsRestored = false;
+            const reconRef = setInterval(()=>{ 
+                if(dbConnectIsRestored){
+                    clearInterval(reconRef)
+                }else{
+                    console.log('MongoDB connection restore...')
+                    theDBConnect() 
+                }
+            }, 5000 )
+        }
     })
     .on('reconnected', ()=>{ console.log('MongoDB connection restored!') })
 }
-
+const theDBExit = async ()=>{
+    reconnectionDesired = false
+    //await mongoose.connection.removeAllListeners()
+    await mongoose.close()
+}
 module.exports = {
-    theDBConnect, theDBConfig
+    theDBConnect, theDBConfig, theDBExit
 }

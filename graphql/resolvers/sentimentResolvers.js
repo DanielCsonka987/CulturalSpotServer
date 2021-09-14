@@ -1,4 +1,4 @@
-const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server-express')
+const { AuthenticationError, UserInputError, ApolloError, ForbiddenError  } = require('apollo-server-express')
 const MongooseID = require('mongoose').Types.ObjectId
 
 const { authorizEvaluation } = require('./resolveHelpers')
@@ -22,7 +22,11 @@ module.exports = {
             if(!clientUser){
                 return AuthenticationError('No user found', { general: 'No target of Token id' })
             }
-            let targetObject = null
+            let targetToExtend = null
+            let clientsToNotify  = []
+            const routerObj = {}
+            let notifyEventConfig = null
+
             const newSentim = {
                 _id: new MongooseID(),
                 owner: clientUser._id,
@@ -32,29 +36,48 @@ module.exports = {
             }
             try{
                 if(targetingTxt === 'POST'){
-                    targetObject = await dataSources.posts.get(targetID)
-                    targetObject.sentiments.push(newSentim)
-                    await dataSources.posts.saving(targetObject)
+                    targetToExtend = await dataSources.posts.get(targetID)
+                    targetToExtend.sentiments.push(newSentim)
+                    await dataSources.posts.saving(targetToExtend)
+
+                    clientsToNotify = clientUser.friends
+                    routerObj.parent = targetToExtend._id
+                    routerObj.root =  ''
+                    notifyEventConfig = notifyTypes.POST.OPINION_ADDED 
                 }
                 if(targetingTxt === 'COMMENT'){
-                    targetObject = await dataSources.comments.get(targetID)
-                    targetObject.sentiments.push(newSentim)
-                    await dataSources.comments.saving(targetObject)
+                    targetToExtend = await dataSources.comments.get(targetID)
+                    targetToExtend.sentiments.push(newSentim)
+                    await dataSources.comments.saving(targetToExtend)
+
+                    clientsToNotify = clientUser.friends
+                    routerObj.parent = targetToExtend._id
+                    routerObj.root =  targetToExtend.rootPost
+                    notifyEventConfig = notifyTypes.COMMENT.OPINION_ADDED
+                }
+                if(targetingTxt === 'MESSAGE'){
+                    targetToExtend = await dataSources.messages.get(targetID)
+                    targetToExtend.sentiments.push(newSentim)
+                    await dataSources.messages.saving(targetToExtend)
+
+                    const theChat= await dataSources.chats.get(targetToExtend.chatid)
+                    const tempPartn = theChat.partners
+                    tempPartn.push(theChat.owner)
+                    clientsToNotify = tempPartn.filter(prtn=>{
+                        return !prtn._id.equals(clientUser._id)
+                    })
+
+                    routerObj.messageid = targetToExtend._id
+                    routerObj.chatid = targetToExtend.chatid
+                    notifyEventConfig = notifyTypes.CHAT.OPINION_ADDED
+
                 }
             }catch(err){
-                return new ApolloError('Sentiment creation error', { err })
+                return new ApolloError('Sentiment creation error', err )
             }
 
-            const rootVal = (targetingTxt === 'POST')? '' : targetObject.rootPost
-            const notifyEventConfig = (targetingTxt === 'POST')? 
-                notifyTypes.POST.OPINION_ADDED : notifyTypes.COMMENT.OPINION_ADDED
-            for(const frnd of clientUser.friends){
-
-                wsNotifier.sendNotification(frnd.toString(), {
-                    parent: targetObject._id,
-                    root: rootVal,
-                    parentUpdate: newSentim.createdAt
-                },{
+            for(const clnt of clientsToNotify){
+                wsNotifier.sendNotification(clnt.toString(), routerObj ,{
                     sentimentid: newSentim._id.toString(),
                     owner: newSentim.owner,
                     content: newSentim.content,
@@ -84,20 +107,26 @@ module.exports = {
                 return AuthenticationError('No user found', { general: 'No target of Token id' })
             }
 
-            let targetObject = null
+            let targetToUpdate = null
+            const routeObj = {}
+            let notifyEventConfig = null
+            let clientsToNotify = []
             if(targetingTxt === 'POST'){
-                targetObject = await dataSources.posts.get(targetID)
+                targetToUpdate = await dataSources.posts.get(targetID)
             }
             if(targetingTxt === 'COMMENT'){
-                targetObject = await dataSources.comments.get(targetID)
+                targetToUpdate = await dataSources.comments.get(targetID)
             }
-            if(!targetObject){
+            if(targetingTxt === 'MESSAGE'){
+                targetToUpdate = await dataSources.messages.get(targetID)
+            }
+            if(!targetToUpdate){
                 return new ApolloError('No target is found to update its sentiment', 
                     { general: `No ${targetingTxt.toLowerCase()} with id ${targetID}` }
                 )
             }
-            
-            const sentimToUpdate = targetObject.sentiments.filter(
+
+            const sentimToUpdate = targetToUpdate.sentiments.filter(
                     item=>{ return item._id.toString() === sentimID }
                 )[0]
             if(!sentimToUpdate){
@@ -106,33 +135,50 @@ module.exports = {
                 )
             }
             if(!sentimToUpdate.owner.equals(clientUser._id)){
-                return AuthenticationError('No permission to update this sentiment', 
+                return new ForbiddenError('Forbiddento update this sentiment', 
                     { general: `No proper ownership to sentiment ${sentimID}` }
                 )
             }
-
             sentimToUpdate.updatedAt = new Date().toISOString()
             sentimToUpdate.content = sentimCont
             try{
                 if(targetingTxt === 'POST'){
-                    await dataSources.posts.saving(targetObject)
+                    await dataSources.posts.saving(targetToUpdate)
+                    clientsToNotify = clientUser.friends
+                    routeObj.root = ''
+                    routeObj.parent = targetToUpdate._id.toString()
+                    routeObj.parentUpdate = sentimToUpdate.updatedAt
+                    notifyEventConfig = notifyTypes.POST.OPINION_UPDATED
                 }
                 if(targetingTxt === 'COMMENT'){
-                    await dataSources.comments.saving(targetObject)
+                    await dataSources.comments.saving(targetToUpdate)
+                    clientsToNotify = clientUser.friends
+                    routeObj.root = targetToUpdate.rootPost.toString()
+                    routeObj.parent = targetToUpdate._id.toString()
+                    routeObj.parentUpdate = sentimToUpdate.updatedAt
+                    notifyEventConfig = notifyTypes.COMMENT.OPINION_UPDATED
+                }
+                if(targetingTxt === 'MESSAGE'){
+                    await dataSources.messages.saving(targetToUpdate)
+
+                    const theChat = await dataSources.chats.get(targetToUpdate.chatid)
+                    const tempPartn = theChat.partners
+                    tempPartn.push(theChat.owner)
+                    clientsToNotify = tempPartn.filter(prtn=>{
+                        return !prtn._id.equals(clientUser._id)
+                    })
+
+                    routeObj.chatid = targetToUpdate.chatid.toString()
+                    routeObj.messageid = targetToUpdate._id.toString()
+                    routeObj.parentUpdate = sentimToUpdate.updatedAt
+                    notifyEventConfig = notifyTypes.CHAT.OPINION_UPDATED
                 }
             }catch(err){
                 return new ApolloError('Sentiment creation error', { err })
             }
 
-            const rootVal = (targetingTxt === 'POST')? '' : targetObject.rootPost
-            const notifyEventConfig = (targetingTxt === 'POST')? 
-                notifyTypes.POST.OPINION_UPDATED : notifyTypes.COMMENT.OPINION_UPDATED
-            for(const frnd of clientUser.friends){
-                wsNotifier.sendNotification(frnd.toString(), {
-                    parent: targetObject._id,
-                    root: rootVal,
-                    parentUpdate: sentimToUpdate.updatedAt
-                },{
+            for(const clnt of clientsToNotify){
+                wsNotifier.sendNotification(clnt.toString(), routeObj, {
                     sentimentid: sentimToUpdate._id.toString(),
                     owner: sentimToUpdate.owner,
                     content: sentimToUpdate.content,
@@ -161,62 +207,81 @@ module.exports = {
             if(!clientUser){
                 return AuthenticationError('No user found', { general: 'No target of Token id' })
             }
-
-            let targetObject = null
+            let targetToTrim = null
+            const routeObj = {}
+            let notifyEventConfig = null
+            let clientsToNotify = []
             if(targetingTxt === 'POST'){
-                targetObject = await dataSources.posts.get(targetID)
+                targetToTrim = await dataSources.posts.get(targetID)
             }
             if(targetingTxt === 'COMMENT'){
-                targetObject = await dataSources.comments.get(targetID)
+                targetToTrim = await dataSources.comments.get(targetID)
             }
-            if(!targetObject){
+            if(targetingTxt === 'MESSAGE'){
+                targetToTrim = await dataSources.messages.get(targetID)
+            }
+            if(!targetToTrim){
                 return new ApolloError('No target is found to delete a sentiment on that', 
                     { general: `No ${targetingTxt.toLowerCase()} with id ${targetID}` }
                 )
             }
 
-            const sentimToDel = targetObject.sentiments.filter(
+            const sentimToDel = targetToTrim.sentiments.filter(
                 item=>{ return item._id.toString() === ID}
             )[0]
             if(!sentimToDel.owner.equals(clientUser._id)){
-                return AuthenticationError('No permission to delete this sentiment', 
+                return AuthenticationError('Forbidden the deletion of this sentiment', 
                     { general: `No proper ownership to sentiment ${ID}` }
                 )
             }
-            targetObject.sentiments = targetObject.sentiments.filter(
+            targetToTrim.sentiments = targetToTrim.sentiments.filter(
                 item=>{ return item._id.toString() !== ID}
             )
-            targetObject.updatedAt = new Date().toISOString()
-            let notifyEventConfig = null
+            targetToTrim.updatedAt = new Date().toISOString()
+
             try{
                 if(targetingTxt === 'POST'){
-                    await dataSources.posts.saving(targetObject)
+                    await dataSources.posts.saving(targetToTrim)
+                    routeObj.root = ''
+                    routeObj.parent = targetToTrim._id.toString()
+                    routeObj.parentUpdate = targetToTrim.updatedAt
+                    clientsToNotify = clientUser.friends
                     notifyEventConfig = notifyTypes.POST.OPINION_REMOVED
                 }
                 if(targetingTxt === 'COMMENT'){
-                    await dataSources.comments.saving(targetObject)
+                    await dataSources.comments.saving(targetToTrim)
+                    routeObj.root = targetToTrim.rootPost.toString()
+                    routeObj.parent = targetToTrim._id.toString()
+                    routeObj.parentUpdate = targetToTrim.updatedAt
+                    clientsToNotify = clientUser.friends
                     notifyEventConfig = notifyTypes.COMMENT.OPINION_REMOVED
                 }
+                if(targetingTxt === 'MESSAGE'){
+                    await dataSources.messages.saving(targetToTrim)
+                    routeObj.chatid = targetToTrim.chatid.toString()
+                    routeObj.messageid = targetToTrim._id.toString()
+                    
+                    const theChat = await dataSources.chats.get(targetToTrim.chatid)
+                    const tempPartn = theChat.partners
+                    tempPartn.push(theChat.owner)
+                    clientsToNotify = tempPartn.filter(prtn=>{
+                        return !prtn.equals(clientUser._id)
+                    })
+                    notifyEventConfig = notifyTypes.CHAT.OPINION_REMOVED
+                }
+                routeObj.sentimentid = ID
             }catch(err){
                 return new ApolloError('Sentiment deletion error', { err })
             }
 
-            const rootVal = (targetingTxt === 'POST')? '' : targetObject.rootPost.toString()
-            for(const frnd of clientUser.friends){
-
-                wsNotifier.sendNotification(frnd.toString(), {
-                    parent: targetObject._id.toString(),
-                    root: rootVal,
-                    parentUpdate: targetObject.updatedAt
-                },{
-                    id: ID
-                },notifyEventConfig)
+            for(const clnt of clientsToNotify){
+                wsNotifier.sendNotification(clnt.toString(), routeObj , '', notifyEventConfig)
             }
 
             return {
                 targetType: targetingTxt,
                 targetId: targetID,
-                targetUpdate: targetObject.updatedAt,
+                targetUpdate: targetToTrim.updatedAt,
                 id: ID,
                 resultText: 'Sentiment deletion done!'
             }

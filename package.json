@@ -4,12 +4,18 @@
   "description": "Simple social medai site to demonstrate developing abbilites of creator",
   "main": "server.js",
   "scripts": {
-    "test": "jest -o",
     "testPost": "jest postServices.test.js",
     "testAcc": "jest accountServices.test.js",
+    "testChat": "jest chatService.test.js",
     "testWs": "jest wsServices.test.js",
+
     "testRep": "jest repository.test.js",
     "testUtil": "jest ./utils/",
+    "testEmailS": "jest emailerServices.test.js",
+    "testEmailU": "jest emailerUnit.test.js",
+    "testNotif1": "jest notifierService.test.js",
+    "testNotif2": "jest notifierService2.test.js",
+
     "seedLocalDB": "node ./models/dbSeeder.js local",
     "seedCloudDB": "node ./models/dbSeeder.js cloud",
     "dev": "nodemon server.js",

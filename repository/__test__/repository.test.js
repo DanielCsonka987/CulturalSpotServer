@@ -490,6 +490,58 @@ describe('Messages DataSource tests', ()=>{
         })
     }, 6000)
 
+
+    it('Delete all messages by chatid', (done)=>{
+        const dsMess = new MsgDs()
+        dsMess.initialize({ context: 'stg' })
+
+        const chatID = docMessages[12].chatid
+        const contentToRecreate = [
+            docMessages[12], docMessages[14], docMessages[15], docMessages[17]
+        ]
+        const toRecreate = []
+        for(const item of contentToRecreate){
+            toRecreate.push({
+                chatid: chatID,
+                sentAt: item.sentAt,
+                owner: item.owner,
+                content: item.content,
+                sentiments: item.sentiments
+            })
+        }
+
+        setTimeout(async ()=>{
+            await dsMess.deleteAllChattings(chatID)
+            
+            MessageModel.find({ chatid: chatID}, (e1, d1)=>{
+                expect(e1).toBe(null)
+                expect(d1).toHaveLength(0)
+                MessageModel.create(toRecreate, async (e2, d2)=>{
+                    expect(e2).toBe(null)
+                    expect(d2).toHaveLength(4)
+
+                    d2[0].prevMsg = null
+                    d2[0].nextMsg = d2[1]._id
+                    await d2[0].save()
+
+                    d2[1].prevMsg = d2[0]._id
+                    d2[1].nextMsg = d2[2]._id
+                    await d2[1].save()
+
+                    d2[2].prevMsg = d2[1]._id
+                    d2[2].nextMsg = d2[3]._id
+                    await d2[2].save()
+
+                    d2[3].prevMsg = d2[2]._id
+                    d2[3].nextMsg = null
+                    await d2[3].save()
+                    done()
+                })
+            })
+        }, 1500)
+
+    })
+
     it('Delete one in the middle', (done)=>{
 
         const dsMess = new MsgDs()
@@ -548,6 +600,7 @@ describe('Messages DataSource tests', ()=>{
             })
         })
     })
+    
     it('Delete one in the end', (done)=>{
         const dsMess = new MsgDs()
         dsMess.initialize({ context: 'stg' })
