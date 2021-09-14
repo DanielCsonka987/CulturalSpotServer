@@ -43,6 +43,7 @@ module.exports = {
                     clientsToNotify = clientUser.friends
                     routerObj.parent = targetToExtend._id
                     routerObj.root =  ''
+                    routerObj.parentUpdate = newSentim.createdAt
                     notifyEventConfig = notifyTypes.POST.OPINION_ADDED 
                 }
                 if(targetingTxt === 'COMMENT'){
@@ -53,6 +54,7 @@ module.exports = {
                     clientsToNotify = clientUser.friends
                     routerObj.parent = targetToExtend._id
                     routerObj.root =  targetToExtend.rootPost
+                    routerObj.parentUpdate = newSentim.createdAt
                     notifyEventConfig = notifyTypes.COMMENT.OPINION_ADDED
                 }
                 if(targetingTxt === 'MESSAGE'){

@@ -330,7 +330,8 @@ describe('Friends mutations tests', ()=>{
             expect(env.eventMethod).toBe('cancelledInvitation')
             expect(typeof env.properAction).toBe('string')
             expect(env.properAction).toBe('remove')
-            expect(env.connectedTo).toBe(user0.id)
+            expect(typeof env.connectedTo).toBe('object')
+            expect(env.connectedTo.idOfRequester).toBe(user0.id)
             expect(env.payload).toBe('')
             
             theWsOf4.close()
@@ -448,7 +449,8 @@ describe('Friends mutations tests', ()=>{
             expect(env.eventMethod).toBe('discardedRequest')
             expect(typeof env.properAction).toBe('string')
             expect(env.properAction).toBe('remove')
-            expect(env.connectedTo).toBe(user0.id)
+            expect(typeof env.connectedTo).toBe('object') 
+            expect(env.connectedTo.idOfInvited).toBe(user0.id)
             expect(env.payload).toBe('')
 
             theWsOf5.close()
@@ -504,7 +506,8 @@ describe('Friends mutations tests', ()=>{
             expect(env.eventMethod).toBe('removedFriendship')
             expect(typeof env.properAction).toBe('string')
             expect(env.properAction).toBe('remove')
-            expect(env.connectedTo).toBe(user0.id)
+            expect(typeof env.connectedTo).toBe('object') 
+            expect(env.connectedTo.friendid).toBe(user0.id)
             expect(env.payload).toBe('')
 
             theWsOf1.close()
@@ -688,7 +691,8 @@ describe('Posts mutations tests', ()=>{
                 expect(env.eventMethod).toBe('postRemoved')
                 expect(typeof env.properAction).toBe('string')
                 expect(env.properAction).toBe('remove')
-                expect(env.connectedTo).toBe(posts[3].id)
+                expect(typeof env.connectedTo).toBe('object') 
+                expect(env.connectedTo.postid).toBe(posts[3].id)
                 expect(typeof env.payload).toBe('string')
                 expect(env.payload).toBe('')
             }
@@ -1003,10 +1007,11 @@ describe('Comments and sentiments mutations tests', ()=>{
                 expect(typeof env.connectedTo).toBe('object')
                 expect(env.connectedTo.root).toBe(posts[2].id)
                 expect(env.connectedTo.parent).toBe(comments[3].id)
+                expect(env.connectedTo.commentid).toBe(comments[4].id)
                 expect(typeof env.connectedTo.parentUpdate).toBe('string')
 
-                expect(typeof env.payload).toBe('object')
-                expect(env.payload.id).toBe(comments[4].id)
+                expect(typeof env.payload).toBe('string')
+                expect(env.payload).toBe('')
             }
         })
     
@@ -1330,9 +1335,10 @@ describe('Comments and sentiments mutations tests', ()=>{
                 expect(env.connectedTo.root).toBe('')
                 expect(env.connectedTo.parent).toBe(posts[4].id)
                 expect(typeof env.connectedTo.parentUpdate).toBe('string')
+                expect(env.connectedTo.sentimentid).toBe(sentiments[1].id)
 
-                expect(typeof env.payload).toBe('object')
-                expect(env.payload.id).toBe(sentiments[1].id)
+                expect(typeof env.payload).toBe('string')
+                expect(env.payload).toBe('')
             }
         })
     
@@ -1392,9 +1398,10 @@ describe('Comments and sentiments mutations tests', ()=>{
                 expect(env.connectedTo.root).toBe(posts[4].id)
                 expect(env.connectedTo.parent).toBe(comments[5].id)
                 expect(typeof env.connectedTo.parentUpdate).toBe('string')
+                expect(env.connectedTo.sentimentid).toBe(sentiments[3].id)
 
-                expect(typeof env.payload).toBe('object')
-                expect(env.payload.id).toBe(sentiments[3].id)
+                expect(typeof env.payload).toBe('string')
+                expect(env.payload).toBe('')
             }
         })
     

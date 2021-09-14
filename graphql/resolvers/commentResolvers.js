@@ -253,9 +253,8 @@ module.exports = {
                     root: commentToDel.rootPost, 
                     parent: targetID, 
                     parentUpdate: targetObject.updatedAt,
-                }, {
-                    id: ID
-                }, notifyTypes.COMMENT.COMMENT_DELETED)
+                    commentid: ID
+                }, '', notifyTypes.COMMENT.COMMENT_DELETED)
             }
 
             return {

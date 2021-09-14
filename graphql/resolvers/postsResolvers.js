@@ -259,8 +259,9 @@ module.exports = {
 
             for(const frnd of clientUser.friends){
 
-                wsNotifier.sendNotification(frnd.toString(), postToRemove._id.toString(), 
-                    '', notifyTypes.POST.POST_REMOVED)
+                wsNotifier.sendNotification(frnd.toString(), 
+                    { postid: postToRemove._id.toString() }, '', 
+                    notifyTypes.POST.POST_REMOVED)
             }
 
             return {

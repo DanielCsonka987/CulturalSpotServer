@@ -82,7 +82,7 @@ module.exports = {
             const theOwner = await dataSources.profiles.get(parent.owner)
             return await userFractureTypeDefine(theOwner, clientUser, dataSources)
         },
-        partners: async (parent, _, { authorizRes, dataSources })=>{
+        partners: async (parent, _, { authorizRes, dataSources })=>{     //[UserFracture] type return
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
             const thePartners = await dataSources.profiles.getAllOfThese(parent.partners)
             return thePartners.map(async item => await userFractureTypeDefine(item, clientUser, dataSources )) 

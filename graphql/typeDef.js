@@ -177,7 +177,7 @@ module.exports = gql`
         refreshAuth: TokenAuth!
         
         ## friend processes
-        searchSomeUser(username: String, email: String): [UserFracture]!
+        searchForSomeUser(username: String!): [UserFracture]!
 
         listOfMyFriends: [UserMini]!
         listOfUndecidedFriendships: [UserFracture]!
@@ -274,29 +274,30 @@ module.exports = gql`
  *      connectedTo: identifier, that needs to be updated at front
  *      payload: dataunit, that front should use to update the front
  * }
- * 
  *      connectedTo (-) and payload (=) types at different mutation methods
+ * 
  *      createAFriendshipInvitation -'' ={UserFracture}
- *      removeAFriendshipInitiation -friendid =''
+ *      removeAFriendshipInitiation - {idOfRequester: id } =''
  *      approveThisFriendshipRequest -'' ={UserMini}
- *      discardThisFriendshipRequest && removeThisFriend -friendid =''
+ *      discardThisFriendshipRequest -{idOfInvited: id} =''
+ *      removeThisFriend -{friendid: id} =''
  * 
  * 
  *      makeAPost   -'' ={Post}
  *      updateThisPost -'' ={Post part}
- *      removeThisPost -postid, =''
+ *      removeThisPost -{postid: id}, =''
  * 
  *      
  *          (if parent and root same => connecting to a Post)
  *      createCommentToHere -{ parent: id, root: id } ={Comment}
  *      updateCommentContent -{ parent: id, root: id } ={Comment part}
- *      deleteThisComment   -{parent: id, root: id, parentUpdate: DateStr }
- *                          = { commentid: id }
+ *      deleteThisComment   -{ parent: id, root: id, parentUpdate: DateStr, 
+ *                                commentid: id  }      = ''
  * 
  * 
- *      createChatRoom  - '' = { ChatRoom part }
- *      addPartnersToChatRoom - '' = { ChatRoom part }
- *      removePartnersFromChatRoom - '' = { ChatRoom part }
+ *      createChatRoom  - '' = {ChatRoom part}
+ *      addPartnersToChatRoom - '' = {ChatRoom part}
+ *      removePartnersFromChatRoom - '' = {ChatRoom part}
  *      updateChatRoom - '' = { ChatRoom part }
  *      deleteChatRoom - '' = { ChatRoom part }
  *      sendNewMessage -{ chatid: id } ={MessageUnit part}
@@ -304,15 +305,16 @@ module.exports = gql`
  *      deleteThisMessage -{ chatid: id, messageid: id } =''
  * 
  * 
- *      createSentimentToHere   
+ *      createSentimentToHere  *
  *              ={Sentiment}
- *      updateSentimentContent 
+ *      updateSentimentContent *
  *              ={Sentiment}
- *          POST -{parent: id, root: '', parentUpdate: DateStr }
+ * 
+ *        * POST -{parent: id, root: '', parentUpdate: DateStr }
  *          COMMENT -{ parent id, root id, parentUpdate: DateStr }
  *          CHAT    -{ chatid: id, messageid: id }
  * 
  *      deleteThisSentiment
- *          CHAT    -{ chatid: id, messageid: id, rentimentid: id }
+ *          CHAT    -{ chatid: id, messageid: id, sentimentid: id }
  *              =''
  */

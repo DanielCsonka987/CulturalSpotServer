@@ -18,6 +18,12 @@ class ProfileDataSource extends MyDataSource{
                 keys.map( key=>{ return this.dbModel.findOne({ email: key }) }) 
             )
         })
+
+        this.loaderWiithUsername = new DataLoader(keys=>{
+            return Promise.all(
+                keys.map( key=>{ return this.dbModel.find({ username: { $regex: key}  }) })
+            )
+        })
     }
 
     /**
@@ -56,6 +62,23 @@ class ProfileDataSource extends MyDataSource{
         }
         
         return doc
+    }
+
+
+    async getWithScreening(username, { ttlInSeconds} = {}){
+        const results = this.loaderWiithUsername.load(username)
+        if(results.length === 0){
+            return []
+        }
+        if (ttlInSeconds || this.globalTTLinSec) {
+            const ttlValue = ttlInSeconds || this.globalTTLinSec
+            for(const user of results){
+                this.cache.set(
+                    this.cacheKey(user._id), JSON.stringify(user), { ttl: ttlValue }
+                )
+            }
+        }
+        return results
     }
 }
 

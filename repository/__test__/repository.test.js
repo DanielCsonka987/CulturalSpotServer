@@ -17,6 +17,9 @@ const MsgDs = require('../messageDS')
 
 //it uses the seeded datas as testdata!!!
 
+//reseeding, the order will change
+const { messages } = require('../../models/testdatasToDB')  
+
 let docProfiles = []
 let docPosts = []
 let docComments = null
@@ -40,11 +43,14 @@ beforeAll((done)=>{
                     expect(e4).toBe(null)
                     docChats = d4
 
-                    MessageModel.find({}, (e5, d5)=>{
+                    MessageModel.deleteMany({}, (e5, d5)=>{
                         expect(e5).toBe(null)
-                        docMessages = d5
 
-                        done()
+                        MessageModel.insertMany(messages, (e6, d6) =>{
+                            docMessages = d6
+    
+                            done()
+                        })
                     })
                 })
             })
@@ -427,6 +433,25 @@ describe('Specialised DataSource testing', ()=>{
             }, 1500)
         })
     })
+
+    it('Profiles search by username', ()=>{
+        const dsProf = new ProfDs()
+        dsProf.initialize({ context: 'stg' });
+
+        ProfileModel.find({username: { $regex:  'Pass'} }, async (e1, docs)=>{
+            expect(e1).toBe(null)
+            expect(docs).toHaveLength(2)
+            expect(docs[0].username).toBe('Passer By')
+            expect(docs[1].username).toBe('Passenger')
+
+            const res = await dsProf.getWithScreening('Pass')
+            expect(res).toHaveLength(2)
+
+            expect(res[0].username).toBe('Passer By')
+            expect(res[1].username).toBe('Passenger')
+
+        })
+    })
 })
 
 describe('Messages DataSource tests', ()=>{
@@ -436,7 +461,7 @@ describe('Messages DataSource tests', ()=>{
         const dsMess = new MsgDs()
         dsMess.initialize({ context: 'stg' })
 
-        const chatID = docMessages[6].chatid
+        const chatID = docMessages[6].chatid    //chatting 0
         const dateStarter = docMessages[6].sentAt
         const amount = 3
         const res = await dsMess.getChattingWithPreciseDate(
@@ -457,7 +482,7 @@ describe('Messages DataSource tests', ()=>{
             const dsMess = new MsgDs()
             dsMess.initialize({ context: 'stg' })
             const ownerID = docProfiles[0]._id
-            const chatID = docMessages[8].chatid
+            const chatID = docMessages[8].chatid    //chatting 0
             const prevMsgID = docMessages[8]._id
     
     
@@ -495,7 +520,7 @@ describe('Messages DataSource tests', ()=>{
         const dsMess = new MsgDs()
         dsMess.initialize({ context: 'stg' })
 
-        const chatID = docMessages[12].chatid
+        const chatID = docMessages[12].chatid   //chatting 4
         const contentToRecreate = [
             docMessages[12], docMessages[14], docMessages[15], docMessages[17]
         ]
@@ -547,7 +572,7 @@ describe('Messages DataSource tests', ()=>{
         const dsMess = new MsgDs()
         dsMess.initialize({ context: 'stg' })
 
-        const prevDoc = docMessages[2]
+        const prevDoc = docMessages[2]  //chatting 0
         const docMiddle = docMessages[4]
         const nextDoc = docMessages[6]
 
@@ -605,7 +630,7 @@ describe('Messages DataSource tests', ()=>{
         const dsMess = new MsgDs()
         dsMess.initialize({ context: 'stg' })
 
-        const prevDoc = docMessages[5]
+        const prevDoc = docMessages[5]  //chatting 1
         const docEnd = docMessages[7]
         expect(prevDoc.nextMsg.toString()).toBe(docEnd._id.toString())
         expect(docEnd.prevMsg.toString()).toBe(prevDoc._id.toString())
@@ -647,8 +672,8 @@ describe('Messages DataSource tests', ()=>{
         const dsMess = new MsgDs()
         dsMess.initialize({ context: 'stg' })
 
-        const begDoc = docMessages[0]
-        const nextDoc = docMessages[1]
+        const begDoc = docMessages[10]   //chatting 3
+        const nextDoc = docMessages[11]
         expect(begDoc.prevMsg).toBe(null)
         expect(begDoc.nextMsg.toString()).toBe(nextDoc._id.toString())
         expect(nextDoc.prevMsg.toString()).toBe(begDoc._id.toString())
@@ -690,7 +715,7 @@ describe('Messages DataSource tests', ()=>{
         const dsMess = new MsgDs()
         dsMess.initialize({ context: 'stg' })
 
-        const singleDoc = docMessages[9]
+        const singleDoc = docMessages[9]    //chatting 2
 
         expect(singleDoc.prevMsg).toBe(null)
         expect(singleDoc.nextMsg).toBe(null)

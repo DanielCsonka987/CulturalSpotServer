@@ -9,9 +9,25 @@ const { notifyTypes } = require('../../extensions/dinamicClientNotifier/userNoti
 module.exports = {
 
     Query: {
-        async searchSomeUser(_, args, { authorizRes, dataSources }){
+        async searchForSomeUser(_, args, { authorizRes, dataSources }){
+            authorizEvaluation(authorizRes)
 
-            return []
+            if(!args.username){
+                return []
+            }
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
+            const result = await dataSources.profiles.getWithScreening(args.username)  
+            return result.map(async user=>{ return{
+                    id: user._id.toString(),
+                    username: user.username,
+                    relation: defineUserConnections(
+                        user._id, clientUser, dataSources
+                    ),
+                    mutualFriendCount: await countTheAmountOfFriends(
+                        user._id, clientUser, dataSources
+                    )
+                }
+            })
         },
         async listOfMyFriends(_, __, { authorizRes, dataSources }){
             authorizEvaluation(authorizRes)
@@ -220,7 +236,7 @@ module.exports = {
             }
 
             wsNotifier.sendNotification(targetUser._id.toString(), 
-                clientUser._id.toString(), '',
+                { idOfRequester: clientUser._id.toString()}, '',
                 notifyTypes.FRIEND.INVITATION_CANCELLED
             )
 
@@ -316,7 +332,8 @@ module.exports = {
             }
 
             wsNotifier.sendNotification(targetUser._id.toString(), 
-                clientUser._id.toString(), '', notifyTypes.FRIEND.REQUEST_DISCARDED
+                { idOfInvited: clientUser._id.toString() }, '', 
+                notifyTypes.FRIEND.REQUEST_DISCARDED
             )
             return{
                 useridAtProcess: targetUser._id.toString(),
@@ -358,7 +375,8 @@ module.exports = {
             }
             
             wsNotifier.sendNotification(targetUser._id.toString(), 
-                clientUser._id.toString(), '', notifyTypes.FRIEND.CONNECTION_DISCARDED
+                { friendid: clientUser._id.toString() }, '', 
+                notifyTypes.FRIEND.CONNECTION_DISCARDED
             )
             return{
                 useridAtProcess: targetUser._id.toString(),

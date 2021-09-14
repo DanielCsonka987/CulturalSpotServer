@@ -795,6 +795,32 @@ describe('GrapQL profile queries', ()=>{
 })
 
 describe('Graphql friend queries', ()=>{
+
+    it('Seek users by username query', (done)=>{
+        const userEmailTarget = userTesting.get('User 1').email;
+        const userIdTarget = userTesting.get('User 1').id;
+        const authToken = authorizTokenEncoder({ subj: userIdTarget, email: userEmailTarget } )
+        request(theSrv)
+        .post('/graphql')
+        .send({query: ` query{
+            searchForSomeUser(username: "${'User'}"){
+                    id, username, relation, mutualFriendCount
+                }
+            }`
+        })
+        .set('Authorization', createTokenToHeader(authToken))
+        .set('Accept', 'application/json')
+        .expect('Content-Type', 'application/json; charset=utf-8')
+        .expect(200)
+        .end((err,res)=>{
+            expect(err).toBe(null)
+            expect(res.body.errors).toBe(undefined)
+
+            expect(typeof res.body.data.searchForSomeUser).toBe('object')
+            expect(res.body.data.searchForSomeUser).toHaveLength(7) //User 0 -> User 6
+            done()
+        })
+    })
     it('My friends query', (done)=>{
         const userEmailTarget = userTesting.get('User 1').email;
         const userIdTarget = userTesting.get('User 1').id;
