@@ -1,7 +1,7 @@
 const WebSocket = require('ws')
 const { createServer } = require('http')
 
-const PORT_WS = process.env.PORT2 || 3030;
+const PORT_WS = process.env.PORT_WS || 3030;
 
 const { webSocketAuthenticationRevise, authorizTokenVerify 
     } = require('../utils/tokenManager')

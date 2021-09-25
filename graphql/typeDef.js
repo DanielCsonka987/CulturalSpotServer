@@ -3,7 +3,7 @@ const { gql } = require('apollo-server-express')
 module.exports = gql`
 
     ## for account matters
-    type UserLogging {
+    type UserLoggingContent {
         id: String!
         email: String!
         username: String!
@@ -15,6 +15,18 @@ module.exports = gql`
 
         friends: [UserMini]!
         allPosts: [Post]!
+        allChats: [ChatRoomMini]!
+    }
+    type UserPrivateContent {
+        id: String!
+        email: String!
+        username: String!
+        registeredAt: String!
+        lastLoggedAt: String!
+
+        friends: [UserMini]!
+        allPosts: [Post]!
+        allChats: [ChatRoomMini]!
     }
     type TokenAuth {
         id: String!
@@ -34,7 +46,7 @@ module.exports = gql`
     }
 
     ## for friends managing, not account datas approach
-    type UserPublic {
+    type UserPublicContent {
         id: String!
         email: String!
         username: String!
@@ -138,6 +150,12 @@ module.exports = gql`
         startedAt: String!
         messages: [MessageUnit]!
     }
+    type ChatRoomMini {
+        chatid: String!
+        owner: UserFracture!
+        title: String!
+        startedAt: String!
+    }
     type MessageUnit {
         chatid: String!
         messageid: String!
@@ -175,24 +193,25 @@ module.exports = gql`
         
         ## account processes
         refreshAuth: TokenAuth!
-        
+        requireClientContent: UserPrivateContent!
+
         ## friend processes
         searchForSomeUser(username: String!): [UserFracture]!
 
         listOfMyFriends: [UserMini]!
         listOfUndecidedFriendships: [UserFracture]!
         listOfInitiatedFriendships: [UserFracture]!
-        showThisUserInDetail(friendid: String!): UserPublic 
+        showThisUserInDetail(friendid: String!): UserPublicContent 
             ## undecidedCon and friends of friends
         showMeWhoCouldBeMyFriend: [UserFracture]!
 
         ## posts processes
-        listOfMySentPosts: [Post]      ## own posts to a specific user
-        listOfMyRecievedPosts: [Post]  ## specificly addressed to the user
-        listOfAllPosts: [Post]         ## own and firends posts
+        listOfMySentPosts(dating: String, amount: Int): [Post]      ## own posts to a specific user
+        listOfMyRecievedPosts(dating: String, amount: Int): [Post]  ## specificly addressed to the user
+        listOfAllPosts(dating: String, amount: Int): [Post]         ## own and firends posts
 
         ## comments, sentiments processes
-        listOfTheseComments(targeted: TargetType!, id: String!): [Comment]!
+        listOfTheseComments(targeted: TargetType!, id: String!, dating: String, amount: Int): [Comment]!
 
         ## chatting, messaging processes
         listOfMessagesFromChatting(chatid: String!, dating: String, amount: Int): ChatRoom!
@@ -201,8 +220,8 @@ module.exports = gql`
     type Mutation {
 
         ## account operations - tested!
-        login(email: String!, password: String! ): UserLogging!
-        registration(email: String!, username: String!, password: String!, passwordconf: String! ): UserLogging!
+        login(email: String!, password: String! ): UserLoggingContent!
+        registration(email: String!, username: String!, password: String!, passwordconf: String! ): UserLoggingContent!
         resetPasswordStep1(email: String!): AccountProcess!
         changePassword(oldpassword: String!, newpassword: String!, newconf: String!): AccountProcess!
         changeAccountDatas(username: String! ): AccountProcess!

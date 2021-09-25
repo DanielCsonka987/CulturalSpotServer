@@ -1,32 +1,45 @@
 
-const { countTheAmountOfFriends, defineUserConnections } = require('./resolveHelpers')
+const { countTheAmountOfFriends, defineUserConnections, filterPostsByDateAndAmount_Stamps } = require('./resolveHelpers')
 
 module.exports = {
-    UserLogging: {
+    UserLoggingContent: {
         friends: async (parent, _, { dataSources })=>{     //UserMini type return
             const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
             return friendsArray.map(userMiniTypeDefine)
         },
         allPosts: async (parent, _, { dataSources })=>{    //Post type return
-            //comments and sentiments are needed
-            let clientPosts = []
-            if(parent.posts){
-                clientPosts = await dataSources.posts.getAllOfThese(parent.posts)
-            }
-            let friendsPosts = []
-            if(parent.friends){
-               const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
-   
-               const groupsOfPostIDs = friendsArray.map(item=>{ return item.myPosts })
-               const friendsPosts = await dataSources.posts.getAllPostsFromGroups(groupsOfPostIDs)
-            }
+            const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
+            const groupsOfPostIDs = friendsArray.map(item=>{ return item.myPosts })
 
-            const finalPosts = [ ...clientPosts, ...friendsPosts ]
+            const allPostsIDs = filterPostsByDateAndAmount_Stamps(parent.posts, groupsOfPostIDs)
+            const finalPosts = await dataSources.posts.getAllOfThese(allPostsIDs)
+
             return finalPosts.map(postTypeDefine)
+        },
+        allChats: async (parent, _, { dataSources })=>{
+            const clientChattings = await dataSources.chats.getAllOfThese(parent.chats)
+            return clientChattings.map(chatMiniTypeDefine)
         }
     },
-    
-    UserPublic: {
+    UserPrivateContent: {
+        friends: async (parent, _, { dataSources })=>{     //UserMini type return
+            const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
+            return friendsArray.map(userMiniTypeDefine)
+        },
+        allPosts: async (parent, _, { dataSources })=>{    //Post type return
+            const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
+            const groupsOfPostIDs = friendsArray.map(item=>{ return item.myPosts })
+            
+            const allPostsIDs = filterPostsByDateAndAmount_Stamps(parent.posts, groupsOfPostIDs)
+            const finalPosts = await dataSources.posts.getAllOfThese(allPostsIDs)
+            return finalPosts.map(postTypeDefine)
+        },
+        allChats: async (parent, _, { dataSources })=>{
+            const clientChattings = await dataSources.chats.getAllOfThese(parent.chats)
+            return clientChattings.map(chatMiniTypeDefine)
+        }
+    },
+    UserPublicContent: {
         friends: async (parent, _, { authorizRes, dataSources })=>{     //UserFracture type return
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
             //may needs friends empty handling
@@ -98,6 +111,13 @@ module.exports = {
             return theMessages.map(messageUnitTypeDefine)            
         }
     },
+    ChatRoomMini:{
+        owner: async (parent, _, { authorizRes, dataSources })=>{     //UserFracture type return
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
+            const theOwner = await dataSources.profiles.get(parent.owner)
+            return await userFractureTypeDefine(theOwner, clientUser, dataSources)
+        },
+    },
     ChatRoomProcess: {
         addedUsers: async (parent, _, { authorizRes, dataSources })=>{
             if(!parent.addedUsers){
@@ -163,9 +183,17 @@ function sentimentTypeDefine(sentimentUnit){
 function messageUnitTypeDefine(msgUnit){
     return {
         messageid: msgUnit._id.toString(),
-        sentAt: msgUnit.sentAt,
+        sentAt:  msgUnit.sentAt? msgUnit.sentAt.toISOString() : '',
         owner: msgUnit.owner,
         content: msgUnit.content,
         sentiments: msgUnit.sentiments
+    }
+}
+function chatMiniTypeDefine(chatUnit){
+    return{
+        chatid: chatUnit._id,
+        owner: chatUnit.owner,
+        title: chatUnit.title,
+        startedAt: chatUnit.startedAt.toISOString()
     }
 }

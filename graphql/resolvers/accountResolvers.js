@@ -10,8 +10,6 @@ const { loginInputRevise, registerInputRevise,
     updateAccDetInputRevise, resetPwdInputRevise, 
  } = require('../../utils/inputRevise')
 
-//const EmailReportModel = require('../../models/EmailReportModel')
-const PWD_REFRESH_PATH = require('../../config/appConfig').ROUTING.RESETPWD_REST_GET_ROUTE
 
 // someHelper function in resolving - not standalone, apollo connected!
 const { authorizEvaluation, tokenRefreshmentEvaluation } = require('./resolveHelpers')
@@ -28,25 +26,6 @@ async function passwordsMatching(user, pwdText){
         throw new AuthenticationError('Wrong password!', { general: 'No match with account!' })
     }
 }
-
-/*
-async function saveEmailReportToDB(emailToAddres, emailTypeTxt, emailQuality,
-    smtpIdOrErrorMsg){
-
-    const newRecord = new EmailReportModel({
-        msgdate: new Date().toISOString(),
-        msgto: emailToAddres,
-        msgtype: emailTypeTxt,
-        msgcontent: emailQuality,
-        msgresult: smtpIdOrErrorMsg
-    })
-    try{
-        await newRecord.save()
-    }catch(err){
-        console.log('Email-sending registration error: ' + err)
-    }
-}
-*/
 
 module.exports = {
     Query: {
@@ -71,7 +50,23 @@ module.exports = {
                 newToken: authorizTokenEncoder({subj: clientUser._id.toString(), email: clientUser.email}),
                 tokenExpire: 3600
             }
+        },
+        async requireClientContent(_, __, { dataSources, authorizRes }){
+            authorizEvaluation(authorizRes)
 
+            const clientUser = await dataSources.profiles.get(authorizRes.subj)
+            return clientUser.getUserPrivateData
+            /*{
+                id: clientUser._id,
+                email: clientUser.email,
+                username: clientUser.username,
+                registeredAt: clientUser.registeredAt.toISOString(),
+                lastLoggedAt: clientUser.lastLoggedAt.toISOString(),
+
+                friends: clientUser.friends,   //array of userids
+                posts: clientUser.myPosts,  //array of postids
+                chats: clientUser.myChats
+            }*/
         }
     },
     Mutation: {
@@ -97,7 +92,7 @@ module.exports = {
             //temporary saving out then update logged timestamp
             const lastLoggedTime = userToLogin.lastLoggedAt
             const refreshTokenStr = createLoginRefreshToken({id: userToLogin._id.toString()})
-            userToLogin.lastLoggedAt = new Date().toISOString()
+            userToLogin.lastLoggedAt = new Date()
             userToLogin.resetPwdMarker = '';
             userToLogin.refreshToken = refreshTokenStr;
             try{
@@ -105,7 +100,10 @@ module.exports = {
             }catch(err){
                 return new ApolloError('Login timestamp persisting failed!')
             }
-            
+            return userToLogin.getUserLoginDatas(
+                authorizTokenEncoder({subj: userToLogin._id.toString(), email: userToLogin.email}),
+                refreshTokenStr, 3600, lastLoggedTime)
+            /*
             return {
                 id: userToLogin._id,
                 email: userToLogin.email,
@@ -113,12 +111,13 @@ module.exports = {
                 token: authorizTokenEncoder({subj: userToLogin._id.toString(), email: userToLogin.email}),
                 tokenExpire: 3600,
                 refreshToken: refreshTokenStr,
-                registeredAt: userToLogin.registeredAt,
-                lastLoggedAt: lastLoggedTime,
+                registeredAt: userToLogin.registeredAt.toISOString(),
+                lastLoggedAt: lastLoggedTime.toISOString(),
 
                 friends: userToLogin.friends,   //array of userids
-                posts: userToLogin.myPosts  //array of postids
-            }
+                posts: userToLogin.myPosts,  //array of postids
+                chats: userToLogin.myChats
+            }*/
         },
 
         async registration(_, args, { dataSources, domainURL, emailingServices }){
@@ -140,14 +139,14 @@ module.exports = {
             }
             
             let newUser = ''
-            const actTimeISO = new Date().toISOString()
+            const actTime = new Date()
             try{
                 newUser = await dataSources.profiles.create({
                     email: email,
                     username: username,
                     pwdHash: encrypt.hash,
-                    registeredAt: actTimeISO,
-                    lastLoggedAt: actTimeISO,
+                    registeredAt: actTime,
+                    lastLoggedAt: actTime,
                     resetPwdMarker: '',
                     refreshToken: '',
         
@@ -169,19 +168,24 @@ module.exports = {
             await emailingServices.registrationEmailSending(domainURL.apolloUrl)
                 .executeEmailSending(newUser.email)
 
+            return newUser.getUserLoginDatas(
+                authorizTokenEncoder({subj: newUser._id.toString(), email: newUser.email}),
+                refreshToken, 3600)
+                /*
             return {
                 id: newUser._id,
                 token: authorizTokenEncoder({ subj: newUser._id.toString(), email: newUser.email }),
                 tokenExpire: 3600,
                 email: newUser.email,
                 username: newUser.username,
-                registeredAt: newUser.registeredAt,
-                lastLoggedAt: newUser.lastLoggedAt,
+                registeredAt: newUser.registeredAt.toISOString(),
+                lastLoggedAt: newUser.lastLoggedAt.toISOString(),
                 refreshToken: refreshToken,
 
                 friends: [],
-                allPosts: []
-            }
+                allPosts: [],
+                allChats: []
+            }*/
         },
 /* 
  * Resetting forgotten password first step -> email creation with link

@@ -191,9 +191,9 @@ describe('Parent DataSource positive tests', ()=>{
         const ids = [ docProfiles[3]._id, docProfiles[0]._id.toString(), docProfiles[4]._id ]
         const docArr = await dsParent.getAllOfThese(ids)
         expect(docArr).toHaveLength(3)
-        expect(docArr[0]).toStrictEqual(docProfiles[3])
-        expect(docArr[1]).toStrictEqual(docProfiles[0])
-        expect(docArr[2]).toStrictEqual(docProfiles[4])
+        expect(docArr[0]._id).toStrictEqual(docProfiles[3]._id)
+        expect(docArr[1]._id).toStrictEqual(docProfiles[0]._id)
+        expect(docArr[2]._id).toStrictEqual(docProfiles[4]._id)
     })
 
     it('Parent deleting method test', async ()=>{
@@ -405,7 +405,7 @@ describe('Specialised DataSource testing', ()=>{
             const dsComm = new CommDs()
             dsComm.initialize({ context: 'stg' })
 
-            const commentToDel = [ docComments[6]._id ]
+            const commentToDel = docComments[6]._id
             const commToReinsert = []
             for(let i = 6; i < 10; i++){
                 commToReinsert.push(docComments[i])

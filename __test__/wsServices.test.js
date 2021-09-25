@@ -100,8 +100,14 @@ beforeAll((done)=>{
                     expect(e4).toBe(null)
                     expect(typeof psts).toBe('object')
 
-                    usrs[0].myPosts.push(psts[0]._id)
-                    usrs[0].myPosts.push(psts[1]._id)
+                    usrs[0].myPosts.push({
+                        postid: psts[0]._id, 
+                        createdAt: psts[0].createdAt
+                    })
+                    usrs[0].myPosts.push({
+                        postid: psts[1]._id, 
+                        createdAt: psts[1].createdAt
+                    })
                     await usrs[0].save()
                     psts[0].owner = usrs[0]._id
                     psts[1].owner = usrs[0]._id
@@ -110,9 +116,18 @@ beforeAll((done)=>{
                     posts.push({ id: psts[0]._id.toString()})
                     posts.push({ id: psts[1]._id.toString()})
 
-                    usrs[3].myPosts.push(psts[2]._id)
-                    usrs[3].myPosts.push(psts[3]._id)
-                    usrs[3].myPosts.push(psts[4]._id)
+                    usrs[3].myPosts.push({
+                        postid: psts[2]._id,
+                        createdAt: psts[2].createdAt
+                    })
+                    usrs[3].myPosts.push({
+                        postid: psts[3]._id,
+                        createdat: psts[3].createdAt
+                    })
+                    usrs[3].myPosts.push({
+                        postid: psts[4]._id,
+                        createdAt: psts[4].createdAt
+                    })
                     await usrs[3].save()
                     psts[2].owner = usrs[3]._id
                     psts[3].owner = usrs[3]._id
@@ -151,13 +166,22 @@ beforeAll((done)=>{
                         CommentModel.insertMany(commentTestDatas1, async (e5, cmmts)=>{
                             expect(e5).toBe(null)
 
-                            psts[0].comments.push(cmmts[0]._id)
-                            psts[0].comments.push(cmmts[1]._id)
+                            psts[0].comments.push({
+                                commentid: cmmts[0]._id, 
+                                createdAt: cmmts[0].createdAt
+                            })
+                            psts[0].comments.push({
+                                commentid: cmmts[1]._id,
+                                createdAt: cmmts[1].createdAt
+                            })
                             await psts[0].save()
                             cmmts[0].owner = usrs[0]._id
                             cmmts[0].parentNode = psts[0]._id
                             cmmts[0].rootPost = psts[0]._id
-                            cmmts[0].comments.push(cmmts[1]._id)
+                            cmmts[0].comments.push({
+                                commentid: cmmts[2]._id, 
+                                createdAt: cmmts[2].createdAt
+                            })
                             await cmmts[0].save()
                             cmmts[1].owner = usrs[3]._id
                             cmmts[1].parentNode = cmmts[0]._id
@@ -171,8 +195,14 @@ beforeAll((done)=>{
                             comments.push({ id: cmmts[1]._id.toString() })
                             comments.push({ id: cmmts[2]._id.toString() })
 
-                            psts[2].comments.push(cmmts[3]._id)
-                            psts[2].comments.push(cmmts[4]._id)
+                            psts[2].comments.push({
+                                commentid: cmmts[3]._id,
+                                createdAt: cmmts[3].createdAt
+                            })
+                            psts[2].comments.push({
+                                commentid: cmmts[4]._id, 
+                                createdAt: cmmts[4].createdAt
+                            })
                             await psts[2].save()
                             cmmts[3].owner = usrs[3]._id
                             cmmts[3].parentNode = psts[2]._id
@@ -186,7 +216,10 @@ beforeAll((done)=>{
                             comments.push({ id: cmmts[4]._id.toString() })
 
 
-                            psts[4].comments.push(cmmts[5]._id)
+                            psts[4].comments.push({
+                                commentid: cmmts[5]._id,
+                                createdAt: cmmts[5].createdAt
+                            })
                             await psts[4].save()
                             cmmts[5].owner = usrs[3]._id
                             cmmts[5].parentNode = psts[4]._id

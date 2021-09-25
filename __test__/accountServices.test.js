@@ -3,8 +3,9 @@ const request = require('supertest')
 const jwt = require('jsonwebtoken')
 
 const ProfileModel = require('../models/ProfileModel')
+const ChatModel = require('../models/ChattingModel')
 const EmailReportModel = require('../models/EmailReportModel')
-const { createTokenToHeader, userTestDatas, userTestRegister } 
+const { createTokenToHeader, userTestDatas, userTestRegister, chatTestDatas1 } 
     = require('./helperToTestingServices')
 const { authorizTokenEncoder, createLoginRefreshToken, 
     authorizTokenVerify, authorizTokenInputRevise,
@@ -14,51 +15,66 @@ const { startTestingServer, exitTestingServer } = require('../server')
 const userTesting = new Map()
 
 let theSrv = null;
-beforeAll( async ()=>{
-    theSrv =  await startTestingServer(true)
+beforeAll((done)=>{
     const removeContent = userTestDatas.map(item=>{ return item.email })
     removeContent.push(userTestRegister.email)
-    await ProfileModel.deleteMany(
-        {email: removeContent } , async (err, rep)=>{
-            
-        await ProfileModel.insertMany(userTestDatas, async (error, report)=>{
-            expect(error).toBe(null)
-            expect(typeof report).toBe('object')
+    ProfileModel.deleteMany({email: removeContent } , async (e1, r1)=>{
+        expect(e1).toBe(null)
+        theSrv =  await startTestingServer(true)
 
-            for(const item of report){
-                userTesting.set(item.username, { id: item._id.toString(), email: item.email, obj: item._id })
-            }
-            //id at pointer 0 will be removed
-            //id at pointer 1 will be at the main target of friend management tests
-            //id at pointer 3 will be login with -> lastLogin field must changes
-            for(const item of report){
-                if(item._id.toString() === userTesting.get('User 1').id){
-                    item.friends.push(userTesting.get('User 2').obj)   //at mut.5 removed
-                    item.myInvitations.push(userTesting.get('User 3').obj)
-                    item.myFriendRequests.push(userTesting.get('User 4').obj)  //at mut.4 accepted
-                    item.myFriendRequests.push(userTesting.get('User 5').obj)  //at mut.3 removed
-                    await item.save()
-                }
-                if(item._id.toString() === userTesting.get('User 2').id){
-                    item.friends.push(userTesting.get('User 1').obj)
-                    item.friends.push(userTesting.get('User 3').obj)
-                    await item.save()
-                }
-                if(item._id.toString() === userTesting.get('User 3').id){
-                    item.myFriendRequests.push(userTesting.get('User 1').obj)
-                    item.friends.push(userTesting.get('User 2').obj)
-                    await item.save()
-                }
-                if(item._id.toString() === userTesting.get('User 4').id){
-                    item.myInvitations.push(userTesting.get('User 1').obj)
-                    await item.save()
-                }
-                if(item._id.toString() === userTesting.get('User 5').id){
-                    item.myInvitations.push(userTesting.get('User 1').obj)
-                    await item.save()
-                }
-            }
-            //the user6 exist - at mut.1 initiated friendship, that at mut.2 removed
+        ProfileModel.insertMany(userTestDatas, (e2, prfls)=>{
+            expect(e2).toBe(null)
+            expect(typeof prfls).toBe('object')
+
+            ChatModel.deleteOne({ title: chatTestDatas1[0].title }, (e3, r3)=>{
+                expect(e3).toBe(null)
+                
+                ChatModel.create(chatTestDatas1[0], async (e4, chtng)=>{
+                    expect(e4).toBe(null)
+
+                    for(const item of prfls){
+                        userTesting.set(item.username, { id: item._id.toString(), email: item.email, obj: item._id })
+                    }
+                    //id at pointer 0 will be removed
+                    //id at pointer 1 will be at the main target of friend management tests
+                    //id at pointer 3 will be login with -> lastLogin field must changes
+                    for(const item of prfls){
+                        if(item._id.toString() === userTesting.get('User 1').id){
+                            item.friends.push(userTesting.get('User 2').obj)   //at mut.5 removed
+                            item.myInvitations.push(userTesting.get('User 3').obj)
+                            item.myFriendRequests.push(userTesting.get('User 4').obj)  //at mut.4 accepted
+                            item.myFriendRequests.push(userTesting.get('User 5').obj)  //at mut.3 removed
+                            await item.save()
+                        }
+                        if(item._id.toString() === userTesting.get('User 2').id){
+                            item.friends.push(userTesting.get('User 1').obj)
+                            item.friends.push(userTesting.get('User 3').obj)
+                            item.myChats.push(chtng._id)
+                            await item.save()
+
+                            chtng.owner = item._id
+                            await chtng.save()
+                        }
+                        if(item._id.toString() === userTesting.get('User 3').id){
+                            item.myFriendRequests.push(userTesting.get('User 1').obj)
+                            item.friends.push(userTesting.get('User 2').obj)
+                            await item.save()
+                        }
+                        if(item._id.toString() === userTesting.get('User 4').id){
+                            item.myInvitations.push(userTesting.get('User 1').obj)
+                            await item.save()
+                        }
+                        if(item._id.toString() === userTesting.get('User 5').id){
+                            item.myInvitations.push(userTesting.get('User 1').obj)
+                            await item.save()
+                        }
+                    }
+                    //the user6 exist - at mut.1 initiated friendship, that at mut.2 removed
+        
+                    done()
+
+                })
+            })
         })
     })
 })
@@ -223,6 +239,7 @@ describe('GET ResetPassword step-2 tests', ()=>{
             })
         })
     })
+
 })
 
 describe('POST ResetPassword step-3 tests',()=>{
@@ -462,6 +479,42 @@ describe('GrapQL profile queries', ()=>{
             done()
         })
     })
+
+    it('Rerequest users all private content', (done)=>{
+        const userEmailTarget = userTesting.get('User 2').email;
+        const theUserId = userTesting.get('User 2').id;
+        let tokenToAuth = authorizTokenEncoder({ subj: theUserId, email: userEmailTarget })
+        
+        request(theSrv)
+        .post(`/graphql`)
+        .send({'query':` query{
+            requireClientContent{
+                id, username, email, registeredAt, lastLoggedAt,
+                friends{
+                    id: username, email
+                }, allPosts{
+                    postid, content
+                }, allChats{
+                    chatid, title
+                }
+            }
+        }`})
+        .set('Authorization', createTokenToHeader(tokenToAuth))
+        .set('Accept', 'application/json')
+        .expect("Content-Type", 'application/json; charset=utf-8')
+        .expect(200)
+        .end(async (err, res)=>{
+            expect(err).toBe(null)
+            expect(res.body).toBeInstanceOf(Object);
+            expect(res.body.errors).toBe(undefined)
+
+            expect(res.body.data.requireClientContent.username).toMatch('User 2')
+            expect(res.body.data.requireClientContent.email).toMatch(userEmailTarget)
+            expect(res.body.data.requireClientContent.friends).toHaveLength(2)
+            expect(res.body.data.requireClientContent.allChats).toHaveLength(1)
+            done()
+        })
+    })
     it('Login attempt', (done)=>{
         request(theSrv)
         .post('/graphql')
@@ -484,7 +537,7 @@ describe('GrapQL profile queries', ()=>{
             ProfileModel.findOne({ _id: theGotId }, (error, result)=>{
                 expect(error).toBe(null)
                 expect(result).not.toBe(null)
-                expect(result.registeredAt).toEqual(res.body.data.login.registeredAt)
+                expect(result.registeredAt.toISOString()).toEqual(res.body.data.login.registeredAt)
                 done()
             })
         })
@@ -792,6 +845,7 @@ describe('GrapQL profile queries', ()=>{
             })
         })
     })
+
 })
 
 describe('Graphql friend queries', ()=>{

@@ -39,11 +39,13 @@ module.exports = {
             const usersFriendsAccounts = await dataSources.profiles.getAllOfThese(myAccount.friends)
 
             return  usersFriendsAccounts.map(frnd=>{
+                return frnd.getUserMiniData
+                /*
                 return { 
                     id: frnd._id,
                     username: frnd.username,
                     email: frnd.email
-                }
+                }*/
             })
         },
         async listOfUndecidedFriendships(_, __, { authorizRes, dataSources }){
@@ -104,7 +106,7 @@ module.exports = {
                 id: userid,
                 email: accountAtQuery.email,
                 username: accountAtQuery.username,
-                registeredAt: accountAtQuery.registeredAt,
+                registeredAt: accountAtQuery.registeredAt.toISOString(),
                 relation: defineUserConnections(
                     accountAtQuery._id, clientUser, dataSources
                 ),
@@ -149,7 +151,6 @@ module.exports = {
                         )
                     })
                 }
-
             }
             return possibleFriendOutput
         }
@@ -172,16 +173,17 @@ module.exports = {
             }
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
-            if(clientUser.myInvitations.includes(targetUser._id)){
+            if(clientUser.haveThisInvitation(targetUser._id)){
                 return new UserInputError('This userid is marked as initiated connection!')
             }
             try{
                 clientUser.myInvitations.push(targetUser._id)
                 await dataSources.profiles.saving(clientUser)
+
                 targetUser.myFriendRequests.push(clientUser._id)
                 await dataSources.profiles.saving(targetUser)
             }catch(err){
-                throw new ApolloError('Persistence error occured', err)
+                throw new ApolloError('Persistence error occured', { error : err.message })
             }
 
             const mutalFriends = await countTheAmountOfFriends(
@@ -219,20 +221,17 @@ module.exports = {
             }
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
-            if(!clientUser.myInvitations.includes(targetUser._id)){
+            if(!clientUser.haveThisInvitation(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as initiated connection!')
             }
             try{
-                clientUser.myInvitations = clientUser.myInvitations.filter(
-                    item=>{ return !item.equals(targetUser._id) }
-                )
+                clientUser.removeThisFriendInvite(targetUser._id)
                 await dataSources.profiles.saving(clientUser)
-                targetUser.myFriendRequests = targetUser.myFriendRequests.filter(
-                    item=>{ return !item.equals(clientUser._id) }
-                )
+
+                targetUser.removeThisFriendRequest(clientUser._id)
                 await dataSources.profiles.saving(targetUser)
             }catch(err){
-                throw new ApolloError('Persistence error occured', err)
+                throw new ApolloError('Persistence error occured', { error : err.message })
             }
 
             wsNotifier.sendNotification(targetUser._id.toString(), 
@@ -262,40 +261,39 @@ module.exports = {
             }
 
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
-            if(clientUser.friends.includes(targetUser._id)){
+            if(clientUser.haveThisFriend(targetUser._id)){
                 return new UserInputError('This userid is already marked as your friend!')
             }
-            if(!clientUser.myFriendRequests.includes(targetUser._id)){
+            if(!clientUser.haveThisRequest(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as undecided connection!')
             }
             try{
-                clientUser.myFriendRequests = clientUser.myFriendRequests.filter(
-                    item=>{ return !item.equals(targetUser._id) }
-                )
+                clientUser.removeThisFriendRequest(targetUser._id) 
                 clientUser.friends.push(targetUser._id)
                 await dataSources.profiles.saving(clientUser)
 
-                targetUser.myInvitations = targetUser.myInvitations.filter(
-                    item=>{ return !item.equals(clientUser._id) }
-                )
+                targetUser.removeThisFriendInvite(clientUser._id)
                 targetUser.friends.push(clientUser._id)
                 await dataSources.profiles.saving(targetUser)
             }catch(err){
-                throw new ApolloError('Persistence error occured', err)
+                throw new ApolloError('Persistence error occured', { error : err.message })
             }
 
-            wsNotifier.sendNotification(targetUser._id.toString(), '', {
+            wsNotifier.sendNotification(targetUser._id.toString(), '',
+                clientUser.getUserMiniData
+                /* {
                     id: clientUser._id.toString(),
                     username: clientUser.username,
                     email: clientUser.email
-                }, notifyTypes.FRIEND.REQUEST_APPROVED
+                }*/, notifyTypes.FRIEND.REQUEST_APPROVED
             )
 
-            return{
+            return targetUser.getUserMiniData
+            /*{
                 id: targetUser._id.toString(),
                 username: targetUser.username,
                 email: targetUser.email
-            }
+            }*/
 
         },
         async discardThisFriendshipRequest(_, args, { authorizRes, dataSources, wsNotifier }){
@@ -314,21 +312,17 @@ module.exports = {
             }
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
-            if(!clientUser.myFriendRequests.includes(targetUser._id)){
+            if(!clientUser.haveThisRequest(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as undecided connection!')
             }
             try{
-                clientUser.myFriendRequests = clientUser.myFriendRequests.filter(
-                    item=> { return !item._id.equals(targetUser._id)}
-                )
+                clientUser.removeThisFriendRequest(targetUser._id)
                 await dataSources.profiles.saving(clientUser)
 
-                targetUser.myInvitations = targetUser.myInvitations.filter(
-                    item=>{ return !item._id.equals(clientUser._id) }
-                )
+                targetUser.removeThisFriendInvite(clientUser._id)
                 await dataSources.profiles.saving(targetUser)
             }catch(err){
-                throw new ApolloError('Persistence error occured', err)
+                throw new ApolloError('Persistence error occured', { error : err.message })
             }
 
             wsNotifier.sendNotification(targetUser._id.toString(), 
@@ -357,21 +351,17 @@ module.exports = {
             }
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
 
-            if(!clientUser.friends.includes(targetUser._id)){
+            if(!clientUser.haveThisFriend(targetUser._id)){
                 return new UserInputError('This userid is NOT marked as a friend!')
             }
             try{
-                clientUser.friends = clientUser.friends.filter(
-                    item=>{ return !item._id.equals(targetUser._id) }
-                )
+                clientUser.removeThisFriend(targetUser._id)
                 await dataSources.profiles.saving(clientUser)
 
-                targetUser.friends = targetUser.friends.filter(
-                    item =>{ return !item._id.equals(clientUser._id) }
-                )
+                targetUser.removeThisFriend(clientUser._id)
                 await dataSources.profiles.saving(targetUser)
             }catch(err){
-                throw new ApolloError('Persistence error occured', err)
+                throw new ApolloError('Persistence error occured', { error : err.message })
             }
             
             wsNotifier.sendNotification(targetUser._id.toString(), 

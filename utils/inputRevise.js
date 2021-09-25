@@ -134,6 +134,28 @@ module.exports.useridInputRevise = (id)=>{
 
 
 
+//USER-POST AND COMMENTS COMMON INPUT REVISE
+
+module.exports.postOrCommentFilteringInputRevise = (date, amount)=>{
+    const values = {  }
+    const result = {  error: false, field: [], issue: [] }
+    if(itThereProblemWithDate(date)){
+        result.error = true
+        result.field.push('date')
+        result.issue.push('The date is not acceptable!')
+    }else{
+        if(date){ values.date = new Date(date) }
+    }
+    if(isThereProblemWithOffsetAmount(amount)){
+        result.error = true
+        result.field.push('amount')
+        result.issue.push('The amount is not acceptable!')
+    }else{
+        values.amount = amount
+    }
+    return result.error? result : values;
+}
+
 
 //USER-POST INPUT REVISE
 

@@ -1,9 +1,9 @@
 const { AuthenticationError, UserInputError, ApolloError, ForbiddenError  } = require('apollo-server-express')
 const MongooseID = require('mongoose').Types.ObjectId
 
-const { authorizEvaluation } = require('./resolveHelpers')
-const { sentimentCreateInputRevise, sentimentUpdtInputRevise,  opinionDeleteInputRevise } 
-    = require('../../utils/inputRevise')
+const { authorizEvaluation  } = require('./resolveHelpers')
+const { sentimentCreateInputRevise, sentimentUpdtInputRevise,  opinionDeleteInputRevise 
+    } = require('../../utils/inputRevise')
 const { notifyTypes } = require('../../extensions/dinamicClientNotifier/userNotifierUnit')
 
 module.exports = {
@@ -31,7 +31,7 @@ module.exports = {
                 _id: new MongooseID(),
                 owner: clientUser._id,
                 createdAt: new Date().toISOString(),
-                updatedAt: '',
+                updatedAt: null,
                 content: sentimCont
             }
             try{
@@ -141,7 +141,7 @@ module.exports = {
                     { general: `No proper ownership to sentiment ${sentimID}` }
                 )
             }
-            sentimToUpdate.updatedAt = new Date().toISOString()
+            sentimToUpdate.updatedAt = new Date()
             sentimToUpdate.content = sentimCont
             try{
                 if(targetingTxt === 'POST'){
@@ -239,7 +239,7 @@ module.exports = {
             targetToTrim.sentiments = targetToTrim.sentiments.filter(
                 item=>{ return item._id.toString() !== ID}
             )
-            targetToTrim.updatedAt = new Date().toISOString()
+            targetToTrim.updatedAt = new Date()
 
             try{
                 if(targetingTxt === 'POST'){

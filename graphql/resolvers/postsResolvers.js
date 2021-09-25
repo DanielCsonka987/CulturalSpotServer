@@ -1,84 +1,111 @@
 const { AuthenticationError, UserInputError, ApolloError  } = require('apollo-server-express')
 const MongooseID = require('mongoose').Types.ObjectId
 
-const { authorizEvaluation } = require('./resolveHelpers')
-const { postInputRevise, postUpdateInputRevise, postDeleteInputRevise } = require('../../utils/inputRevise')
+const { authorizEvaluation, filterPostsByDateAndAmount_Posts,
+    filterPostsByDateAndAmount_Stamps
+     } = require('./resolveHelpers')
+const { postInputRevise, postUpdateInputRevise, 
+    postDeleteInputRevise, postOrCommentFilteringInputRevise 
+    } = require('../../utils/inputRevise')
 const { notifyTypes } = require('../../extensions/dinamicClientNotifier/userNotifierUnit')
+
 
 module.exports = {
     Query: {
-        async listOfMySentPosts(_, __, { authorizRes, dataSources }){
+        async listOfMySentPosts(_, args, { authorizRes, dataSources }){
             authorizEvaluation(authorizRes)
-            
+            const {error, issue, field, date, amount} = 
+                postOrCommentFilteringInputRevise(args.dating, args.amount)
+            if(error){
+                return new UserInputError('No proper filtering inputs passed!', { field, issue })
+            }
+
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
             if(!clientUser){
                 return AuthenticationError('No user found', { general: 'No target of Token id' })
             }
-            const clientPosts = await dataSources.posts.getAllOfThese(clientUser.myPosts)
+            const postIDs = clientUser.myPosts.map(stamp=>stamp.postid)
+            const clientPosts = await dataSources.posts.getAllOfThese(postIDs)
             if(clientPosts.length === 0){
                 return []
             }
-            return clientPosts.map(postUnit=>{
+            const finalPosts = filterPostsByDateAndAmount_Posts(clientPosts, date, amount)
+            return finalPosts.map(postUnit=>{
+                return postUnit.getPostFullDatas
+                /*
                 return {
                     postid: postUnit._id,
                     owner: postUnit.owner,
                     dedicatedTo: postUnit.dedicatedTo,
                     content: postUnit.content,
                     createdAt: postUnit.createdAt,
-                    updatedAt: postUnit.updatedAt,
+                    updatedAt: postUnit.updatedAt? postUnit.updatedAt : '',
 
                     sentiments: postUnit.sentiments,
                     comments: postUnit.comments.length
-                }
+                }*/
             })
         },
-        async listOfMyRecievedPosts(_, __, { authorizRes, dataSources }){
+        async listOfMyRecievedPosts(_, args, { authorizRes, dataSources }){
             authorizEvaluation(authorizRes)
-            
+            const {error, issue, field, date, amount} = 
+                postOrCommentFilteringInputRevise(args.dating, args.amount)
+            if(error){
+                return new UserInputError('No proper filtering inputs passed!', { field, issue })
+            }
+
             //no caching with this!!
             const dedicToClient = await dataSources.posts.getByDedication(authorizRes.subj)
             if(dedicToClient.length === 0){
                 return []
             }
-            return dedicToClient.map(postUnit=>{
+            const finalPosts = filterPostsByDateAndAmount_Posts(dedicToClient)
+            return finalPosts.map(postUnit=>{
+                return postUnit.getPostFullDatas
+                /*
                 return {
                     postid: postUnit._id,
                     owner: postUnit.owner,
                     dedicatedTo: postUnit.dedicatedTo,
                     content: postUnit.content,
                     createdAt: postUnit.createdAt,
-                    updatedAt: postUnit.updatedAt,
+                    updatedAt: postUnit.updatedAt? postUnit.updatedAt : '',
 
                     sentiments: postUnit.sentiments,
                     comments: postUnit.comments.length
-                }
+                }*/
             })
         },
-        async listOfAllPosts(_, __, { authorizRes, dataSources }){
+        async listOfAllPosts(_, args, { authorizRes, dataSources }){
             authorizEvaluation(authorizRes)
+            const {error, issue, field, date, amount} = 
+                postOrCommentFilteringInputRevise(args.dating, args.amount)
+            if(error){
+                return new UserInputError('No proper filtering inputs passed!', { field, issue })
+            }
 
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
             if(!clientUser){
                 return AuthenticationError('No user found', { general: 'No target of Token id' })
             }
-            const clientPosts = await dataSources.posts.getAllOfThese(clientUser.myPosts)
-
             const friendsArray = await dataSources.profiles.getAllOfThese(clientUser.friends)
-            const groupsOfPostsIDs = friendsArray.map(frnd=>{ return frnd.myPosts })
-            const friendsPosts = await dataSources.posts.getAllPostsFromGroups(groupsOfPostsIDs)
-            const finalPosts = [ ...clientPosts, ...friendsPosts ]
-
-            if(finalPosts.length === 0){
+            const groupsOfPostStamps = friendsArray.map(frnd=>{ return frnd.myPosts })
+            const allPostID = filterPostsByDateAndAmount_Stamps(clientUser.myPosts, groupsOfPostStamps, 
+                date, amount)
+                
+            if(allPostID.length === 0){
                 return []
             }
-            return finalPosts.map(postUnit=>{
+
+            const allPosts = await dataSources.posts.getAllOfThese(allPostID)
+            return allPosts.map(postUnit=>{     // mongoose virtuals may give bug, but mongoose method for sure!!
                 return {
                     postid: postUnit._id,
                     owner: postUnit.owner,
                     dedicatedTo: postUnit.dedicatedTo,
                     content: postUnit.content,
                     createdAt: postUnit.createdAt,
-                    updatedAt: postUnit.updatedAt,
+                    updatedAt: postUnit.updatedAt? postUnit.updatedAt : '',
 
                     sentiments: postUnit.sentiments,
                     comments: postUnit.comments.length
@@ -107,31 +134,33 @@ module.exports = {
                     return new UserInputError('No required addressee user found', 
                         { general: 'Targeted addressee revise' })
                 }
-                if(!clientUser.friends.includes(dedicatedID)){
+                if(!clientUser.haveThisFriend(dedicatedID)){
                     return new UserInputError('The required addressee user is not your friend', 
                         { general: 'User friendlist revise' })
                 }
             }
                 
             let thePost = '';
+            const postDating = new Date()
             try{
                 thePost = await dataSources.posts.create({
                     owner: clientUser._id,
                     dedicatedTo: targetUser? targetUser._id: null,
                     content: postContent,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: '',
+                    createdAt: postDating,
+                    updatedAt: null,
                     comments: [],
                     sentiments: []
                 })
-                clientUser.myPosts.push(thePost._id)
+                clientUser.myPosts.push({ postid: thePost._id, createdAt: postDating })
                 await dataSources.profiles.saving(clientUser)
             }catch(err){
-                return new ApolloError('Post persisting is not completed!', { err })
+                return new ApolloError('Post persisting is not completed!', { error: err.message } )
             }
 
             for(const frnd of clientUser.friends){
-                wsNotifier.sendNotification(frnd.toString(), '', {
+                wsNotifier.sendNotification(frnd.toString(), '', thePost.getPostFullDatas
+                /*{
                     postid: thePost._id,
                     owner: thePost.owner,
                     dedicatedTo: thePost.dedicatedTo,
@@ -140,9 +169,10 @@ module.exports = {
                     updatedAt: '',
                     comments: 0,
                     sentiments: []
-                }, notifyTypes.POST.NEW_POST)
+                }*/, notifyTypes.POST.NEW_POST)
             }
-
+            return thePost.getPostFullDatas
+            /*
             return {
                 postid: thePost._id,
                 owner: thePost.owner,
@@ -152,7 +182,7 @@ module.exports = {
                 updatedAt: '',
                 comments: 0,
                 sentiments: []
-            }
+            }*/
         },
         async updateThisPost(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
@@ -167,7 +197,7 @@ module.exports = {
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
             const seekedPost = new MongooseID(postID)
-            if(!clientUser.myPosts.includes(seekedPost)){
+            if(!clientUser.haveThisPost(seekedPost)){
                 return new UserInputError('No proper post inputs!', 
                     { general: 'Posts of the user not contains that postid' }
                 )
@@ -183,31 +213,33 @@ module.exports = {
                     return new UserInputError('No required addressee user found', 
                         { general: 'Targeted addressee revise' })
                 }
-                if(!clientUser.friends.includes(dedicatedID)){
+                if(!clientUser.haveThisFriend(targetUser._id)){
                     return new UserInputError('The required addressee user is not your friend', 
                         { general: 'User friendlist revise' })
                 }
                 postToUpdate.dedicatedTo = targetUser._id
             }
             postToUpdate.content = newContent
-            postToUpdate.updatedAt = new Date().toISOString()
+            postToUpdate.updatedAt = new Date()
             try{
                 await dataSources.posts.saving(postToUpdate)
             }catch(err){
-                return new ApolloError('Post update is not completed!', { err })
+                return new ApolloError('Post update is not completed!', { error: err.message } )
             }
 
             for(const frnd of clientUser.friends){
 
-                wsNotifier.sendNotification(frnd.toString(), '', {
+                wsNotifier.sendNotification(frnd.toString(), '', postToUpdate.getPostUpdateDatas
+                /*{
                     postid: postToUpdate._id,
                     owner: postToUpdate.owner,
                     dedicatedTo: postToUpdate.dedicatedTo,
                     content: postToUpdate.content,
                     updatedAt: postToUpdate.updatedAt
-                }, notifyTypes.POST.CONTENT_CHANGED)
+                }*/, notifyTypes.POST.CONTENT_CHANGED)
             }
-
+            return postToUpdate.getPostFullDatas
+            /*
             return {
                 postid: postToUpdate._id,
                 owner: postToUpdate.owner,
@@ -218,7 +250,7 @@ module.exports = {
                 
                 comments: postToUpdate.comments.length,
                 sentiments: postToUpdate.sentiments
-            }
+            }*/
         },
         async removeThisPost(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
@@ -233,7 +265,7 @@ module.exports = {
                 return new ApolloError('No user found', { general: 'No target of Token id' })
             }
             const seekedPost = new MongooseID(postID)
-            if(!clientUser.myPosts.includes(seekedPost)){
+            if(!clientUser.haveThisPost(seekedPost)){
                 return new UserInputError('No proper post inputs!', 
                     { general: 'Posts of the user not contains that postid' }
                 )
@@ -245,16 +277,12 @@ module.exports = {
             }
             const commentsToRemove = postToRemove.comments
             try{
-                clientUser.myPosts = clientUser.myPosts.filter(
-                    post=>{ post._id.toString() !== postID }
-                )
+                clientUser.removeThisPost(postToRemove._id)
                 await dataSources.profiles.saving(clientUser)
-
                 await dataSources.comments.recursiveRemovalOfThese(commentsToRemove)
-
                 await dataSources.posts.deleting(postToRemove._id)
             }catch(err){
-                return new ApolloError('Post removal is not completed!', { err })
+                return new ApolloError('Post removal is not completed!', { error: err.message } )
             }
 
             for(const frnd of clientUser.friends){

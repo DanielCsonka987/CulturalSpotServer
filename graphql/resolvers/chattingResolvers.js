@@ -1,5 +1,5 @@
 const { AuthenticationError, UserInputError, ApolloError, ForbiddenError } = require('apollo-server-express')
-const mongooseID = require('mongoose').Types.ObjectId
+const MongooseID = require('mongoose').Types.ObjectId
 
 const { authorizEvaluation } = require('./resolveHelpers')
 const { chatMessagesQueryInputRevise, chatRoomCreateInputRevise, 
@@ -26,10 +26,11 @@ module.exports = {
             if(!theChat){
                 return new ApolloError('No requested chatting!', { general: 'No chattingroom found' })
             }
-            if(!theChat.owner.equals(authorizRes.subj) && !theChat.partners.includes(authorizRes.subj)){
+            if( !theChat.isThisMemberInChat(new MongooseID(authorizRes.subj)) ){
                 return new AuthenticationError('You have no right to access!', { general: 'Subject have no concern to this chatting' })
             }
-
+            return theChat.getChatRoomDatas({ dating: date, amount: amount })
+            /*
             return {
                 chatid: chatid,
                 partners: theChat.partners,
@@ -37,7 +38,7 @@ module.exports = {
                 title: theChat.title,
                 startedAt: theChat.startedAt,
                 messages: { dating: date, amount: amount }
-            }
+            }*/
         }
     },
     Mutation: {
@@ -73,7 +74,7 @@ module.exports = {
                     content: content
                 })
             }catch(err){
-                return new ApolloError('Chatroom creation error', err)
+                return new ApolloError('Chatroom creation error', { error: err.message })
             }
 
             for(const partn of finalPartners){
@@ -89,7 +90,8 @@ module.exports = {
                     notifyTypes.CHAT.CHATROOM_CREATED
                 )
             }
-
+            return theChat.getChatRoomDatas([onlyMessage])
+            /*
             return {
                 chatid: theChat._id,
                 partners: theChat.partners,
@@ -98,7 +100,7 @@ module.exports = {
                 startedAt: theChat.startedAt,
                 messages: [onlyMessage]
             }
-
+            */
         },
         async addPartnersToChatRoom(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
@@ -114,8 +116,8 @@ module.exports = {
             if(!theChat){
                 return new UserInputError('No proper chatid was passed', { general: 'No chatting have found!' })
             }
-            const theClientID = new mongooseID(authorizRes.subj)
-            if( !theChat.owner.equals(theClientID)){
+            const theClientID = new MongooseID(authorizRes.subj)
+            if( !theChat.isThisOwnerInChat(theClientID)){
                 return new ForbiddenError('Forbidden to manage partners in chatroom', { general: 'No ownership to the chatroom!' })
             }
 
@@ -123,24 +125,25 @@ module.exports = {
             if(!finalPartners){
                 return new UserInputError('No existing partners to chat with!', { general: 'Partner ids are all invalid!' })
             }
-            const parntersToAdd = []
-            for(const partn of finalPartners){
-                theChat.partners.push(partn._id)
-
-                partn.myChats.push(theChat._id)
-                await dataSources.profiles.saving(partn)
-
-                parntersToAdd.push(partn._id.toString())
-                wsNotifier.sendNotification(partn._id.toString(), '',{
-                    chatid: theChat._id.toString(),
-                    title: theChat.title,
-                    startedAt: theChat.startedAt.toISOString()
-                }, notifyTypes.CHAT.CHATROOM_CLIENT_ADDED)
-            }
+            const parntersToAdded = []
             try{
+                for(const partn of finalPartners){
+                    theChat.partners.push(partn._id)
+                    partn.myChats.push(theChat._id)
+                    await dataSources.profiles.saving(partn)
+
+                    parntersToAdded.push(partn._id.toString())
+
+                    wsNotifier.sendNotification(partn._id.toString(), '', theChat.getChatBasicDatas
+                    /*{
+                        chatid: theChat._id.toString(),
+                        title: theChat.title,
+                        startedAt: theChat.startedAt.toISOString()
+                    }*/, notifyTypes.CHAT.CHATROOM_CLIENT_ADDED)
+                }
                 await dataSources.chats.saving(theChat)
             }catch(err){
-                return new ApolloError('Chatroom parner addition error', err)
+                return new ApolloError('Chatroom parner addition error', { error: err.message })
             }
 
 
@@ -148,7 +151,7 @@ module.exports = {
                 chatid: chatid,
                 resultText: 'Some partner is added to the chat!',
                 alterationType: 'ADDED_PARTNERS',
-                addedUsers: parntersToAdd,
+                addedUsers: parntersToAdded,
                 removedUsers: [],
                 updatedTitle: ''
             }
@@ -167,8 +170,8 @@ module.exports = {
             if(!theChat){
                 return new UserInputError('No proper chatid was passed', { general: 'No chatting have found!' })
             }
-            const theClientID = new mongooseID(authorizRes.subj)
-            if( !theChat.owner.equals(theClientID)){
+            const theClientID = new MongooseID(authorizRes.subj)
+            if( !theChat.isThisOwnerInChat(theClientID)){
                 return new ForbiddenError('Forbidden to manage partners in chatroom', { general: 'No ownership to the chatroom!' })
             }
 
@@ -178,28 +181,29 @@ module.exports = {
             }
 
             const removedPartners = []
-            for(const partnClient of finalPartners){
-                partnClient.myChats = partnClient.myChats.filter(item=>{ 
-                    return !item._id.equals(theChat._id) 
-                })
-                await dataSources.profiles.saving(partnClient)
-
-                wsNotifier.sendNotification(partnClient._id.toString(), '', {
-                    chatid: theChat._id.toString(),
-                    title: theChat.title,
-                    startedAt: theChat.startedAt.toISOString()
-                }, notifyTypes.CHAT.CHATROOM_CLIENT_REMOVED)
-
-                theChat.partners = theChat.partners.filter(item=>{
-                    return !item.equals(partnClient._id)
-                })
-
-                removedPartners.push(partnClient._id.toString())
-            }
             try{
+                for(const partnClient of finalPartners){
+                    partnClient.myChats = partnClient.myChats.filter(item=>{ 
+                        return !item._id.equals(theChat._id) 
+                    })
+                    await dataSources.profiles.saving(partnClient)
+                    
+                    wsNotifier.sendNotification(partnClient._id.toString(), '', theChat.getChatBasicDatas
+                    /* {
+                        chatid: theChat._id.toString(),
+                        title: theChat.title,
+                        startedAt: theChat.startedAt.toISOString()
+                    }*/, notifyTypes.CHAT.CHATROOM_CLIENT_REMOVED)
+
+                    theChat.partners = theChat.partners.filter(item=>{
+                        return !item.equals(partnClient._id)
+                    })
+
+                    removedPartners.push(partnClient._id.toString())
+                }
                 await dataSources.chats.saving(theChat)
             }catch(err){
-                return new ApolloError('Chatroom partner removal error', err)
+                return new ApolloError('Chatroom partner removal error', { error: err.message })
             }
 
             return {
@@ -225,8 +229,8 @@ module.exports = {
             if(!theChat){
                 return new UserInputError('No proper chatid was passed', { general: 'No chatting have found!' })
             }
-            const theClientID = new mongooseID(authorizRes.subj)
-            if( !theChat.owner.equals(theClientID)){
+            const theClientID = new MongooseID(authorizRes.subj)
+            if( !theChat.isThisOwnerInChat(theClientID)){
                 return new ForbiddenError('Forbidden the update of chatroom', { general: 'No ownership to the chatroom!' })
             }
 
@@ -238,11 +242,13 @@ module.exports = {
             }
 
             for(const partnClient of theChat.partners){
-                wsNotifier.sendNotification(partnClient._id.toString(), '', {
+                wsNotifier.sendNotification(partnClient._id.toString(), '', 
+                theChat.getChatBasicDatas
+                /*{
                     chatid: theChat._id.toString(),
                     title: theChat.title,
                     startedAt: theChat.startedAt.toISOString()
-                }, notifyTypes.CHAT.CHATROOM_UPDATED)
+                }*/, notifyTypes.CHAT.CHATROOM_UPDATED)
             }
             return {
                 chatid: chatid,
@@ -267,8 +273,8 @@ module.exports = {
             if(!theChat){
                 return new UserInputError('No proper chatid was passed', { general: 'No chatting have found!' })
             }
-            const theClientID = new mongooseID(authorizRes.subj)
-            if( !theChat.owner.equals(theClientID)){
+            const theClientID = new MongooseID(authorizRes.subj)
+            if( !theChat.isThisOwnerInChat(theClientID)){
                 return new ForbiddenError('Forbidden the deletion of chatroom', { general: 'No ownership to the chatroom!' })
             }
 
@@ -277,15 +283,16 @@ module.exports = {
                 await dataSources.chats.deleting(theChat._id)
                 await dataSources.messages.deleteAllChattings(theChat._id)
             }catch(err){
-                return new ApolloError('Chatroom deletion error', err)
+                return new ApolloError('Chatroom deletion error', { error: err.message })
             }
 
             for(const partnClient of partnersToNotify){
-                wsNotifier.sendNotification(partnClient._id.toString(), '', {
+                wsNotifier.sendNotification(partnClient._id.toString(), '', theChat.getChatBasicDatas
+                /*{
                     chatid: theChat._id.toString(),
                     title: theChat.title,
                     startedAt: theChat.startedAt.toISOString()
-                }, notifyTypes.CHAT.CHATROOM_REMOVED)
+                }*/, notifyTypes.CHAT.CHATROOM_REMOVED)
             }
 
             return {
@@ -310,8 +317,8 @@ module.exports = {
             if(!theChat){
                 return new UserInputError('No proper chatid was passed', { general: 'No chatting have found!' })
             }
-            const theClientID = new mongooseID(authorizRes.subj)
-            if( !theChat.owner.equals(theClientID) &&  !theChat.parnters.includes(theClientID) ){
+            const theClientID = new MongooseID(authorizRes.subj)
+            if( !theChat.isThisMemberInChat(theClientID) ){
                 return new ForbiddenError('Forbidden sending the message', { general: 'No partnership to the chatroom!' })
             }
             let newMsg = null
@@ -323,14 +330,10 @@ module.exports = {
                     content: message
                 })
             }catch(err){
-                return new ApolloError('Message creation error', err)
+                return new ApolloError('Message creation error', { error: err.message })
             }
 
-            const tempChatPartn = theChat.partners
-            tempChatPartn.push(theChat.owner)
-            const partnToNofify = tempChatPartn.filter(prtn =>{ 
-                return !prtn._id.equals(theClientID)
-            })
+            const partnToNofify = theChat.getWhosMembersNeedToNotify(theClientID)
             for(const partnClient of partnToNofify ){
                 wsNotifier.sendNotification(partnClient._id.toString(), {
                     chatid: theChat._id.toString()
@@ -363,7 +366,7 @@ module.exports = {
             if(!theMsg){
                 return new UserInputError('No proper messageid was passed', { general: 'No message have found!' })
             }
-            const theClientID = new mongooseID(authorizRes.subj)
+            const theClientID = new MongooseID(authorizRes.subj)
             if( !theMsg.owner.equals(theClientID) ){
                 return new ForbiddenError('Forbidden to update this message', { general: 'No ownership to the message!' })
             }
@@ -376,11 +379,7 @@ module.exports = {
             }
 
             const theChat = await dataSources.chats.get(theMsg.chatid)
-            const tempChatPartn = theChat.partners
-            tempChatPartn.push(theChat.owner)
-            const partnToNofify = tempChatPartn.filter(prtn =>{ 
-                return !prtn._id.equals(theClientID)
-            })
+            const partnToNofify = theChat.getWhosMembersNeedToNotify(theClientID)
             for(const partnClient of partnToNofify ){
                 wsNotifier.sendNotification(partnClient._id.toString(), {
                     chatid: theMsg.chatid.toString()
@@ -414,7 +413,7 @@ module.exports = {
             if(!theMsg){
                 return new UserInputError('No proper messageid was passed', { general: 'No message have found!' })
             }
-            const theClientID = new mongooseID(authorizRes.subj)
+            const theClientID = new MongooseID(authorizRes.subj)
             if( !theMsg.owner.equals(theClientID) ){
                 return new ForbiddenError('Forbidden the deletion of this message', { general: 'No ownership to the message!' })
             }
@@ -422,14 +421,10 @@ module.exports = {
             try{
                 await dataSources.messages.deleting(theMsg._id)
             }catch(err){
-                return new ApolloError('Message deletion error', err)
+                return new ApolloError('Message deletion error', { error: err.message })
             }
             const theChat = await dataSources.chats.get(theMsg.chatid)
-            const tempChatPartn = theChat.partners
-            tempChatPartn.push(theChat.owner)
-            const partnToNofify = tempChatPartn.filter(prtn =>{ 
-                return !prtn._id.equals(theClientID)
-            })
+            const partnToNofify = theChat.getWhosMembersNeedToNotify(theClientID)
             for(const partnClient of partnToNofify ){
                 wsNotifier.sendNotification(partnClient._id.toString(), {
                     chatid: theMsg.chatid.toString(),

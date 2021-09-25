@@ -9,22 +9,22 @@ class CommentDataSource extends MyDataSource{
     }
 
 
-    async recursiveRemovalOfThese(arrayKeys){
-        if(!isThisAnArray(arrayKeys)){
-            return this.didEncounterError( new Error('No array were passed!') )
-        }
-
-        if(isThisAnEmptyArray(arrayKeys)){
-            return  //no need to go further here
-        }
+    async recursiveRemovalOfThese(keyObj){
         try{
-            for(const commID of arrayKeys){
-                const commentToDel = await super.get(commID)
-                if(!isThisAnEmptyArray(commentToDel.comments)){
-                   await this.recursiveRemovalOfThese(commentToDel.comments)
+            if(!isThisAnArray(keyObj)){
+                const commentAtPeak = await super.get(keyObj)   // peak/starter comment
+                await this.recursiveRemovalOfThese(commentAtPeak.comments);
+                await super.deleting(commentAtPeak._id)
+            }else{
+                for(const commStamp of keyObj){
+                    const commentToDel = await super.get(commStamp.commentid)
+                    if(!isThisAnEmptyArray(commentToDel.comments)){
+                       await this.recursiveRemovalOfThese(commentToDel.comments)
+                    }
+                    await super.deleting(commentToDel._id); // terminal comment
                 }
-                await super.deleting(commentToDel._id);
             }
+
         }catch(err){
             this.didEncounterError(err)
         }

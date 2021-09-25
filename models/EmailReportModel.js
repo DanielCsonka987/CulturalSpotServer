@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const EmailReportSchema = new mongoose.Schema({
-    msgdate: String,
+    msgdate: Date,
     msgto: String,
     msgtype: String,
     msgcontent: String,

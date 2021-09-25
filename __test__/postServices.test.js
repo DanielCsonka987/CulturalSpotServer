@@ -87,15 +87,24 @@ beforeAll((done)=>{
                                 ...sentimentTestDatas[0]
                             })
                             await postObj[3].save()
-                            usersDocs[0].myPosts.push(postObj[0]._id)
-                            usersDocs[0].myPosts.push(postObj[3]._id)
+                            usersDocs[0].myPosts.push({ 
+                                postid: postObj[0]._id, createdAt: postObj[0].createdAt
+                            })
+                            usersDocs[0].myPosts.push({
+                                postid: postObj[3]._id, createdAt: postObj[3].createdAt
+                            })
                             await usersDocs[0].save()
     
                             //user1 -> post1 -> comment0
                             postObj[1].owner = usersDocs[1]._id
-                            postObj[1].comments.push(commObj[0]._id)
+                            postObj[1].comments.push({ 
+                                commentid: commObj[0]._id, 
+                                createdAt: commObj[0].createdAt 
+                            })
                             await postObj[1].save()
-                            usersDocs[1].myPosts.push(postObj[1]._id)
+                            usersDocs[1].myPosts.push({
+                                postid: postObj[1]._id, createdAt: postObj[1].createdAt
+                            })
                             await usersDocs[1].save()
                             commentIds.set(commObj[0].content, commObj[0]._id.toString())
                             commObj[0].owner = usersDocs[0]._id
@@ -105,8 +114,14 @@ beforeAll((done)=>{
     
                             //user3 -> post2 -> comment2, comment3
                             postObj[2].owner = usersDocs[3]._id
-                            postObj[2].comments.push(commObj[2]._id)
-                            postObj[2].comments.push(commObj[3]._id)
+                            postObj[2].comments.push({ 
+                                commentid: commObj[2]._id, 
+                                createdAt: commObj[2].createdAt 
+                            })
+                            postObj[2].comments.push({ 
+                                commentid: commObj[3]._id, 
+                                createdAt: commObj[3].createdAt
+                            })
                             await postObj[2].save()
                             commentIds.set(commObj[2].content, commObj[2]._id.toString())
                             commentIds.set(commObj[3].content, commObj[3]._id.toString())
@@ -121,14 +136,26 @@ beforeAll((done)=>{
                             //user3 -> post5 -> X
                             postObj[5].owner = usersDocs[3]._id
                             await postObj[5].save()
-                            usersDocs[3].myPosts.push(postObj[2]._id)
-                            usersDocs[3].myPosts.push(postObj[5]._id)
+                            postObj[6].owner = usersDocs[3]._id
+                            await postObj[6].save()
+                            usersDocs[3].myPosts.push({
+                                postid: postObj[2]._id, createdAt: postObj[2].createdAt
+                            })
+                            usersDocs[3].myPosts.push({
+                                postid: postObj[5]._id, createdAt: postObj[5].createdAt
+                            })
+                            usersDocs[3].myPosts.push({
+                                postid: postObj[6]._id, createdAt: postObj[6].createdAt
+                            })
                             await usersDocs[3].save()
     
     
                             //user2 -> post4 -> sentiment1, sentiment2, comment1
                             postObj[4].owner = usersDocs[2]._id
-                            postObj[4].comments.push(commObj[1]._id)
+                            postObj[4].comments.push({ 
+                                commentid: commObj[1]._id, 
+                                createdAt: commObj[1].createdAt 
+                            })
                             commentIds.set(commObj[1].content, commObj[1]._id.toString())
                             commObj[1].owner = usersDocs[0]._id
                             commObj[1].rootPost = postObj[4]._id
@@ -149,20 +176,31 @@ beforeAll((done)=>{
                                 ...sentimentTestDatas[2]
                             })
                             await postObj[4].save()
-                            usersDocs[2].myPosts.push(postObj[4]._id)
+                            usersDocs[2].myPosts.push({
+                                postid: postObj[4]._id, createdAt: postObj[4].createdAt
+                            })
                             await usersDocs[2].save()
                             
                             
-                            commObj[3].comments.push(commObj[4]._id)
+                            commObj[3].comments.push({
+                                commentid: commObj[4]._id,
+                                createdAt: commObj[4].createdAt
+                            })
                             await commObj[3].save()
-                            commObj[4].comments.push(commObj[5]._id)
+                            commObj[4].comments.push({ 
+                                commentid: commObj[5]._id,
+                                createdAt: commObj[5].createdAt
+                            })
                             commObj[4].owner = usersDocs[0]._id
                             commObj[4].rootPost = postObj[2]._id
                             commObj[4].parentNode = commObj[3]._id
                             await commObj[4].save()
                             commentIds.set(commObj[4].content, commObj[4]._id.toString())
 
-                            commObj[5].comments.push(commObj[6]._id)
+                            commObj[5].comments.push({ 
+                                commentid: commObj[6]._id, 
+                                createdAt: commObj[6].createdAt
+                            })
                             commObj[5].owner = usersDocs[1]._id
                             commObj[5].rootPost = postObj[2]._id
                             commObj[5].parentNode = commObj[4]._id
@@ -192,12 +230,12 @@ beforeAll((done)=>{
                     user0 -> post0 dedicatedTo user2 -> X
                           -> post3 -> sentiment0 (u2)
                     user1 -> post1 -> comment0 (u0)
-                        |-> mut. +post6  |-> mut. updated content and dedication user0
+                        |-> mut. +post7  |-> mut. updated content and dedication user0
                     user2 -> post4 -> sentiment1 (u1), sentiment2 (u0), comment1 (u0)
-                        |-> mut. +post7 dedicatedTo user0
+                        |-> mut. +post8 dedicatedTo user0
                     user3 -> post2 -> comment2** (u1), comment3* (u1)
                           -> post5 -> X
-
+                          -> post6
                 comments:
                             comment3* -> comment4 (u0) -> comment5 (u1) -> comment6 (u0)
                             mut.1 = post5 -> +comment7 (u2)
@@ -205,7 +243,7 @@ beforeAll((done)=>{
                             mut.3 = post2 -> +sentiment3 (u2)
                             mut.4 = comment3* => +sentiment4 (u2)
 
-                            mut.5 comment0 update = content of comment9 (as u0 !)
+                            mut.5 comment2 update = content of comment9 (as u1 !)
                             mut.6 sentiment3 update of post2 = content of sentiment5 (as u2 !)
                             mut.7 sentiment4 update of comment3* = content of sentiment6 (as u2 !)
 
@@ -275,6 +313,57 @@ describe('GQL Post query processes', ()=>{
             done()
         })
     })
+    it('Fetch in the posts with filtering to the earlier post0', (done)=>{
+        const actualUser = usersToTest[3];
+        const token = authorizTokenEncoder(
+            {subj: actualUser.userid, email: actualUser.email }
+        )
+        request(theSrv)
+        .post('/graphql')
+        .send({query: `query{
+            listOfMySentPosts(dating: "${new Date('30 May 2020 23:04 UTC').toISOString()}", 
+                amount: 1){
+                postid, owner{
+                    id, username, mutualFriendCount, relation
+                }, 
+                dedicatedTo{
+                    id, username, mutualFriendCount, relation
+                }, 
+                content, comments, 
+                sentiments {
+                    sentimentid, owner{
+                        id, username, mutualFriendCount, relation
+                    }, content
+                }
+            }
+        }`})
+        .set('Authorization', createTokenToHeader(token))
+        .set('Accept', 'application/json')
+        .expect('Content-Type', 'application/json; charset=utf-8')
+        .expect(200)
+        .end((err, res)=>{
+            expect(err).toBe(null)
+            expect(typeof res.body).toBe('object')
+            expect(res.body.errors).toBe(undefined)
+
+            expect(res.body.data.listOfMySentPosts).not.toBe(undefined)
+            expect(res.body.data.listOfMySentPosts).toHaveLength(1)
+
+            expect(res.body.data.listOfMySentPosts[0].content)
+                .toBe('Post content 5')
+            expect(res.body.data.listOfMySentPosts[0].postid)
+                .toBe(postIds[5])
+            expect(res.body.data.listOfMySentPosts[0].owner.id)
+                .toBe(usersToTest[3].userid)
+            expect(res.body.data.listOfMySentPosts[0].dedicatedTo)
+                .toBe(null)
+            expect(res.body.data.listOfMySentPosts[0].comments).toBe(0)
+            expect(res.body.data.listOfMySentPosts[0].sentiments).toHaveLength(0)
+
+            done()
+        })
+    })
+
     it('Fetch in the posts of user2, dedicated to it', (done)=>{
         const actualUser = usersToTest[2];
         const token = authorizTokenEncoder(
@@ -324,6 +413,57 @@ describe('GQL Post query processes', ()=>{
             done()
         })
     })
+    it('Fetch in the posts of user2, dedicated to it, with filtering', (done)=>{
+        const actualUser = usersToTest[2];
+        const dating = new Date('14 April 2021 07:11 UTC').toISOString()
+        const token = authorizTokenEncoder(
+            {subj: actualUser.userid, email: actualUser.email }
+        )
+        request(theSrv)
+        .post('/graphql')
+        .send({query: `query{
+            listOfMyRecievedPosts(dating: "${dating}"){
+                postid, owner{
+                    id, username, mutualFriendCount, relation
+                }, 
+                dedicatedTo{
+                    id, username, mutualFriendCount, relation
+                }, 
+                content, comments, 
+                sentiments {
+                    sentimentid, owner{
+                        id, username, mutualFriendCount, relation
+                    }, content
+                }
+            }
+        }`})
+        .set('Authorization', createTokenToHeader(token))
+        .set('Accept', 'application/json')
+        .expect('Content-Type', 'application/json; charset=utf-8')
+        .expect(200)
+        .end((err, res)=>{
+            expect(err).toBe(null)
+            expect(typeof res.body).toBe('object')
+            expect(res.body.errors).toBe(undefined)
+
+            expect(res.body.data.listOfMyRecievedPosts).not.toBe(undefined)
+            expect(res.body.data.listOfMyRecievedPosts).toHaveLength(1)
+
+            expect(res.body.data.listOfMyRecievedPosts[0].content)
+                .toBe('Post content 0')
+            expect(res.body.data.listOfMyRecievedPosts[0].postid)
+                .toBe(postIds[0])
+            expect(res.body.data.listOfMyRecievedPosts[0].owner.id)
+                .toBe(usersToTest[0].userid)
+            expect(res.body.data.listOfMyRecievedPosts[0].dedicatedTo.id)
+                .toBe(actualUser.userid)
+            expect(res.body.data.listOfMyRecievedPosts[0].comments).toBe(0)
+            expect(res.body.data.listOfMyRecievedPosts[0].sentiments).toHaveLength(0)
+
+            done()
+        })
+    })
+  
 
     it('Fetch in all the posts of user0', (done)=>{
 
@@ -343,7 +483,7 @@ describe('GQL Post query processes', ()=>{
                     sentimentid, owner{
                         id, username, mutualFriendCount, relation
                     }, content
-                }
+                }, createdAt, updatedAt
             }
         }`})
         .set('Authorization', createTokenToHeader(token))
@@ -354,18 +494,15 @@ describe('GQL Post query processes', ()=>{
             expect(err).toBe(null)
             expect(typeof res.body).toBe('object')
             expect(res.body.errors).toBe(undefined)
-
-            expect(res.body.data.listOfAllPosts).not.toBe(undefined)
             expect(res.body.data.listOfAllPosts).toHaveLength(4)
 
-            expect(res.body.data.listOfAllPosts[0].content).toBe('Post content 0')
+            expect(res.body.data.listOfAllPosts[0].content)
+            .toBe('Post content 1')
             expect(res.body.data.listOfAllPosts[0].postid)
-                .toBe(postIds[0])
+            .toBe(postIds[1])
             expect(res.body.data.listOfAllPosts[0].owner.id)
-                .toBe(usersToTest[0].userid)
-            expect(res.body.data.listOfAllPosts[0].dedicatedTo.id)
-                .toBe(usersToTest[2].userid)
-            expect(res.body.data.listOfAllPosts[0].comments).toBe(0)
+            .toBe(usersToTest[1].userid)
+            expect(res.body.data.listOfAllPosts[0].comments).toBe(1)
             expect(res.body.data.listOfAllPosts[0].sentiments).toHaveLength(0)
 
             expect(res.body.data.listOfAllPosts[1].content)
@@ -386,16 +523,16 @@ describe('GQL Post query processes', ()=>{
             expect(res.body.data.listOfAllPosts[1].sentiments[0].content)
                 .toBe('LIKE')
 
-
-            expect(res.body.data.listOfAllPosts[2].content)
-                .toBe('Post content 1')
+            expect(res.body.data.listOfAllPosts[2].content).toBe('Post content 0')
             expect(res.body.data.listOfAllPosts[2].postid)
-                .toBe(postIds[1])
+                .toBe(postIds[0])
             expect(res.body.data.listOfAllPosts[2].owner.id)
-                .toBe(usersToTest[1].userid)
-            expect(res.body.data.listOfAllPosts[2].comments).toBe(1)
+                .toBe(usersToTest[0].userid)
+            expect(res.body.data.listOfAllPosts[2].dedicatedTo.id)
+                .toBe(usersToTest[2].userid)
+            expect(res.body.data.listOfAllPosts[2].comments).toBe(0)
             expect(res.body.data.listOfAllPosts[2].sentiments).toHaveLength(0)
-
+            
             expect(res.body.data.listOfAllPosts[3].content)
                 .toBe('Post content 4')
             expect(res.body.data.listOfAllPosts[3].postid)
@@ -407,6 +544,83 @@ describe('GQL Post query processes', ()=>{
             expect(res.body.data.listOfAllPosts[3].sentiments[0].sentimentid)
                 .toBe(sentimentIds.get(1))
             expect(res.body.data.listOfAllPosts[3].sentiments[1].sentimentid)
+                .toBe(sentimentIds.get(2))
+
+            done()
+        })
+    })
+
+    it('Fetch in all the posts of user0, filtering to date', (done)=>{
+        const dating = new Date('14 November 2020 07:11 UTC').toISOString()
+        const token = authorizTokenEncoder({subj: usersToTest[0].userid, 
+            email: usersToTest[0].email })
+        request(theSrv)
+        .post('/graphql')
+        .send({query: `query{
+            listOfAllPosts(dating: "${dating}" ){
+                postid, owner{
+                    id, username, mutualFriendCount, relation
+                }, 
+                dedicatedTo{
+                    id, username, mutualFriendCount, relation
+                }, 
+                content, comments, sentiments{
+                    sentimentid, owner{
+                        id, username, mutualFriendCount, relation
+                    }, content
+                }, createdAt, updatedAt
+            }
+        }`})
+        .set('Authorization', createTokenToHeader(token))
+        .set('Accept', 'application/json')
+        .expect('Content-Type', 'application/json; charset=utf-8')
+        .expect(200)
+        .end((err, res)=>{
+            expect(err).toBe(null)
+            expect(typeof res.body).toBe('object')
+            expect(res.body.errors).toBe(undefined)
+            expect(res.body.data.listOfAllPosts).toHaveLength(3)
+
+            expect(res.body.data.listOfAllPosts[0].content)
+                .toBe('Post content 3')
+            expect(res.body.data.listOfAllPosts[0].postid)
+                .toBe(postIds[3])
+            expect(res.body.data.listOfAllPosts[0].owner.id)
+                .toBe(usersToTest[0].userid)
+            expect(res.body.data.listOfAllPosts[0].comments).toBe(0)
+
+            expect(res.body.data.listOfAllPosts[0].sentiments).toHaveLength(1)
+            expect(res.body.data.listOfAllPosts[0].sentiments[0].sentimentid)
+                .toBe(sentimentIds.get(0))
+            expect(res.body.data.listOfAllPosts[0].sentiments[0].owner.id)
+                .toBe(usersToTest[2].userid)
+            expect(res.body.data.listOfAllPosts[0].sentiments[0].owner.relation)
+                .toBe('FRIEND')
+            expect(res.body.data.listOfAllPosts[0].sentiments[0].content)
+                .toBe('LIKE')
+
+    
+            expect(res.body.data.listOfAllPosts[1].content).toBe('Post content 0')
+            expect(res.body.data.listOfAllPosts[1].postid)
+                .toBe(postIds[0])
+            expect(res.body.data.listOfAllPosts[1].owner.id)
+                .toBe(usersToTest[0].userid)
+            expect(res.body.data.listOfAllPosts[1].dedicatedTo.id)
+                .toBe(usersToTest[2].userid)
+            expect(res.body.data.listOfAllPosts[1].comments).toBe(0)
+            expect(res.body.data.listOfAllPosts[1].sentiments).toHaveLength(0)
+            
+            expect(res.body.data.listOfAllPosts[2].content)
+                .toBe('Post content 4')
+            expect(res.body.data.listOfAllPosts[2].postid)
+                .toBe(postIds[4])
+            expect(res.body.data.listOfAllPosts[2].owner.id)
+                .toBe(usersToTest[2].userid)
+            expect(res.body.data.listOfAllPosts[2].comments).toBe(1)
+            expect(res.body.data.listOfAllPosts[2].sentiments).toHaveLength(2)
+            expect(res.body.data.listOfAllPosts[2].sentiments[0].sentimentid)
+                .toBe(sentimentIds.get(1))
+            expect(res.body.data.listOfAllPosts[2].sentiments[1].sentimentid)
                 .toBe(sentimentIds.get(2))
 
             done()
@@ -568,15 +782,15 @@ describe('GQL Post mutation processes', ()=>{
             })
         })
     })
-    it('Delete a post at user0 of post0', (done)=>{
-        const targetContent = postTestDatas1[0].content
+    it('Delete a post at user3 of post6', (done)=>{
+        const targetContent = postTestDatas1[6].content
         PostModel.findOne({content: targetContent}, (e, d)=>{
             expect(e).toBe(null)
             expect(d).not.toBe(null)
             const targetDelId = d._id.toString()
 
-            const token = authorizTokenEncoder({subj: usersToTest[0].userid,
-                email: usersToTest[0].email })
+            const token = authorizTokenEncoder({subj: usersToTest[3].userid,
+                email: usersToTest[3].email })
             request(theSrv)
             .post('/graphql')
             .send({query: `mutation{
@@ -619,7 +833,7 @@ describe('GQL Comments query processes', ()=>{
             expect(d).not.toBe(null)
             expect(d.comments).toHaveLength(2)
 
-            const twoCommentID = d.comments.map(item=>{ return item.toString() })
+            const twoCommentID = d.comments.map(item=>{ return item.commentid.toString() })
             const thePostID = d._id.toString()
             const token = authorizTokenEncoder({subj: usersToTest[2].userid,
                 email: usersToTest[2].email })
@@ -660,6 +874,53 @@ describe('GQL Comments query processes', ()=>{
                     .toBe('Commenting 3')
                 expect(res.body.data.listOfTheseComments[1].comments)
                     .toBe(1)
+                done()
+            })
+        })
+    })
+
+    it('Fetch in some comment from post2 with user2 - with filtering', (done)=>{
+        const post2ID = postIds[2]
+        PostModel.findById(post2ID, (e, d)=>{
+            expect(e).toBe(null)
+            expect(d).not.toBe(null)
+            expect(d.comments).toHaveLength(2)
+
+            const twoCommentID = d.comments.map(item=>{ return item.commentid.toString() })
+            const thePostID = d._id.toString()
+            const token = authorizTokenEncoder({subj: usersToTest[2].userid,
+                email: usersToTest[2].email })
+    
+            request(theSrv)
+            .post('/graphql')
+            .send({query: `query{
+                listOfTheseComments(targeted: POST, id: "${thePostID}", amount: 1){
+                    commentid, owner{
+                        id, username, relation, mutualFriendCount
+                    }, content, sentiments {
+                        sentimentid, owner{
+                            id, username, relation, mutualFriendCount
+                        }, content
+                    }, comments
+                }
+            }`})
+            .set('Accept', 'application/json')
+            .set('Authorization', createTokenToHeader(token))
+            .expect('Content-Type', 'application/json; charset=utf-8')
+            .expect(200)
+            .end((err, res)=>{
+                expect(err).toBe(null)
+                expect(res.body.errors).toBe(undefined)
+                expect(typeof res.body.data.listOfTheseComments).toBe('object')
+                expect(res.body.data.listOfTheseComments).toHaveLength(1)
+
+                expect(res.body.data.listOfTheseComments[0].commentid)
+                    .toBe(twoCommentID[0])
+                expect(res.body.data.listOfTheseComments[0].content)
+                    .toBe('Commenting 2')
+                expect(res.body.data.listOfTheseComments[0].comments)
+                    .toBe(0)
+
                 done()
             })
         })
@@ -713,9 +974,9 @@ describe('GQL Comments mutation processes', ()=>{
                     expect(d2).not.toBe(null)
                     expect(d2.comments).toHaveLength(1)
 
-                    expect(d2.comments[0].toString())
+                    expect(d2.comments[0].commentid.toString())
                         .toBe(res.body.data.createCommentToHere.commentid)
-                    commentIds.set(newCommentContent, d2.comments[0]._id.toString())
+                    commentIds.set(newCommentContent, d2.comments[0].commentid.toString())
                     done()
                 })
             })
@@ -768,7 +1029,7 @@ describe('GQL Comments mutation processes', ()=>{
                     expect(d2).not.toBe(null)
 
                     expect(d2.comments).toHaveLength(1)
-                    expect(d2.comments[0].toString())
+                    expect(d2.comments[0].commentid.toString())
                         .toBe(res.body.data.createCommentToHere.commentid)
                     commentIds.set(d2.content, d2._id.toString())
                     done()
@@ -881,16 +1142,16 @@ describe('GQL Comments mutation processes', ()=>{
         })
     })
 
-    it('Mutation 5, update a content of comment0 to comment9, at post1', (done)=>{
-        const comm0ID = commentIds.get('Commenting 0')
+    it('Mutation 5, update a content of comment2 to comment9, at post2', (done)=>{
+        const comm0ID = commentIds.get('Commenting 2')
         CommentModel.findById(comm0ID, (e1, d1)=>{
             expect(e1).toBe(null)
             expect(d1).not.toBe(null)
-            expect(d1.content).toBe('Commenting 0')
+            expect(d1.content).toBe('Commenting 2')
             
             const newContent = commentTestDatas2[2].content
-            const token = authorizTokenEncoder({subj: usersToTest[0].userid,
-                email: usersToTest[0].email })
+            const token = authorizTokenEncoder({subj: usersToTest[1].userid,
+                email: usersToTest[1].email })
             request(theSrv)
             .post('/graphql')
             .send({query: `mutation{
@@ -924,7 +1185,7 @@ describe('GQL Comments mutation processes', ()=>{
                     expect(d2).not.toBe(null)
 
                     expect(d2.content).toBe(newContent)
-                    commentIds.delete('Commenting 0')
+                    commentIds.delete('Commenting 2')
                     commentIds.set(d2.content, d2._id.toString())
                     done()
                 })
@@ -1048,7 +1309,7 @@ describe('GQL Comments mutation processes', ()=>{
             expect(e1).toBe(null)
             expect(d1).not.toBe(null)
             expect(d1.comments).toHaveLength(1)
-            expect(d1.comments[0]._id.toString()).toBe(comm4ID)
+            expect(d1.comments[0].commentid.toString()).toBe(comm4ID)
 
             const token = authorizTokenEncoder({subj: usersToTest[0].userid,
                 email: usersToTest[0].email })
@@ -1084,11 +1345,13 @@ describe('GQL Comments mutation processes', ()=>{
                     expect(d2).not.toBe(null)
                     expect(d2.comments).toHaveLength(0)
 
-                    CommentModel.find({_id: [comm4ID, comm5ID, comm6ID ] }, (e3, d3)=>{
-                        expect(e3).toBe(null)
-                        expect(d3).toStrictEqual([])
-                        done()
-                    })
+                    setTimeout(()=>{
+                        CommentModel.find({_id: [comm4ID, comm5ID, comm6ID ] }, (e3, d3)=>{
+                            expect(e3).toBe(null)
+                            expect(d3).toStrictEqual([])
+                            done()
+                        })
+                    }, 600)
 
                 })
             })
@@ -1102,7 +1365,7 @@ describe('GQL Comments mutation processes', ()=>{
             expect(e1).toBe(null)
             expect(d1).not.toBe(null)
             expect(d1.comments).toHaveLength(1)
-            expect(d1.comments[0].toString()).toBe(comm1ID)
+            expect(d1.comments[0].commentid.toString()).toBe(comm1ID)
 
             const token = authorizTokenEncoder({subj: usersToTest[0].userid,
                 email: usersToTest[0].email })

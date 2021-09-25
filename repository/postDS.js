@@ -33,16 +33,16 @@ class PostDataSource extends MyDataSource{
         }catch(err){            
             this.didEncounterError(err)
         }
-
-        
     }
 
+    
+    
     /**
      * Loads in some docs according to keys - postId
      * @param {*} keys arrays in single array of ObjecId or StringId
      * @param {*} cacheConfig optinal, config of caching duration
      * @returns array of Mongoose Documents that were hit by the seeking
-     */
+     *//*
     async getAllPostsFromGroups(keys, cacheConfig){
         if(!isThisAnArray(keys) ){
             return this.get(keys, typeDefine, cacheConfig)
@@ -55,6 +55,8 @@ class PostDataSource extends MyDataSource{
         }
         return results
     }
+    */
+
 
     /**
      * Deletes a bunch of post by its ObjectId or StringId

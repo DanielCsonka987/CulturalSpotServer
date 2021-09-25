@@ -89,7 +89,7 @@ class EmailingService{
 
         try{
             const mailingRes = await this.transporter.sendMail({
-                from: EMAIL_ORIGIN_ACCOUNT,
+                from: EMAIL_ORIGIN_ACCOUNT,     //it has meaning only at testing, GMAIL gnores
                 to: emailAddress,
     
                 subject: this.emailSubject,
@@ -145,7 +145,7 @@ class EmailingService{
 
     async registerInDBTheSending(progress){
         const newRecord = new EmailReportModel({
-            msgdate: new Date().toISOString(),
+            msgdate: new Date(),
             msgto: progress.emailTo,
             msgtype: progress.messageType,
             msgcontent: progress.messageContent.join('-'),

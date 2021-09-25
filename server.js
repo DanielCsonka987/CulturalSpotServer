@@ -93,7 +93,7 @@ const startServer = async (testPurpose)=>{
     }
     
     //extensions
-    await emailerClienSetup
+    await emailerClienSetup(testPurpose)
     wsExtensionStart(residentNotifierService, testPurpose)
 
     console.log('Server is running!')

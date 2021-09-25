@@ -103,3 +103,63 @@ module.exports.getTheUsernameFromId = async (userUnderProc, dataSources)=>{
     }
     return profile.username
 }
+
+
+
+function comparePostComSentimAtSort(item1, item2){
+    if( item1.createdAt < item2.createdAt ) { return 1 }  
+    if( item1.createdAt > item2.createdAt ) { return -1}
+    return 0
+}
+
+module.exports.filterPostsByDateAndAmount_Posts = function(posts, dating, amount){
+    posts.sort(comparePostComSentimAtSort)
+
+    let resultPosts = []
+    if(dating){
+        resultPosts = posts.filter(pst=>{
+            if(pst.createdAt <= dating) {  return pst  }
+        })
+    }else{
+        resultPosts = posts
+    }
+    const needAmount = amount? amount : 15
+    return resultPosts.slice(0, needAmount)
+}
+
+module.exports.filterPostsByDateAndAmount_Stamps = function(clienPosts, friendPostsGroup, 
+    dating, amount){
+    const allPostsStamp = clienPosts
+    for(const frndPsts of friendPostsGroup){
+        for(const pstIdent of frndPsts){
+            allPostsStamp.push(pstIdent)
+        }
+    }
+    allPostsStamp.sort(comparePostComSentimAtSort)
+    let resultIDs = []
+    if(dating){
+        resultIDs = allPostsStamp.filter(pstIdent=> { 
+            if(pstIdent.createdAt <= dating){ return pstIdent } 
+        })
+        resultIDs = resultIDs.map(pstIdent=> pstIdent.postid)
+    }else{
+        resultIDs = allPostsStamp.map(pstIdent=> pstIdent.postid)
+    }
+    const needAmount = amount? amount : 15
+    return resultIDs.slice(0, needAmount)
+}
+
+module.exports.filterCommentByDateAmount_Stamps = function(comentStaps, dating, amount){
+    const sortedContent = comentStaps.sort(comparePostComSentimAtSort)
+    let resultIDs = []
+    if(dating){
+        resultIDs = sortedContent.filter(cmmnt=> { 
+            if(cmmnt.createdAt <= dating){ return cmmnt } 
+        })
+        resultIDs = resultIDs.map(cmmnt=> cmmnt.commentid)
+    }else{
+        resultIDs = sortedContent.map(cmmnt=> cmmnt.commentid)
+    }
+    const needAmount = amount? amount : 5
+    return resultIDs.slice(0, needAmount)
+}

@@ -8,25 +8,24 @@ let theTransporter = null;
 const { EmailingService, emailType, LinkProvider 
     } = require('./emailerComponents/emailerService')
 
-module.exports.emailerClienSetup = new Promise((resolve, reject)=>{
-    if(process.env.NODE_ENV === 'production'){
-        theTransporter = nodemailer.createTransport(EMAIL_CONNECTION_PRODUCTION)
+module.exports.emailerClienSetup =  async (isItForTest)=>{
+    if(!isItForTest || process.env.MODE_ENV === 'production'){
+        theTransporter = await nodemailer.createTransport(EMAIL_CONNECTION_PRODUCTION)
     }else{
-        theTransporter = nodemailer.createTransport(EMAIL_CONNECTION_FORTEST)
+        theTransporter = await nodemailer.createTransport(EMAIL_CONNECTION_FORTEST)
     }
-    theTransporter.verify((error, success)=>{
-        if(error){  reject(error); }
-        resolve(success);
+    await theTransporter.verify((error, success)=>{
+        if(error){  return error; }
+        if(success){ console.log('Emailer connected!') }
     })
-})
+}
 
-module.exports.emailerClienShutdown = new Promise((resolve, reject)=>{
+
+module.exports.emailerClienShutdown = async()=>{
     theTransporter.close()
-    theTransporter.verify((error, success)=>{
-        if(error){  resolve(error); }
-        resolve(success);
-    })
-})
+}
+
+
 
 module.exports.emailingServices = {
 

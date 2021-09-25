@@ -3,7 +3,8 @@ const mongoose = require('mongoose')
 const SentimentSchema = new mongoose.Schema({
     id: Number,
     owner: mongoose.Schema.Types.ObjectId,
-    createdAt: String,
+    createdAt: Date,
+    updatedAt: Date,
     content: String
 })
 

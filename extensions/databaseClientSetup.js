@@ -4,7 +4,8 @@ const DB_CONNECT = require('../config/dbConfig').dbCloud
 let reconnectionDesired = true
 
 const theDBConnect = ()=>{
-    mongoose.connect(DB_CONNECT, { useUnifiedTopology: true, useNewUrlParser: true })
+    mongoose.connect(DB_CONNECT, { 
+        useUnifiedTopology: true, useNewUrlParser: true, useCreateIndex: true })
 } 
 const theDBConfig = ()=>{
     let dbConnectIsRestored = true
