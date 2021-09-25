@@ -5,12 +5,12 @@ describe('App domain definer tests', ()=>{
 
     it('Simple test, still not defined url', ()=>{
         const res = definer(
-            { protocol: 'https://', get: ()=>{return 'example.com/'} }, 
+            { protocol: 'https', get: ()=>{return 'example.com/'} }, 
             HOST_URL_OBJ
         )
 
         expect(HOST_URL_OBJ).toEqual({ 
-            prot: 'https://', 
+            prot: 'https', 
             coupler: '://',
             dom: 'example.com/',
             apolloUrl: 'https://example.com/'
@@ -19,11 +19,11 @@ describe('App domain definer tests', ()=>{
     })
     it('Simple test, already defined url', ()=>{
         const res = definer(
-            { protocol: 'http://', get: ()=>{ return 'another.uk' } },
+            { protocol: 'http', get: ()=>{ return 'another.uk' } },
             HOST_URL_OBJ
         )
         expect(HOST_URL_OBJ).toEqual({ 
-            prot: 'https://', 
+            prot: 'https', 
             coupler: '://',
             dom: 'example.com/',
             apolloUrl: 'https://example.com/'

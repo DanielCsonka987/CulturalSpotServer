@@ -475,7 +475,7 @@ describe('GrapQL profile queries', ()=>{
         .expect(200)
         .end((err, res)=>{
             expect(err).toBe(null)
-            expect(res.body.data.testquery).toBe('Server is running fine!')
+            expect(res.body.data.testquery).toMatch('Server is running fine')
             done()
         })
     })

@@ -24,7 +24,7 @@ const messageids = [
 module.exports.profiles = [
     {
         _id: userids[0],
-        email: 'webfrontinapp@freemail.hu',
+        email: 'webfrontinapp@gmail.com',
         username: 'John Doe',
         pwdHash: '$2b$12$MRSBPUJkPgav1B4pFGJsE.hrn0vZZ19/kjpIaOUpGFUlr7X2zF3Uu',     // testing
         registeredAt: new Date('11 December 2020 10:34 UTC'),

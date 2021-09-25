@@ -15,7 +15,7 @@ module.exports.emailerClienSetup =  async (isItForTest)=>{
         theTransporter = await nodemailer.createTransport(EMAIL_CONNECTION_FORTEST)
     }
     await theTransporter.verify((error, success)=>{
-        if(error){  return error; }
+        if(error){  console.log(error.message); }
         if(success){ console.log('Emailer connected!') }
     })
 }

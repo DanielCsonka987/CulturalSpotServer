@@ -9,9 +9,9 @@ const chainings = require('./resolvers/chainingResolvers')
 module.exports = {
     ...chainings,
     Query: {
-        testquery(_, args){
+        testquery(_, args, { domainURL }){
             console.log('Server is running fine!')
-            return 'Server is running fine!'
+            return `Server is running fine on ${domainURL.apolloUrl}!`
         },
         ...accountAPI.Query,
         ...friendsAPI.Query,
