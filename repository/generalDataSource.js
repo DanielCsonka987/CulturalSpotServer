@@ -19,7 +19,7 @@ const { InMemoryLRUCache } = require('apollo-server-caching')
 const DataLoader = require('dataloader')
 
 const { isThisAnArray, isThisProperDocID, isThisProperDocObj, isThisProperForDocParts }
-    = require('./dataSourceHelpers')
+    = require('./dsHelpers')
 
 class CSDataSource extends DataSource{
     constructor(DbModel, { ttlInSeconds } = {}){

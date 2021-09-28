@@ -4,7 +4,7 @@ const MyDataSource = require('./generalDataSource')
 const MessageModel = require('../models/MessageModel')
 
 const { isThisProperDocID, isThisProperForDocParts, isThisAnArray }
-    = require('./dataSourceHelpers')
+    = require('./dsHelpers')
 
 /**
  * DataSource implementation for manage the messages of chattings

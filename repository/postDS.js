@@ -2,7 +2,7 @@ const MyDataSource = require('./generalDataSource')
 const DataLoader = require('dataloader')
 
 const PostModel = require('../models/PostModel')
-const { isThisAnArray, isThisProperDocID } = require('./dataSourceHelpers')
+const { isThisAnArray, isThisProperDocID } = require('./dsHelpers')
 
 class PostDataSource extends MyDataSource{
     constructor(cacheConfig){

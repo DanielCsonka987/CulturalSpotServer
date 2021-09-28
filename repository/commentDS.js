@@ -1,7 +1,7 @@
 const MyDataSource = require('./generalDataSource')
 const CommentModel = require('../models/CommentModel')
 
-const { isThisAnArray, isThisAnEmptyArray } = require('./dataSourceHelpers')
+const { isThisAnArray, isThisAnEmptyArray } = require('./dsHelpers')
 
 class CommentDataSource extends MyDataSource{
     constructor(cacheConfig){

@@ -211,10 +211,10 @@ module.exports = gql`
         listOfAllPosts(dating: String, amount: Int): [Post]         ## own and firends posts
 
         ## comments, sentiments processes
-        listOfTheseComments(targeted: TargetType!, id: String!, dating: String, amount: Int): [Comment]!
+        listOfTheseComments(targeted: TargetType!, id: ID!, dating: String, amount: Int): [Comment]!
 
         ## chatting, messaging processes
-        listOfMessagesFromChatting(chatid: String!, dating: String, amount: Int): ChatRoom!
+        listOfMessagesFromChatting(chatid: ID!, dating: String, amount: Int): ChatRoom!
 
     }
     type Mutation {
@@ -231,51 +231,51 @@ module.exports = gql`
 
         ## firend processes
             ## for the initiation management by the source
-        createAFriendshipInvitation(friendid: String!): UserFracture!
-        removeAFriendshipInitiation(friendid: String): FriendProcess!
+        createAFriendshipInvitation(friendid: ID!): UserFracture!
+        removeAFriendshipInitiation(friendid: ID!): FriendProcess!
             ## for the initiation acceptance-denial by the target
-        approveThisFriendshipRequest(friendid: String!): UserMini
-        discardThisFriendshipRequest(friendid: String!): FriendProcess!
+        approveThisFriendshipRequest(friendid: ID!): UserMini
+        discardThisFriendshipRequest(friendid: ID!): FriendProcess!
             ## for remove a stable friend-conenction
-        removeThisFriend(friendid: String!): FriendProcess!
+        removeThisFriend(friendid: ID!): FriendProcess!
 
 
         ## posts processes
             ## all originated
-        makeAPost(content: String!, dedication: String): Post! 
+        makeAPost(content: String!, dedication: ID): Post! 
             ## only if it is the user's post
-        updateThisPost(postid: String!, newcontent: String, newdedication: String): Post!
-        removeThisPost(postid: String!): PostProcess!
+        updateThisPost(postid: ID!, newcontent: String, newdedication: ID): Post!
+        removeThisPost(postid: ID!): PostProcess!
 
 
         ## comments, sentiments processes
             ## for everibody
-        createCommentToHere(targeted: TargetType!, id: String!, content: String): Comment!
+        createCommentToHere(targeted: TargetType!, id: ID!, content: String): Comment!
             ## only for the authors
-        updateCommentContent(commentid: String!, content: String!): Comment!
-        deleteThisComment(targeted: TargetType!, id: String!, commentid: String!): OpinionProcess!
+        updateCommentContent(commentid: ID!, content: String!): Comment!
+        deleteThisComment(targeted: TargetType!, id: ID!, commentid: ID!): OpinionProcess!
 
 
         ## chatting, messaging processes
             ## for all users
-        createChatRoom(partners: [String]!, title: String!, firstContent: String!): ChatRoom!
+        createChatRoom(partners: [ID]!, title: String!, firstContent: String!): ChatRoom!
             ## only for member users
-        addPartnersToChatRoom(partners: [String]!, chatid: String!): ChatRoomProcess!
-        sendNewMessage(chatid: String!, content: String!): MessageUnit!
+        addPartnersToChatRoom(partners: [ID]!, chatid: ID!): ChatRoomProcess!
+        sendNewMessage(chatid: ID!, content: String!): MessageUnit!
             ## privilage for a specific owner/starter user
-        removePartnersFromChatRoom(partners: [String]!, chatid: String!): ChatRoomProcess!
-        updateChatRoom(chatid: String!, title: String!): ChatRoomProcess!
-        deleteChatRoom(chatid: String!): ChatRoomProcess!
+        removePartnersFromChatRoom(partners: [ID]!, chatid: ID!): ChatRoomProcess!
+        updateChatRoom(chatid: ID!, title: String!): ChatRoomProcess!
+        deleteChatRoom(chatid: ID!): ChatRoomProcess!
             ## only for the authors of the message
-        updateThisMessage(messageid: String!, content: String!): MessageUnit!
-        deleteThisMessage(messageid: String!): MessageProcess!
+        updateThisMessage(messageid: ID!, content: String!): MessageUnit!
+        deleteThisMessage(messageid: ID!): MessageProcess!
 
 
         ## sentiment processes
-        createSentimentToHere(targeted: TargetType!, id: String!, content: Opinion!): Sentiment!
+        createSentimentToHere(targeted: TargetType!, id: ID!, content: Opinion!): Sentiment!
             ## only for the sentiment owner
-        updateSentimentContent(targeted: TargetType!, id: String!, sentimentid: String!, content: Opinion!): Sentiment!
-        deleteThisSentiment(targeted: TargetType!, id: String!, sentimentid: String!): OpinionProcess!
+        updateSentimentContent(targeted: TargetType!, id: ID!, sentimentid: ID!, content: Opinion!): Sentiment!
+        deleteThisSentiment(targeted: TargetType!, id: ID!, sentimentid: ID!): OpinionProcess!
 
 
     }
