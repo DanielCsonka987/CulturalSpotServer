@@ -8,14 +8,12 @@
     "testAcc": "jest accountServices.test.js",
     "testChat": "jest chatService.test.js",
     "testWs": "jest wsServices.test.js",
-
     "testRep": "jest repository.test.js",
     "testUtil": "jest ./utils/",
     "testEmailS": "jest emailerServices.test.js",
     "testEmailU": "jest emailerUnit.test.js",
     "testNotif1": "jest notifierService.test.js",
     "testNotif2": "jest notifierService2.test.js",
-
     "seedLocalDB": "node ./models/dbSeeder.js local",
     "seedCloudDB": "node ./models/dbSeeder.js cloud",
     "dev": "nodemon server.js",
@@ -43,6 +41,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.2",
     "nodemailer": "^6.6.3",
+    "nodemailer-sendinblue-transport": "^1.2.3",
     "ws": "^7.5.2"
   },
   "devDependencies": {

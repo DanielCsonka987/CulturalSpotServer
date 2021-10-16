@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer')
+const sendinBlue = require('nodemailer-sendinblue-transport')
 
 const { EMAIL_CONNECTION_FORTEST, EMAIL_CONNECTION_PRODUCTION,  
     } = require('../config/emailConfig')
@@ -10,7 +11,9 @@ const { EmailingService, emailType, LinkProvider
 
 module.exports.emailerClienSetup =  async (isItForTest)=>{
     if(!isItForTest || process.env.MODE_ENV === 'production'){
-        theTransporter = await nodemailer.createTransport(EMAIL_CONNECTION_PRODUCTION)
+        theTransporter = await nodemailer.createTransport(
+            EMAIL_CONNECTION_PRODUCTION
+        )
     }else{
         theTransporter = await nodemailer.createTransport(EMAIL_CONNECTION_FORTEST)
     }

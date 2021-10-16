@@ -27,7 +27,7 @@ module.exports = {
     },
     EMAIL_CONNECTION_PRODUCTION: {
         service: process.env.MAIL_HOST || emailCred['PROD_HOST'],
-        port: process.env.PORT_MAIL || emailCred['PROD_PORT'],
+        //port: process.env.PORT_MAIL || emailCred['PROD_PORT'],
         auth: {
             user: process.env.USER || emailCred['PROD_USER'],
             pass: process.env.PWD || emailCred['PROD_PWD']

@@ -89,7 +89,7 @@ class EmailingService{
 
         try{
             const mailingRes = await this.transporter.sendMail({
-                from: EMAIL_ORIGIN_ACCOUNT,     //it has meaning only at testing, GMAIL gnores
+                from: EMAIL_ORIGIN_ACCOUNT, 
                 to: emailAddress,
     
                 subject: this.emailSubject,
