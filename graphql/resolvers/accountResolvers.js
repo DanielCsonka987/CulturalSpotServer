@@ -165,8 +165,8 @@ module.exports = {
                 return ApolloError('Login is not completed!', { err })
             }
 
-            await emailingServices.registrationEmailSending(domainURL.apolloUrl)
-                .executeEmailSending(newUser.email)
+            await emailingServices.registrationEmailSending(domainURL.apolloUrl,
+                newUser.username, newUser.email)
 
             return newUser.getUserLoginDatas(
                 authorizTokenEncoder({subj: newUser._id.toString(), email: newUser.email}),
@@ -217,10 +217,8 @@ module.exports = {
                 userToReset._id
             )
 
-            await emailingServices
-                .passwordResettingEmailSending(domainURL.apolloUrl, specIdTokenToPath)
-                .executeEmailSending(userToReset.email)
-                
+            await emailingServices.passwordResettingEmailSending(domainURL.apolloUrl, 
+                    userToReset.username, userToReset.email, specIdTokenToPath)
             return {
                 resultText: 'Password reset email is sent!',
                 id: 'none',
@@ -316,9 +314,8 @@ module.exports = {
                 return new ApolloError('Server error occured', err)
             }
 
-            await emailingServices.accountRemovalEmailSending(domainURL.apolloUrl)
-                .executeEmailSending(tempDatas.email)
-                
+            await emailingServices.accountRemovalEmailSending(domainURL.apolloUrl, 
+                tempDatas.username, tempDatas.email)
             return {
                 resultText: 'Account deleted!',
                 id: authorizRes.subj,

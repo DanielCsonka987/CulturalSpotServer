@@ -20,7 +20,7 @@ beforeAll((done)=>{
     removeContent.push(userTestRegister.email)
     ProfileModel.deleteMany({email: removeContent } , async (e1, r1)=>{
         expect(e1).toBe(null)
-        theSrv =  await startTestingServer(true)
+        theSrv =  await startTestingServer(true, true)  //ethereal emailer start
 
         ProfileModel.insertMany(userTestDatas, (e2, prfls)=>{
             expect(e2).toBe(null)

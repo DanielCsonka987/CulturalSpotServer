@@ -1,26 +1,99 @@
-const nodemailer = require('nodemailer')
-const sendinBlue = require('nodemailer-sendinblue-transport')
+const nodemailer = require('nodemailer');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 
-const { EMAIL_CONNECTION_FORTEST, EMAIL_CONNECTION_PRODUCTION,  
+const EmailReportModel = require('../models/EmailReportModel')
+const { LinkProvider } = require('./emailerComponents/linkProvider')
+const etherealSend = require('./emailerComponents/etherealSendingService')
+const sendinblueSend = require('./emailerComponents/sendinblueSendingService')
+
+const { EMAIL_CONNECTION_ETHEREAL, EMAIL_CONNECTION_SENDINBLUE_APIKEY,  
     } = require('../config/emailConfig')
 const { RESETPWD_REST_GET_ROUTE } = require('../config/appConfig').ROUTING
     
 let theTransporter = null;
-const { EmailingService, emailType, LinkProvider 
-    } = require('./emailerComponents/emailerService')
+let emailerAPIMode = null
+const theSendingServices = []
 
-module.exports.emailerClienSetup =  async (isItForTest)=>{
-    if(!isItForTest || process.env.MODE_ENV === 'production'){
-        theTransporter = await nodemailer.createTransport(
-            EMAIL_CONNECTION_PRODUCTION
+const PATH_OF_SERFVICES_UP_TO_ROOT = ['..', '..'] 
+const PATH_OF_CONTENT_FOLDER_FROM_ROOT = [ 'public','emailTextingSrc' ]
+
+const PATH_SUM = [ ...PATH_OF_SERFVICES_UP_TO_ROOT, ...PATH_OF_CONTENT_FOLDER_FROM_ROOT ]
+const EMAIL_CONTNET_FILE_NAMES = {
+    REGISTRATION: { html: 'registration.html',  txt: 'registration.txt' },
+    PWD_RESET: { html: 'resetPassword.html', txt: 'resetPassword.txt' },
+    ACCOUNT_DELETION: { html: 'deleteAccount.html', txt: 'deleteAccount.txt' },
+    PRODUCTION_TESTING: { html: 'emailerTesting.html', txt: 'emailerTesting.txt'  }
+}
+const EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE = {
+    SITE_LINK: new LinkProvider('CulturalSpot',  '<!--PlaceOfTheInsert1-->'),
+    PWD_RESET_ADDRESS: new LinkProvider( 'ClickMe', '<!--PlaceOfTheInsert2-->' ), 
+}
+
+function getSenderFactory(apiObjectToInstantiate, purposeType){
+    if(purposeType === 'register'){
+        return new apiObjectToInstantiate(
+            'REGISTRATION', theTransporter, PATH_SUM, 
+            EMAIL_CONTNET_FILE_NAMES.REGISTRATION,
+            'CulturalSpot registration', 
+            [ EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE.SITE_LINK ]
         )
-    }else{
-        theTransporter = await nodemailer.createTransport(EMAIL_CONNECTION_FORTEST)
     }
-    await theTransporter.verify((error, success)=>{
-        if(error){  console.log(error.message); }
-        if(success){ console.log('Emailer connected!') }
-    })
+    if(purposeType === 'pwdChange'){
+        return new apiObjectToInstantiate(
+            'PWDRESETING', theTransporter, PATH_SUM, 
+            EMAIL_CONTNET_FILE_NAMES.PWD_RESET,
+            'CulturalSpot password resetting', 
+            [ EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE.SITE_LINK, 
+                EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE.PWD_RESET_ADDRESS ]
+        )
+    }
+    if(purposeType === 'delAcc'){
+        return new apiObjectToInstantiate(
+            'ACCOUNTDELETE', theTransporter, PATH_SUM, 
+            EMAIL_CONTNET_FILE_NAMES.ACCOUNT_DELETION,
+            'No relply! CulturalSpot account deletion', 
+            [ EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE.SITE_LINK ]
+        )
+    }
+    if(purposeType === 'test'){
+        return new apiObjectToInstantiate(
+            'TESTING', theTransporter, PATH_SUM, 
+            EMAIL_CONTNET_FILE_NAMES.PRODUCTION_TESTING,
+            'No relply! CulturalSpot testing message', 
+            [ EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE.SITE_LINK ]
+        )
+    }
+    console.log('Developing error - no service purpose to define sender')
+    return null
+}
+
+
+module.exports.emailerClienSetup =  async (IS_ETHEREAL_NEEDED)=>{
+
+    if(!IS_ETHEREAL_NEEDED || process.env.MODE_ENV === 'production'){
+        theTransporter = SibApiV3Sdk.ApiClient.instance;
+        const apiKey = theTransporter.authentications['api-key'];
+        apiKey.apiKey = EMAIL_CONNECTION_SENDINBLUE_APIKEY
+
+        theSendingServices['register'] = getSenderFactory(sendinblueSend, 'register')
+        theSendingServices['pwdChange'] = getSenderFactory(sendinblueSend, 'pwdChange')
+        theSendingServices['delAcc'] = getSenderFactory(sendinblueSend, 'delAcc')
+        theSendingServices['test'] = getSenderFactory(sendinblueSend, 'test')
+        console.log('SendinBlue emailer connected!')
+
+    }else{
+        theTransporter = await nodemailer.createTransport(EMAIL_CONNECTION_ETHEREAL)
+        await theTransporter.verify((error, success)=>{
+            if(error){  console.log(error.message); }
+            if(success){
+                theSendingServices['register'] = getSenderFactory(etherealSend, 'register')
+                theSendingServices['pwdChange'] = getSenderFactory(etherealSend, 'pwdChange')
+                theSendingServices['delAcc'] = getSenderFactory(etherealSend, 'delAcc')
+                theSendingServices['test'] = getSenderFactory(etherealSend, 'test')
+                console.log('Ethereal emailer connected!')
+            }
+        })
+    }
 }
 
 
@@ -30,51 +103,46 @@ module.exports.emailerClienShutdown = async()=>{
 
 
 
-module.exports.emailingServices = {
+const registerInDBTheSending = async (progress)=>{
+    const newRecord = new EmailReportModel({
+        msgdate: new Date(),
+        msgto: progress.emailTo,
+        msgtype: progress.messageType,
+        msgcontent: progress.messageContent.join('-'),
+        msgresult: progress.sendingResult
+    })
+    try{
+        await newRecord.save()
+    }catch(err){
+        console.log('Email-sending logging error: ' + err)
+    }
+}
 
-    registrationEmailSending: (domainAddr)=>{
-        return new EmailingService(
-            emailType.REGISTRATION, theTransporter,
-            { toRoot: ['..', '..'] , toContent: ['public','emailTextingSrc'] }, //correlate ot this module!
-            { html: 'registration.html',  txt: 'registration.txt' },
-            'Your CulturalSpot registration',
-            [   
-                new LinkProvider(
-                    domainAddr, '', 'CulturalSpot', 
-                     '<!--PlaceOfTheInsert-->')
-            ]
-        )
+module.exports.emailingServices = {
+    registrationEmailSending: async (domainAddr, addrName, emailAddr)=>{
+        theSendingServices['register'].setUrlOfLinks([domainAddr])
+        const progress = await theSendingServices['register'].executeEmailSending(
+            addrName, emailAddr )
+        await registerInDBTheSending(progress)
     },
-    passwordResettingEmailSending: (domainAddr, URLPayload)=>{
-        return   new EmailingService(
-            emailType.PWDRESETING, theTransporter,
-            { toRoot: ['..', '..'] , toContent: ['public','emailTextingSrc'] },
-            { html: 'resetPassword.html', txt: 'resetPassword.txt'},
-            'NO_REPLY! CulturalSpot password resetting',
-            [   
-                new LinkProvider(
-                    domainAddr, RESETPWD_REST_GET_ROUTE + URLPayload,
-                    'ClickMe', '<!--PlaceOfTheInsert1-->'
-                ), 
-                new LinkProvider(
-                    domainAddr, '', 'CulturalSpot',
-                     '<!--PlaceOfTheInsert2-->'
-                )
-            ]
-        )
+    passwordResettingEmailSending: async (domainAddr, addrName, emailAddr, URLPayload)=>{
+        theSendingServices['pwdChange'].setUrlOfLinks([
+            domainAddr, domainAddr + RESETPWD_REST_GET_ROUTE + URLPayload
+        ])
+        const progress = await theSendingServices['pwdChange'].executeEmailSending(
+            addrName, emailAddr )
+        await registerInDBTheSending(progress)
     },
-    accountRemovalEmailSending: (domainAddr)=>{
-        return  new EmailingService(
-            emailType.ACCOUNTDELETE, theTransporter,
-            { toRoot: ['..', '..'] , toContent: ['public','emailTextingSrc'] },
-            { html: 'deleteAccount.html', txt: 'deleteAccount.txt'},
-            'Your CulturalSpot account is deleted',
-            [   
-                new LinkProvider(
-                    domainAddr, '', 'CulturalSpot', 
-                     '<!--PlaceOfTheInsert-->'
-                )
-            ]
-        )
-    } 
+    accountRemovalEmailSending: async (domainAddr, addrName, emailAddr)=>{
+        theSendingServices['delAcc'].setUrlOfLinks([domainAddr])
+        const progress = await theSendingServices['delAcc'].executeEmailSending(
+            addrName, emailAddr )
+        await registerInDBTheSending(progress)
+    },
+    siteEmailerTesting: async (domainAddr, addrName, emailAddr)=>{
+        theSendingServices['test'].setUrlOfLinks([domainAddr])
+        const progress = await theSendingServices['test'].executeEmailSending(
+            addrName, emailAddr )
+        await registerInDBTheSending(progress)
+    }
 }

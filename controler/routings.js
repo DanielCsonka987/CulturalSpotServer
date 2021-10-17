@@ -5,8 +5,10 @@ const { specTokenResoluteFromLink, specTokenverifyFromLink
 const { passwordRenewInputRevise, isThisUserIDMayBeFaulty 
     } = require('../utils/inputRevise')
 const { encryptPwd } = require('../utils/bCryptManager')
+const { EMAIL_ORIGIN_ACCOUNT } = require('../config/emailConfig')
 
 const ProfileModel = require('../models/ProfileModel')
+const { emailingServices } = require('../extensions/emailerClientSetup')
 
 router.get("/", (req, res)=>{ res.send("<h1>GET request accepted - frontpage is sent!</h1>")  })
 
@@ -96,6 +98,16 @@ async function resetTokenEvaluation(req, res, next){
         next(err)
     }
 }
+
+
+router.get('/emailtesting', async (req, res)=>{
+
+    const domainName = req.protocol + '://'+ req.get('host')
+    await emailingServices.siteEmailerTesting(domainName, 'Developer/Operator', 
+        EMAIL_ORIGIN_ACCOUNT  );
+    res.status(201)
+    res.send('<h3>Test email is sent, check out the result at mailbox!</h3>')
+})
 
 router.use((err, req, res, next)=>{
     res.status(500).send('<h3>Some error at router</h3><p>' + err.message + '</p>')

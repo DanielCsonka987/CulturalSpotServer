@@ -41,7 +41,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.2",
     "nodemailer": "^6.6.3",
-    "nodemailer-sendinblue-transport": "^1.2.3",
+    "sib-api-v3-sdk": "^8.2.1",
     "ws": "^7.5.2"
   },
   "devDependencies": {

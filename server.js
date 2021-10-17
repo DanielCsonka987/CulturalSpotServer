@@ -69,7 +69,7 @@ const apolloSrv = new ApolloServer({
 
 })
 
-const startServer = async (testPurpose)=>{
+const startServer = async (testPurpose, emailerTesting)=>{
     theDBConfig()
     theDBConnect()
     if(!testPurpose){    //it makes JEST erroreous
@@ -93,7 +93,7 @@ const startServer = async (testPurpose)=>{
     }
     
     //extensions
-    await emailerClienSetup(testPurpose)
+    await emailerClienSetup(emailerTesting)
     wsExtensionStart(residentNotifierService, testPurpose)
 
     console.log('Server is running!')
@@ -101,7 +101,7 @@ const startServer = async (testPurpose)=>{
 }
 
 
-startServer();
+startServer();  //sendinblue emailer starts
 
 module.exports.startTestingServer = startServer
 
