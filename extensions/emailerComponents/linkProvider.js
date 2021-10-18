@@ -2,7 +2,7 @@ class LinkProvider{
     constructor(linkText, destinationPlace){
         this.linkText = linkText
         this.destinationPlace = destinationPlace
-        this.linkHref = null
+        this.linkHref = ""
     }
     setLinkUrl(link){
         this.linkHref = link
@@ -11,7 +11,7 @@ class LinkProvider{
         return this.destinationPlace
     }
     getTheProperLink(type){
-        return type === 'HTML'?
+        return type === 'html'?
         `<a href="${this.linkHref}">${this.linkText}</a>` : this.linkHref
     }
 }

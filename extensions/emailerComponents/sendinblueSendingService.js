@@ -18,9 +18,13 @@ class SendinBlueSending{
         this.emailSubject = emailSubject
         this.linksArray = neededLinksArr    //LinkProvider types in array
     }
+    setUrlOfLinks(urlArr){
+        for(let i = 0; i< this.linksArray.length; i++){
+            this.linksArray[i].setLinkUrl(urlArr[i])
+        }
+    }
 
-    async executeEmailSending(domaneAddress, addresseeName, emailAddress, payload){
-
+    async executeEmailSending(addresseeName, emailAddress){
         const progressReportForDB = {
             emailTo: emailAddress,
             messageType: emailTypeIDParser(this.emailTypeNumber),
@@ -31,16 +35,14 @@ class SendinBlueSending{
         const pathToFetch = getTheComponentSourcePath(this.contentSumPath)
         /*
         const txtContObj = await getTheFetchedReplacedContent(
-            domaneAddress + urlPathAndPayload,
             this.linksArray, pathToFetch, 
             this.contentFilesObj.txt, 'Text'
         )
         progressReportForDB.messageContent.push(txtContObj.report)
         */
-        const htmlContObj = getTheFetchedReplacedContent(
-            domaneAddress + urlPathAndPayload, 
+        const htmlContObj = await getTheFetchedReplacedContent(
             this.linksArray, pathToFetch, 
-            this.contentFilesObj.html,'HTML'
+            this.contentFilesObj.html
         )
         progressReportForDB.messageContent.push(htmlContObj.report)
 

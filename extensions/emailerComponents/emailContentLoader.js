@@ -10,8 +10,9 @@ module.exports.getTheComponentSourcePath = (summPathArray)=>{
 }
 
 module.exports.getTheFetchedReplacedContent = async (linksArray, 
-    pathToFetch, contentFileDef, contentTypeDef)=>{
+    pathToFetch, contentFileDef)=>{
     try{
+        const contentTypeDef = contentFileDef.split('.')[1]
         const content = await getTheFormattedContent(linksArray, pathToFetch, 
             contentFileDef, contentTypeDef
         )

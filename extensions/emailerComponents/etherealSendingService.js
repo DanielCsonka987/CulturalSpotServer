@@ -35,13 +35,13 @@ class EtherealSending{
         const pathToFetch = getTheComponentSourcePath(this.contentSumPath)
         const txtContObj = await getTheFetchedReplacedContent(
             this.linksArray, pathToFetch, 
-            this.contentFilesObj.txt, 'Text'
+            this.contentFilesObj.txt
         )
         progressReportForDB.messageContent.push(txtContObj.report)
 
         const htmlContObj = await getTheFetchedReplacedContent(
             this.linksArray, pathToFetch, 
-            this.contentFilesObj.html,'HTML'
+            this.contentFilesObj.html
         )
         progressReportForDB.messageContent.push(htmlContObj.report)
 

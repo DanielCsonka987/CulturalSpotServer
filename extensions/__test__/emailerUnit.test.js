@@ -1,70 +1,84 @@
 const nodemailer = require('nodemailer')
-const mongoose = require('mongoose')
+const SibApiV3Sdk = require('sib-api-v3-sdk');
+/*const mongoose = require('mongoose')
 const fs = require('fs')
 const path = require('path')
 
+/*
 const EmailReportModel = require('../../models/EmailReportModel')
 const localURL = require('../../config/dbConfig').dbLocal
-const {EMAIL_CONNECTION_FORTEST } = require('../../config/emailConfig')
+*/
 
-const { EmailingService, LinkProvider  } = require('../emailerComponents/emailerService')
+const { EMAIL_CONNECTION_ETHEREAL, EMAIL_CONNECTION_SENDINBLUE_APIKEY 
+    } = require('../../config/emailConfig')
+
+const { LinkProvider,  emailType, emailTypeIDParser 
+    } = require('../emailerComponents/linkProvider')
+const { getTheComponentSourcePath, getTheFetchedReplacedContent 
+    } = require('../emailerComponents/emailContentLoader')
+const etherealSend = require('../emailerComponents/etherealSendingService')
+const sendinblueSend = require('../emailerComponents/sendinblueSendingService')
 
 
-describe('Singel EmailerService tests', ()=>{
 
-    let theTransporter = null
-    let service = null
-    beforeAll(()=>{
-        theTransporter = nodemailer.createTransport(EMAIL_CONNECTION_FORTEST)
-        mongoose.connect(localURL, { useNewUrlParser: true, useUnifiedTopology: true })
-        service = new EmailingService(
-            -1, theTransporter,
-            //correlated to service component
-            { toRoot: ['..'], toContent: ['__test__','emailTestPublic']}, 
-            { html: 'testEmailContent.html', txt: 'testEmailContent.txt' },
-            'An object text',
-            [
-                new LinkProvider(
-                    'http://localhost:4040', '/somepath/01234', 'CulturalSpot', 
-                         '<!--PlaceOfTheInsert-->'
-                )
-            ]
+describe('Loaders tests', ()=>{
+
+    it('Defining the sourcepath from root', ()=>{
+        const res = getTheComponentSourcePath(['..', '__test__','emailTestPublic'])
+        expect(res).toEqual(
+            expect.stringMatching(/server\\extensions\\__test__\\emailTestPublic$/)
         )
     })
-    afterAll(()=>{
-        theTransporter.close()
-        mongoose.disconnect()
 
-    })
-    it('Path definition test', ()=>{
-        const publicFolderPath = service.getTheComponentPath()
+    it('Link object testing', ()=>{
+        const obj = new LinkProvider('Click me here', 'someMarkerText')
+        const res1 = obj.getTheProperLink('text')
+        expect(res1).toEqual('')
 
-        expect(typeof publicFolderPath).toBe('string')
-        expect(publicFolderPath.endsWith('server\\extensions\\__test__\\emailTestPublic')).toBeTruthy()
-    })
-    it('Test of filefetch', async ()=>{
-        const file = await service.getTheContentFromFile(
-            path.join(__dirname, './emailTestPublic'),'testEmailContent.txt'
+        const res2 = obj.getTheProperLink('html')
+        expect(res2).toEqual(
+            expect.stringMatching(/<a href="">Click me here<\/a>/)
+        )
+        const res3 = obj.getTheDestinationMarkerText()
+        expect(res3).toEqual('someMarkerText')
+
+        obj.setLinkUrl('http://example.com')
+        const res4 = obj.getTheProperLink('html')
+        expect(res4).toEqual(
+            expect.stringMatching(/<a href="http:\/\/example.com">Click me here<\/a>/)
         )
 
-        expect(typeof file).toBe('string')
-        expect(file.search('Some content for Testing')).toBe(0)
     })
 
-    it('Test of content processing', async ()=>{
-        const file = await service.getTheContentFromFile(
-            path.join(__dirname, './emailTestPublic'), 'testEmailContent.txt'
-        )
-        expect(typeof file).toBe('string')
-        expect(file.search('Some content for Testing')).toBe(0)
-        expect(file.includes('<!--PlaceOfTheInsert-->')).toBeTruthy()
-        expect(file.includes('http://localhost:4040/somepath/01234')).toBeFalsy()
+    it('Fetch in a string from file', async ()=>{
+        const path = getTheComponentSourcePath(['..', '__test__','emailTestPublic'])
+        const links = [ new LinkProvider('Read more...', '<!--PlaceOfTheInsert-->') ]
+        links[0].setLinkUrl('http://example.net')
 
-        const content = service.getTheFormattedContent(file, 'Text')
-        expect(typeof content).toBe('string')
-        expect(content.includes('<!--PlaceOfTheInsert-->')).toBeFalsy()
-        expect(content.includes('http://localhost:4040/somepath/01234')).toBeTruthy()
+        const htmlExpected = [
+            /<h3>Some content for Testing<\/h3>/,
+            '<a href="http://expample.net>Reade more...</a>'
+        ]
+        const txtExpected = [
+            /Some content for Testing/,
+            /http:\/\/example.net/
+        ]
+        
+        const resObj1 = await getTheFetchedReplacedContent(links, path, 'testEmailContent.html')
+        expect(resObj1.content).toMatch(htmlExpected[0] )
+        //expect(resObj1.content.includes(htmlExpected[1])).toBeTruthy()
+        expect(resObj1.report).toBe('htmlPacked')
+
+        const resObj2 = await getTheFetchedReplacedContent(links, path, 'testEmailContent.txt')
+        expect(resObj2.content).toMatch(txtExpected[0])
+        expect(resObj2.content).toMatch(txtExpected[1])
+        expect(resObj2.report).toBe('txtPacked')
+
     })
+
+})
+/*
+describe('DB logging test', ()=>{
     it('Test of DB registring', (done)=>{
         EmailReportModel.find({msgto: 'someReally@good.com'}, async (e, d)=>{
             expect(e).toBe(null)
@@ -97,35 +111,69 @@ describe('Singel EmailerService tests', ()=>{
 
         })
     })
-
-    it('Whole comoponent test', (done)=>{
-        EmailReportModel.find({msgto: 'someReally@good.com'}, async (e, d)=>{
-            expect(e).toBe(null)
-            expect(typeof d).toBe('object')
-            expect(d).toHaveLength(0)
-
-            await service.executeEmailSending('someReally@good.com')
-
-            setTimeout(()=>{
-
-                EmailReportModel.find({ msgto: 'someReally@good.com'}, (err, doc)=>{
-                    expect(err).toBe(null)
-                    expect(doc).not.toBe(null)
-
-                    expect(typeof doc).toBe('object')
-                    expect(doc).toHaveLength(1)
-                    expect(doc[0].msgtype).toBe('UNKNOWN')
-                    expect(doc[0].msgcontent).toBe('textPacked-htmlPacked')
-                    expect(doc[0].msgresult).toBe('sent')
-
-                    EmailReportModel.deleteOne({_id: doc[0]._id}, (error, docum)=>{
-                        expect(error).toBe(null)
-                        done()
-                    })
-                })
-
-            }, 700)
-        })
+})
+*/
+describe('Singel Ethereal EmailerService tests', ()=>{
+    
+    let theTransporter = null
+    let service = null
+    beforeAll(async ()=>{
+        theTransporter = nodemailer.createTransport(EMAIL_CONNECTION_ETHEREAL)
+        //mongoose.connect(localURL, { useNewUrlParser: true, useUnifiedTopology: true })
+        service = await new etherealSend('nothing', theTransporter,
+            //correlated to service component
+            [ '..', '__test__','emailTestPublic' ], 
+            { html: 'testEmailContent.html', txt: 'testEmailContent.txt' },
+            'An object text',
+            [  new LinkProvider( 'CulturalSpot',  '<!--PlaceOfTheInsert-->' ) ]
+        )
+        service.setUrlOfLinks(['http://example.com'])
+    })
+    afterAll(()=>{
+        theTransporter.close()
     })
 
+    it('Sending test', async()=>{
+
+        const result = await service.executeEmailSending('Somebody', 'someReally@good.com')
+        expect(typeof result).toBe('object')
+        expect(result.emailTo).toBe('someReally@good.com')
+        expect(result.messageType).toBe('UNKNOWN')
+        expect(typeof result.messageContent).toBe('object')
+        expect(result.messageContent.length).toBe(2)
+        expect(result.messageContent[0]).toBe('txtPacked')
+        expect(result.messageContent[1]).toBe('htmlPacked')
+        expect(result.sendingResult).toBe('sent')
+    })
+})
+
+describe('Sigel SendinBlue EmailerService tests', ()=>{
+
+    let theTransporter = null
+    let service = null
+    beforeAll(async ()=>{
+        theTransporter = SibApiV3Sdk.ApiClient.instance;
+        const apiKey = theTransporter.authentications['api-key'];
+        apiKey.apiKey = EMAIL_CONNECTION_SENDINBLUE_APIKEY
+
+        service = await new sendinblueSend('nothing', undefined,
+            //correlated to service component
+            [ '..', '__test__','emailTestPublic' ], 
+            { html: 'testEmailContent.html', txt: 'testEmailContent.txt' },
+            'An object text',
+            [  new LinkProvider( 'CulturalSpot',  '<!--PlaceOfTheInsert-->' ) ]
+        )
+        service.setUrlOfLinks(['http://example.com'])
+    })
+
+    it('Sending test', async()=>{
+        const result = await service.executeEmailSending('Somebody', 'webfrontinapp@freemail.hu')
+        expect(typeof result).toBe('object')
+        expect(result.emailTo).toBe('webfrontinapp@freemail.hu')
+        expect(result.messageType).toBe('UNKNOWN')
+        expect(typeof result.messageContent).toBe('object')
+        expect(result.messageContent.length).toBe(1)
+        expect(result.messageContent[0]).toBe('htmlPacked')
+        expect(result.sendingResult).toBe('sent')
+    })
 })
