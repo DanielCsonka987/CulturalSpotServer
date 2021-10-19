@@ -1,13 +1,5 @@
 const nodemailer = require('nodemailer')
 const SibApiV3Sdk = require('sib-api-v3-sdk');
-/*const mongoose = require('mongoose')
-const fs = require('fs')
-const path = require('path')
-
-/*
-const EmailReportModel = require('../../models/EmailReportModel')
-const localURL = require('../../config/dbConfig').dbLocal
-*/
 
 const { EMAIL_CONNECTION_ETHEREAL, EMAIL_CONNECTION_SENDINBLUE_APIKEY 
     } = require('../../config/emailConfig')
@@ -77,42 +69,7 @@ describe('Loaders tests', ()=>{
     })
 
 })
-/*
-describe('DB logging test', ()=>{
-    it('Test of DB registring', (done)=>{
-        EmailReportModel.find({msgto: 'someReally@good.com'}, async (e, d)=>{
-            expect(e).toBe(null)
-            expect(typeof d).toBe('object')
-            expect(d).toHaveLength(0)
 
-            await service.registerInDBTheSending({
-                emailTo: 'someReally@good.com',
-                messageType: 'noType',
-                messageContent: [ 'no', 'there' ],
-                sendingResult: 'sent'
-            })
-            setTimeout(()=>{
-                EmailReportModel.find({ msgto: 'someReally@good.com'}, (err, doc)=>{
-                    expect(err).toBe(null)
-                    expect(doc).not.toBe(null)
-
-                    expect(typeof doc).toBe('object')
-                    expect(doc).toHaveLength(1)
-                    expect(doc[0].msgtype).toBe('noType')
-                    expect(doc[0].msgcontent).toBe('no-there')
-                    expect(doc[0].msgresult).toBe('sent')
-
-                    EmailReportModel.deleteOne({_id: doc[0]._id}, (error, docum)=>{
-                        expect(error).toBe(null)
-                        done()
-                    })
-                })
-            }, 800)
-
-        })
-    })
-})
-*/
 describe('Singel Ethereal EmailerService tests', ()=>{
     
     let theTransporter = null

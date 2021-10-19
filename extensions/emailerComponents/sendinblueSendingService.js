@@ -36,7 +36,7 @@ class SendinBlueSending{
         /*
         const txtContObj = await getTheFetchedReplacedContent(
             this.linksArray, pathToFetch, 
-            this.contentFilesObj.txt, 'Text'
+            this.contentFilesObj.txt
         )
         progressReportForDB.messageContent.push(txtContObj.report)
         */

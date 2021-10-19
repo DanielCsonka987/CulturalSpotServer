@@ -32,7 +32,7 @@ const EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE = {
 function getSenderFactory(apiObjectToInstantiate, purposeType){
     if(purposeType === 'register'){
         return new apiObjectToInstantiate(
-            'REGISTRATION', theTransporter, PATH_SUM, 
+            0, theTransporter, PATH_SUM, 
             EMAIL_CONTNET_FILE_NAMES.REGISTRATION,
             'CulturalSpot registration', 
             [ EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE.SITE_LINK ]
@@ -40,7 +40,7 @@ function getSenderFactory(apiObjectToInstantiate, purposeType){
     }
     if(purposeType === 'pwdChange'){
         return new apiObjectToInstantiate(
-            'PWDRESETING', theTransporter, PATH_SUM, 
+            1, theTransporter, PATH_SUM, 
             EMAIL_CONTNET_FILE_NAMES.PWD_RESET,
             'CulturalSpot password resetting', 
             [ EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE.SITE_LINK, 
@@ -49,7 +49,7 @@ function getSenderFactory(apiObjectToInstantiate, purposeType){
     }
     if(purposeType === 'delAcc'){
         return new apiObjectToInstantiate(
-            'ACCOUNTDELETE', theTransporter, PATH_SUM, 
+            2, theTransporter, PATH_SUM, 
             EMAIL_CONTNET_FILE_NAMES.ACCOUNT_DELETION,
             'No relply! CulturalSpot account deletion', 
             [ EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE.SITE_LINK ]
@@ -57,7 +57,7 @@ function getSenderFactory(apiObjectToInstantiate, purposeType){
     }
     if(purposeType === 'test'){
         return new apiObjectToInstantiate(
-            'TESTING', theTransporter, PATH_SUM, 
+            3, theTransporter, PATH_SUM, 
             EMAIL_CONTNET_FILE_NAMES.PRODUCTION_TESTING,
             'No relply! CulturalSpot testing message', 
             [ EMAIL_CONTENT_LINK_MARKER_AND_URL_FOR_REPLACE.SITE_LINK ]
