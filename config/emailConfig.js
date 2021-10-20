@@ -13,7 +13,8 @@ try{
 
 module.exports = {
 
-    EMAIL_ORIGIN_ACCOUNT: emailCred['FROM_ADDR'],
+    EMAIL_ORIGIN_ACCOUNT: 
+        process.env.EMAIL_SENDER_ADDRESS || emailCred['FROM_ADDR'],
     EMAIL_TEST_ACCOUNT: 
         process.env.EMAIL_TEST_ADDRESS || emailCred['TEST_ADDR'],
 
