@@ -4,22 +4,34 @@
   "description": "Simple social medai site to demonstrate developing abbilites of creator",
   "main": "server.js",
   "scripts": {
-    "testPost": "jest postServices.test.js",
     "testAcc": "jest accountServices.test.js",
     "testChat": "jest chatService.test.js",
+    "testPost": "jest postServices.test.js",
     "testWs": "jest wsServices.test.js",
     "testRep": "jest repository.test.js",
     "testUtil": "jest ./utils/",
+    "testMail": "jest emailerTesting.test.js",
+
     "testEmailE": "jest emailerServEther.test.js",
     "testEmailS": "jest emailerServSendin.test.js",
     "testEmailU": "jest emailerUnit.test.js",
     "testNotif1": "jest notifierService.test.js",
     "testNotif2": "jest notifierService2.test.js",
+
     "seedLocalDB": "node ./models/dbSeeder.js local",
     "seedCloudDB": "node ./models/dbSeeder.js cloud",
+    "seedApp": "",
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
+  "//": [
+    "1st group of tests are API-service tests - do not use together, the same server runs - PORT collisions emerge",
+    "2nd group of tests are rather unit and service testing - (these have own test datas)",
+    "seedLocal/seedCloud testing datas to DB with no existing emails on the web - API-service testing purpose",
+
+    "seedApp key for seeding DB at production!! datas are with public, real emails"
+  ],
+
   "engines": {
     "node": "14.x"
   },
@@ -29,6 +41,7 @@
     "jwt",
     "graphql",
     "apollo-server-express",
+    "SendinBlue",
     "websocket"
   ],
   "author": "DanielCsonka",

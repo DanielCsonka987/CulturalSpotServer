@@ -1,3 +1,4 @@
 Emailer testing message!
-Auto generated email for testing emailer extension functionality.
-<!--PlaceOfTheInsert-->
+Auto generated email for testing emailer extension functionality. It seems, it works fine!
+Have a good day!
+<!--PlaceOfTheInsert1-->

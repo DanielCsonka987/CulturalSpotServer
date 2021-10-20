@@ -100,6 +100,7 @@ async function resetTokenEvaluation(req, res, next){
 }
 
 
+//only at deployment it is used!!
 router.get('/emailtesting', async (req, res)=>{
 
     const domainName = req.protocol + '://'+ req.get('host')
