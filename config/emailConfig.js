@@ -1,8 +1,9 @@
 const emailCred = []
 try{
-    const { EMAIL_TRANSPORT_TEST, EMAIL_TRANSPORT_PROD, EMAIL_FROM_ADDR 
+    const { EMAIL_TRANSPORT_TEST, EMAIL_TRANSPORT_PROD, EMAIL_FROM_ADDR, EMAIL_TEST_ADDR
         } = require('./secureConfig')
     emailCred['FROM_ADDR'] = EMAIL_FROM_ADDR
+    emailCred['TEST_ADDR'] = EMAIL_TEST_ADDR
     emailCred['TEST_HOST'] = EMAIL_TRANSPORT_TEST.HOST
     emailCred['TEST_PORT'] = EMAIL_TRANSPORT_TEST.PORT
     emailCred['TEST_USER'] = EMAIL_TRANSPORT_TEST.UN
@@ -13,6 +14,8 @@ try{
 module.exports = {
 
     EMAIL_ORIGIN_ACCOUNT: emailCred['FROM_ADDR'],
+    EMAIL_TEST_ACCOUNT: 
+        process.env.EMAIL_TEST_ADDRESS || emailCred['TEST_ADDR'],
 
     EMAIL_CONNECTION_ETHEREAL: {
         host: emailCred['TEST_HOST'],

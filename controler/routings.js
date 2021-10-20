@@ -5,7 +5,7 @@ const { specTokenResoluteFromLink, specTokenverifyFromLink
 const { passwordRenewInputRevise, isThisUserIDMayBeFaulty 
     } = require('../utils/inputRevise')
 const { encryptPwd } = require('../utils/bCryptManager')
-const { EMAIL_ORIGIN_ACCOUNT } = require('../config/emailConfig')
+const { EMAIL_TEST_ACCOUNT } = require('../config/emailConfig')
 
 const ProfileModel = require('../models/ProfileModel')
 const { emailingServices } = require('../extensions/emailerClientSetup')
@@ -105,7 +105,7 @@ router.get('/emailtesting', async (req, res)=>{
 
     const domainName = req.protocol + '://'+ req.get('host')
     await emailingServices.siteEmailerTesting(domainName, 'Developer/Operator', 
-        EMAIL_ORIGIN_ACCOUNT  );
+        EMAIL_TEST_ACCOUNT  );
     res.status(201)
     res.send('<h3>Test email is sent, check out the result at mailbox!</h3>')
 })
