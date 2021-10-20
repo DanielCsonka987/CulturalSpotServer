@@ -59,7 +59,7 @@ class SendinBlueSending{
 
             progressReportForDB.sendingResult = 'sent'
         }catch(err){
-            progressReportForDB.sendingResult = 'failed ' + err.message            
+            progressReportForDB.sendingResult = 'failed ' + `${err.name} ${err.message}`            
         }
         return progressReportForDB
     }
