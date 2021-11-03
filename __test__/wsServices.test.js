@@ -309,7 +309,7 @@ describe('Friends mutations tests', ()=>{
             expect(env.properAction).toBe('add')
             expect(env.connectedTo).toBe('')
             expect(typeof env.payload).toBe('object')
-            expect(env.payload.id).toBe(user0.id)
+            expect(env.payload.userid).toBe(user0.id)
             expect(env.payload.username).toBe('User 0')
             expect(env.payload.relation).toBe('UNCERTAIN')
 
@@ -320,8 +320,8 @@ describe('Friends mutations tests', ()=>{
         request(apolloServer)
         .post('/graphql')
         .send({ "query":`mutation{
-            createAFriendshipInvitation(friendid: "${user2.id}"){
-                id, username, relation, mutualFriendCount
+            createAFriendshipInvitation(userid: "${user2.id}"){
+                userid, username, relation, mutualFriendCount
             }
             
         }`})
@@ -336,7 +336,7 @@ describe('Friends mutations tests', ()=>{
             expect(res.body.errors).toBe(undefined)
             expect(typeof res.body.data).toBe('object')
 
-            expect(res.body.data.createAFriendshipInvitation.id).toBe(user2.id)
+            expect(res.body.data.createAFriendshipInvitation.userid).toBe(user2.id)
             expect(res.body.data.createAFriendshipInvitation.username).toBe('User 2')
             done()
         })
@@ -373,7 +373,7 @@ describe('Friends mutations tests', ()=>{
         request(apolloServer)
         .post('/graphql')
         .send({ "query":`mutation{
-            removeAFriendshipInitiation(friendid: "${user4.id}"){
+            removeAFriendshipInitiation(userid: "${user4.id}"){
                 resultText, useridAtProcess
             }
             
@@ -422,7 +422,7 @@ describe('Friends mutations tests', ()=>{
                 expect(env.properAction).toBe('add')
                 expect(env.connectedTo).toBe('')
                 expect(typeof env.payload).toBe('object')
-                expect(env.payload.id).toBe(user3.id)
+                expect(env.payload.userid).toBe(user3.id)
                 expect(env.payload.username).toBe('User 3')
                 expect(env.payload.email).toBe(user3.email)
             }
@@ -432,8 +432,8 @@ describe('Friends mutations tests', ()=>{
         request(apolloServer)
         .post('/graphql')
         .send({ "query":`mutation{
-            approveThisFriendshipRequest(friendid: "${user0.id}"){
-                id, username, email 
+            approveThisFriendshipRequest(userid: "${user0.id}"){
+                userid, username, email 
             }
             
         }`})
@@ -448,7 +448,7 @@ describe('Friends mutations tests', ()=>{
             expect(res.body.errors).toBe(undefined)
             expect(typeof res.body.data).toBe('object')
 
-            expect(res.body.data.approveThisFriendshipRequest.id)
+            expect(res.body.data.approveThisFriendshipRequest.userid)
                 .toBe(user0.id)
             expect(res.body.data.approveThisFriendshipRequest.username)
                 .toBe('User 0')
@@ -492,7 +492,7 @@ describe('Friends mutations tests', ()=>{
         request(apolloServer)
         .post('/graphql')
         .send({ "query":`mutation{
-            discardThisFriendshipRequest(friendid: "${user5.id}"){
+            discardThisFriendshipRequest(userid: "${user5.id}"){
                 resultText, useridAtProcess
             }
             
@@ -540,7 +540,7 @@ describe('Friends mutations tests', ()=>{
             expect(typeof env.properAction).toBe('string')
             expect(env.properAction).toBe('remove')
             expect(typeof env.connectedTo).toBe('object') 
-            expect(env.connectedTo.friendid).toBe(user0.id)
+            expect(env.connectedTo.userid).toBe(user0.id)
             expect(env.payload).toBe('')
 
             theWsOf1.close()
@@ -549,7 +549,7 @@ describe('Friends mutations tests', ()=>{
         request(apolloServer)
         .post('/graphql')
         .send({ "query":`mutation{
-            removeThisFriend(friendid: "${user1.id}"){
+            removeThisFriend(userid: "${user1.id}"){
                 resultText, useridAtProcess
             }
             
@@ -612,9 +612,9 @@ describe('Posts mutations tests', ()=>{
         .send({ "query":`mutation{
             makeAPost(content: "${otherPosts[0].content}", dedication: "${user3.id}"){
                 postid, content, owner{
-                    id, username
+                    userid, username
                 }, dedicatedTo{
-                    id, username
+                    userid, username
                 }
             }
             
@@ -630,9 +630,9 @@ describe('Posts mutations tests', ()=>{
             expect(res.body.errors).toBe(undefined)
             expect(typeof res.body.data).toBe('object')
 
-            expect(res.body.data.makeAPost.owner.id)
+            expect(res.body.data.makeAPost.owner.userid)
                 .toBe(user0.id)
-            expect(res.body.data.makeAPost.dedicatedTo.id)
+            expect(res.body.data.makeAPost.dedicatedTo.userid)
                 .toBe(user3.id)
             done()
         })
@@ -676,9 +676,9 @@ describe('Posts mutations tests', ()=>{
             updateThisPost(postid: "${posts[2].id}", 
                 newcontent: "${otherPosts[1].content}"){
                 postid, content, owner{
-                    id, username
+                    userid, username
                 }, dedicatedTo{
-                    id, username
+                    userid, username
                 }, content
             }
             
@@ -694,7 +694,7 @@ describe('Posts mutations tests', ()=>{
             expect(res.body.errors).toBe(undefined)
             expect(typeof res.body.data).toBe('object')
 
-            expect(res.body.data.updateThisPost.owner.id)
+            expect(res.body.data.updateThisPost.owner.userid)
                 .toBe(user3.id)
             expect(res.body.data.updateThisPost.dedicatedTo)
                 .toBe(null)
@@ -798,7 +798,7 @@ describe('Comments and sentiments mutations tests', ()=>{
             createCommentToHere(targeted: POST, id: "${posts[2].id}", 
                 content: "${otherComments[0].content}"){
                 commentid, owner{
-                    id, username
+                    userid, username
                 }, content
             }
         }`})
@@ -815,7 +815,7 @@ describe('Comments and sentiments mutations tests', ()=>{
     
             expect(typeof res.body.data.createCommentToHere.commentid)
                 .toBe('string')
-            expect(res.body.data.createCommentToHere.owner.id)
+            expect(res.body.data.createCommentToHere.owner.userid)
                 .toBe(users[3].id)
             expect(res.body.data.createCommentToHere.content)
                 .toBe(otherComments[0].content)
@@ -863,7 +863,7 @@ describe('Comments and sentiments mutations tests', ()=>{
             createCommentToHere(targeted: COMMENT, id: "${comments[3].id}", 
                 content: "${otherComments[1].content}"){
                 commentid, owner{
-                    id, username
+                    userid, username
                 }, content
             }
         }`})
@@ -880,7 +880,7 @@ describe('Comments and sentiments mutations tests', ()=>{
     
             expect(typeof res.body.data.createCommentToHere.commentid)
                 .toBe('string')
-            expect(res.body.data.createCommentToHere.owner.id)
+            expect(res.body.data.createCommentToHere.owner.userid)
                 .toBe(users[3].id)
             expect(res.body.data.createCommentToHere.content)
                 .toBe(otherComments[1].content)
@@ -927,7 +927,7 @@ describe('Comments and sentiments mutations tests', ()=>{
             updateCommentContent(commentid: "${comments[1].id}", 
                 content: "${otherComments[2].content}"){
                 commentid, owner{
-                    id, username
+                    userid, username
                 }, content
             }
         }`})
@@ -944,7 +944,7 @@ describe('Comments and sentiments mutations tests', ()=>{
     
             expect(res.body.data.updateCommentContent.commentid)
                 .toBe(comments[1].id)
-            expect(res.body.data.updateCommentContent.owner.id)
+            expect(res.body.data.updateCommentContent.owner.userid)
                 .toBe(users[3].id)
             expect(res.body.data.updateCommentContent.content)
                 .toBe(otherComments[2].content)
@@ -991,7 +991,7 @@ describe('Comments and sentiments mutations tests', ()=>{
             updateCommentContent(commentid: "${comments[2].id}", 
                 content: "${otherComments[3].content}"){
                 commentid, owner{
-                    id, username
+                    userid, username
                 }, content
             }
         }`})
@@ -1008,7 +1008,7 @@ describe('Comments and sentiments mutations tests', ()=>{
     
             expect(res.body.data.updateCommentContent.commentid)
                 .toBe(comments[2].id)
-            expect(res.body.data.updateCommentContent.owner.id)
+            expect(res.body.data.updateCommentContent.owner.userid)
                 .toBe(users[3].id)
             expect(res.body.data.updateCommentContent.content)
                 .toBe(otherComments[3].content)
@@ -1122,7 +1122,7 @@ describe('Comments and sentiments mutations tests', ()=>{
             createSentimentToHere(targeted: POST, id: "${posts[4].id}",
                 content: ${sentimentTestDatas[4].content}){
                 sentimentid, owner{
-                    id, username
+                    userid, username
                 }, content
             }
         }`})
@@ -1141,7 +1141,7 @@ describe('Comments and sentiments mutations tests', ()=>{
                 .toBe('string')
             expect(res.body.data.createSentimentToHere.content)
                 .toBe(sentimentTestDatas[4].content)
-            expect(res.body.data.createSentimentToHere.owner.id)
+            expect(res.body.data.createSentimentToHere.owner.userid)
                 .toBe(users[3].id)
 
             sentiments.push({ id: res.body.data.createSentimentToHere.sentimentid })
@@ -1187,7 +1187,7 @@ describe('Comments and sentiments mutations tests', ()=>{
             createSentimentToHere(targeted: COMMENT, id: "${comments[5].id}",
                 content: ${sentimentTestDatas[5].content}){
                 sentimentid, owner{
-                    id, username
+                    userid, username
                 }, content
             }
         }`})
@@ -1206,7 +1206,7 @@ describe('Comments and sentiments mutations tests', ()=>{
                 .toBe('string')
             expect(res.body.data.createSentimentToHere.content)
                 .toBe(sentimentTestDatas[5].content)
-            expect(res.body.data.createSentimentToHere.owner.id)
+            expect(res.body.data.createSentimentToHere.owner.userid)
                 .toBe(users[3].id)
 
             sentiments.push({ id: res.body.data.createSentimentToHere.sentimentid })
@@ -1253,7 +1253,7 @@ describe('Comments and sentiments mutations tests', ()=>{
                 sentimentid: "${sentiments[0].id}", 
                 content: ${sentimentTestDatas[6].content}){
                 sentimentid, owner{
-                    id, username
+                    userid, username
                 }, content
             }
         }`})
@@ -1272,7 +1272,7 @@ describe('Comments and sentiments mutations tests', ()=>{
                 .toBe(sentiments[0].id)
             expect(res.body.data.updateSentimentContent.content)
                 .toBe(sentimentTestDatas[6].content)
-            expect(res.body.data.updateSentimentContent.owner.id)
+            expect(res.body.data.updateSentimentContent.owner.userid)
                 .toBe(users[3].id)
 
             done()
@@ -1318,7 +1318,7 @@ describe('Comments and sentiments mutations tests', ()=>{
                 sentimentid: "${sentiments[2].id}", 
                 content: ${sentimentTestDatas[7].content}){
                 sentimentid, owner{
-                    id, username
+                    userid, username
                 }, content
             }
         }`})
@@ -1337,7 +1337,7 @@ describe('Comments and sentiments mutations tests', ()=>{
                 .toBe(sentiments[2].id)
             expect(res.body.data.updateSentimentContent.content)
                 .toBe(sentimentTestDatas[7].content)
-            expect(res.body.data.updateSentimentContent.owner.id)
+            expect(res.body.data.updateSentimentContent.owner.userid)
                 .toBe(users[3].id)
 
             done()

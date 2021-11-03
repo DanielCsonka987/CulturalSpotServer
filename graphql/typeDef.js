@@ -34,7 +34,7 @@ module.exports = gql`
         tokenExpire: Int!
     }
     type UserMini {
-        id: String!,
+        userid: String!,
         username: String!,
         email: String!
     }
@@ -47,7 +47,7 @@ module.exports = gql`
 
     ## for friends managing, not account datas approach
     type UserPublicContent {
-        id: String!
+        userid: String!
         email: String!
         username: String!
         registeredAt: String!
@@ -57,7 +57,7 @@ module.exports = gql`
         friends: [UserFracture]!
     }
     type UserFracture {
-        id: String!
+        userid: String!
         username: String!
         relation: Connection!
         mutualFriendCount: Int
@@ -201,7 +201,7 @@ module.exports = gql`
         listOfMyFriends: [UserMini]!
         listOfUndecidedFriendships: [UserFracture]!
         listOfInitiatedFriendships: [UserFracture]!
-        showThisUserInDetail(friendid: String!): UserPublicContent 
+        showThisUserInDetail(userid: String!): UserPublicContent 
             ## undecidedCon and friends of friends
         showMeWhoCouldBeMyFriend: [UserFracture]!
 
@@ -231,13 +231,13 @@ module.exports = gql`
 
         ## firend processes
             ## for the initiation management by the source
-        createAFriendshipInvitation(friendid: ID!): UserFracture!
-        removeAFriendshipInitiation(friendid: ID!): FriendProcess!
+        createAFriendshipInvitation(userid: ID!): UserFracture!
+        removeAFriendshipInitiation(userid: ID!): FriendProcess!
             ## for the initiation acceptance-denial by the target
-        approveThisFriendshipRequest(friendid: ID!): UserMini
-        discardThisFriendshipRequest(friendid: ID!): FriendProcess!
+        approveThisFriendshipRequest(userid: ID!): UserMini
+        discardThisFriendshipRequest(userid: ID!): FriendProcess!
             ## for remove a stable friend-conenction
-        removeThisFriend(friendid: ID!): FriendProcess!
+        removeThisFriend(userid: ID!): FriendProcess!
 
 
         ## posts processes
@@ -299,7 +299,7 @@ module.exports = gql`
  *      removeAFriendshipInitiation - {idOfRequester: id } =''
  *      approveThisFriendshipRequest -'' ={UserMini}
  *      discardThisFriendshipRequest -{idOfInvited: id} =''
- *      removeThisFriend -{friendid: id} =''
+ *      removeThisFriend -{userid: id} =''
  * 
  * 
  *      makeAPost   -'' ={Post}

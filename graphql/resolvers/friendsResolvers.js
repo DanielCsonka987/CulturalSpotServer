@@ -18,7 +18,7 @@ module.exports = {
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
             const result = await dataSources.profiles.getWithScreening(args.username)  
             return result.map(async user=>{ return{
-                    id: user._id.toString(),
+                    userid: user._id.toString(),
                     username: user.username,
                     relation: defineUserConnections(
                         user._id, clientUser, dataSources
@@ -60,7 +60,7 @@ module.exports = {
             )
             return  usersUndecidedFriends.map(async frnd=>{
                 return { 
-                    id: frnd._id,
+                    userid: frnd._id,
                     username: frnd.username,
                     relation: 'UNCERTAIN',
                     mutualFriendCount: await countTheAmountOfFriends(
@@ -82,7 +82,7 @@ module.exports = {
             )
             return  usersInitiatedFriendships.map(async frnd=>{
                 return { 
-                    id: frnd._id,
+                    userid: frnd._id,
                     username: frnd.username,
                     relation: 'INITIATED',
                     mutualFriendCount: await countTheAmountOfFriends(
@@ -93,7 +93,7 @@ module.exports = {
         },
         async showThisUserInDetail(_, args, { authorizRes, dataSources }){
             authorizEvaluation( authorizRes )
-            const { error, issue, field, userid} = useridInputRevise(args.friendid)
+            const { error, issue, field, userid} = useridInputRevise(args.userid)
             if(error){
                 return new UserInputError('No proper userid for show a user catalog!', { field, issue })
             }
@@ -103,7 +103,7 @@ module.exports = {
             }
             const clientUser = await dataSources.profiles.get(authorizRes.subj)
             return {
-                id: userid,
+                userid: userid,
                 email: accountAtQuery.email,
                 username: accountAtQuery.username,
                 registeredAt: accountAtQuery.registeredAt.toISOString(),
@@ -123,7 +123,7 @@ module.exports = {
             const possibleFriendOutput = []
             for( const undecCon of clientUser.myFriendRequests){
                 possibleFriendOutput.push({ 
-                    id: undecCon._id,
+                    userid: undecCon._id,
                     username: await getTheUsernameFromId(
                         undecCon._id, dataSources
                     ),
@@ -141,7 +141,7 @@ module.exports = {
                 )
                 for(const frndOfFrnd_id of allInterestingFriendidOfThiFriend){
                     possibleFriendOutput.push({
-                        id: frndOfFrnd_id.toString(),
+                        userid: frndOfFrnd_id.toString(),
                         username: await getTheUsernameFromId(
                             frndOfFrnd_id, dataSources
                         ),
@@ -159,7 +159,7 @@ module.exports = {
         async createAFriendshipInvitation(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
-            const { error, issue, field, userid} = useridInputRevise(args.friendid)
+            const { error, issue, field, userid} = useridInputRevise(args.userid)
             if(error){
                 return new UserInputError('No proper userid for initiate friendship!', { field, issue })
             }
@@ -190,7 +190,7 @@ module.exports = {
                 targetUser._id, clientUser, dataSources
             )
             wsNotifier.sendNotification(targetUser._id.toString(), '', {
-                    id: clientUser._id.toString(),
+                    userid: clientUser._id.toString(),
                     username: clientUser.username,
                     relation: 'UNCERTAIN',
                     mutualFriendCount: mutalFriends
@@ -198,7 +198,7 @@ module.exports = {
             )
 
             return {
-                id: targetUser._id.toString(),
+                userid: targetUser._id.toString(),
                 username: targetUser.username,
                 relation: 'INITIATED',
                 mutualFriendCount: mutalFriends
@@ -207,7 +207,7 @@ module.exports = {
         async removeAFriendshipInitiation(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
-            const { error, issue, field, userid} = useridInputRevise(args.friendid)
+            const { error, issue, field, userid} = useridInputRevise(args.userid)
             if(error){
                 return new UserInputError('No proper userid for remove a friendship invitation!', { field, issue })
             }
@@ -247,7 +247,7 @@ module.exports = {
         async approveThisFriendshipRequest(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
-            const { error, issue, field, userid} = useridInputRevise(args.friendid)
+            const { error, issue, field, userid} = useridInputRevise(args.userid)
             if(error){
                 return new UserInputError('No proper userid for accept a friendship invitation!', { field, issue })
             }
@@ -298,7 +298,7 @@ module.exports = {
         },
         async discardThisFriendshipRequest(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
-            const { error, issue, field, userid} = useridInputRevise(args.friendid)
+            const { error, issue, field, userid} = useridInputRevise(args.userid)
             if(error){
                 return new UserInputError('No proper userid for refuse a friendship invitation!', { field, issue })
             }
@@ -337,7 +337,7 @@ module.exports = {
         async removeThisFriend(_, args, { authorizRes, dataSources, wsNotifier }){
             authorizEvaluation(authorizRes)
 
-            const { error, issue, field, userid} = useridInputRevise(args.friendid)
+            const { error, issue, field, userid} = useridInputRevise(args.userid)
             if(error){
                 return new UserInputError('No proper userid for remove a friendship!', { field, issue })
             }
@@ -365,7 +365,7 @@ module.exports = {
             }
             
             wsNotifier.sendNotification(targetUser._id.toString(), 
-                { friendid: clientUser._id.toString() }, '', 
+                { userid: clientUser._id.toString() }, '', 
                 notifyTypes.FRIEND.CONNECTION_DISCARDED
             )
             return{

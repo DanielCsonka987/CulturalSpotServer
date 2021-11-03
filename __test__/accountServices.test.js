@@ -858,7 +858,7 @@ describe('Graphql friend queries', ()=>{
         .post('/graphql')
         .send({query: ` query{
             searchForSomeUser(username: "${'User'}"){
-                    id, username, relation, mutualFriendCount
+                    userid, username, relation, mutualFriendCount
                 }
             }`
         })
@@ -883,7 +883,7 @@ describe('Graphql friend queries', ()=>{
         .post('/graphql')
         .send({query: ` query{
             listOfMyFriends{
-                    id, username, email
+                    userid, username, email
                 }
             }`
         })
@@ -898,7 +898,7 @@ describe('Graphql friend queries', ()=>{
 
             expect(typeof res.body.data.listOfMyFriends).toBe('object')
             expect(res.body.data.listOfMyFriends.length).toBe(1)
-            expect(res.body.data.listOfMyFriends[0].id).toBe(userTesting.get('User 2').id)
+            expect(res.body.data.listOfMyFriends[0].userid).toBe(userTesting.get('User 2').id)
             expect(res.body.data.listOfMyFriends[0].email).toBe(userTesting.get('User 2').email)
             done()
         })
@@ -911,7 +911,7 @@ describe('Graphql friend queries', ()=>{
         .post('/graphql')
         .send({query: ` query{
             listOfUndecidedFriendships{
-                    id, username, relation, mutualFriendCount
+                    userid, username, relation, mutualFriendCount
                 }
             }`
         })
@@ -926,9 +926,9 @@ describe('Graphql friend queries', ()=>{
 
             expect(typeof res.body.data.listOfUndecidedFriendships).toBe('object')
             expect(res.body.data.listOfUndecidedFriendships.length).toBe(2)
-            expect(res.body.data.listOfUndecidedFriendships[0].id).toBe(userTesting.get('User 4').id)
+            expect(res.body.data.listOfUndecidedFriendships[0].userid).toBe(userTesting.get('User 4').id)
             expect(res.body.data.listOfUndecidedFriendships[0].relation).toBe('UNCERTAIN')
-            expect(res.body.data.listOfUndecidedFriendships[1].id).toBe(userTesting.get('User 5').id)
+            expect(res.body.data.listOfUndecidedFriendships[1].userid).toBe(userTesting.get('User 5').id)
             expect(res.body.data.listOfUndecidedFriendships[1].relation).toBe('UNCERTAIN')
             done()
         })
@@ -941,7 +941,7 @@ describe('Graphql friend queries', ()=>{
         .post('/graphql')
         .send({query: ` query{
             listOfInitiatedFriendships{
-                    id, username, relation, mutualFriendCount
+                    userid, username, relation, mutualFriendCount
                 }
             }`
         })
@@ -956,7 +956,7 @@ describe('Graphql friend queries', ()=>{
 
             expect(typeof res.body.data.listOfInitiatedFriendships).toBe('object')
             expect(res.body.data.listOfInitiatedFriendships.length).toBe(1)
-            expect(res.body.data.listOfInitiatedFriendships[0].id)
+            expect(res.body.data.listOfInitiatedFriendships[0].userid)
                 .toBe(userTesting.get('User 3').id)
             expect(res.body.data.listOfInitiatedFriendships[0].relation)
                 .toBe('INITIATED')
@@ -970,9 +970,9 @@ describe('Graphql friend queries', ()=>{
         request(theSrv)
         .post('/graphql')
         .send({query: ` query{
-            showThisUserInDetail(friendid: "${userTesting.get('User 2').id}"){
-                    id, username, email, registeredAt, relation, mutualFriendCount, friends{
-                        id, username, relation, mutualFriendCount
+            showThisUserInDetail(userid: "${userTesting.get('User 2').id}"){
+                    userid, username, email, registeredAt, relation, mutualFriendCount, friends{
+                        userid, username, relation, mutualFriendCount
                     }
                 }
             }`
@@ -988,7 +988,7 @@ describe('Graphql friend queries', ()=>{
 
             expect(typeof res.body.data.showThisUserInDetail)
                 .toBe('object')
-            expect(res.body.data.showThisUserInDetail.id)
+            expect(res.body.data.showThisUserInDetail.userid)
                 .toBe(userTesting.get('User 2').id)
             expect(res.body.data.showThisUserInDetail.email)
                 .toBe(userTesting.get('User 2').email)
@@ -1005,7 +1005,7 @@ describe('Graphql friend queries', ()=>{
         .post('/graphql')
         .send({query: ` query{
             showMeWhoCouldBeMyFriend{
-                    id, username, relation, mutualFriendCount
+                    userid, username, relation, mutualFriendCount
                 }
             }`
         })
@@ -1021,7 +1021,7 @@ describe('Graphql friend queries', ()=>{
             expect(res.body.data.showMeWhoCouldBeMyFriend.length).toBe(3)
 
             //the undecided users
-            expect(res.body.data.showMeWhoCouldBeMyFriend[0].id)
+            expect(res.body.data.showMeWhoCouldBeMyFriend[0].userid)
                 .toBe(userTesting.get('User 4').id)
             expect(res.body.data.showMeWhoCouldBeMyFriend[0].username)
                 .toBe(userTestDatas[4].username)
@@ -1029,7 +1029,7 @@ describe('Graphql friend queries', ()=>{
             expect(res.body.data.showMeWhoCouldBeMyFriend[0].relation)
                 .toBe('UNCERTAIN')
 
-            expect(res.body.data.showMeWhoCouldBeMyFriend[1].id)
+            expect(res.body.data.showMeWhoCouldBeMyFriend[1].userid)
                 .toBe(userTesting.get('User 5').id)
             expect(res.body.data.showMeWhoCouldBeMyFriend[1].username)
                 .toBe(userTestDatas[5].username)
@@ -1038,7 +1038,7 @@ describe('Graphql friend queries', ()=>{
                 .toBe('UNCERTAIN')
 
             //the only friend of the friend
-            expect(res.body.data.showMeWhoCouldBeMyFriend[2].id).toBe(userTesting.get('User 3').id)
+            expect(res.body.data.showMeWhoCouldBeMyFriend[2].userid).toBe(userTesting.get('User 3').id)
             expect(res.body.data.showMeWhoCouldBeMyFriend[2].username).toBe(userTestDatas[3].username)
             expect(res.body.data.showMeWhoCouldBeMyFriend[2].mutualFriendCount).toBe(1)
             expect(res.body.data.showMeWhoCouldBeMyFriend[2].relation).toBe('INITIATED')
@@ -1055,8 +1055,8 @@ describe('Grapql friend mutations', ()=>{
         request(theSrv)
         .post('/graphql')
         .send({query: ` mutation{
-                createAFriendshipInvitation(friendid: "${userTesting.get('User 6').id}"){
-                    id, username, mutualFriendCount, relation
+                createAFriendshipInvitation(userid: "${userTesting.get('User 6').id}"){
+                    userid, username, mutualFriendCount, relation
                 }
             }`
         })
@@ -1069,7 +1069,7 @@ describe('Grapql friend mutations', ()=>{
             expect(typeof res.body.data).toBe('object')
             expect(res.body.errors).toBe(undefined)
 
-            expect(res.body.data.createAFriendshipInvitation.id)
+            expect(res.body.data.createAFriendshipInvitation.userid)
                 .toBe(userTesting.get('User 6').id)
             expect(res.body.data.createAFriendshipInvitation.relation)
                 .toBe( 'INITIATED' )
@@ -1095,7 +1095,7 @@ describe('Grapql friend mutations', ()=>{
         request(theSrv)
         .post('/graphql')
         .send({query: `mutation{
-                removeAFriendshipInitiation(friendid: "${userTesting.get('User 3').id}"){
+                removeAFriendshipInitiation(userid: "${userTesting.get('User 3').id}"){
                     resultText, useridAtProcess
                 }
             }
@@ -1135,7 +1135,7 @@ describe('Grapql friend mutations', ()=>{
         .post('/graphql')
         .send({query: ` 
             mutation{
-                discardThisFriendshipRequest(friendid: "${userTesting.get('User 5').id}"){
+                discardThisFriendshipRequest(userid: "${userTesting.get('User 5').id}"){
                     resultText, useridAtProcess
                 }
             }
@@ -1178,8 +1178,8 @@ describe('Grapql friend mutations', ()=>{
         .post('/graphql')
         .send({query: ` 
             mutation{
-                approveThisFriendshipRequest(friendid: "${userTesting.get('User 4').id}"){
-                    id, username, email
+                approveThisFriendshipRequest(userid: "${userTesting.get('User 4').id}"){
+                    userid, username, email
                 }
             }
         `})
@@ -1192,7 +1192,7 @@ describe('Grapql friend mutations', ()=>{
             expect(typeof res.body.data).toBe('object')
             expect(res.body.errors).toBe(undefined)
 
-            expect(res.body.data.approveThisFriendshipRequest.id)
+            expect(res.body.data.approveThisFriendshipRequest.userid)
                 .toBe( userTesting.get('User 4').id )
             expect(res.body.data.approveThisFriendshipRequest.email)
                 .toBe( userTesting.get('User 4').email )
@@ -1221,7 +1221,7 @@ describe('Grapql friend mutations', ()=>{
         .post('/graphql')
         .send({query: ` 
             mutation{
-                removeThisFriend(friendid: "${userTesting.get('User 2').id}"){
+                removeThisFriend(userid: "${userTesting.get('User 2').id}"){
                     resultText, useridAtProcess
                 }
             }

@@ -63,7 +63,7 @@ ProfileSchema.methods.removeThisPost = function(postIDObj){
 
 ProfileSchema.virtual('getUserMiniData').get(function(){
     return {
-        id: this._id,
+        userid: this._id,
         username: this.username,
         email: this.email
     }

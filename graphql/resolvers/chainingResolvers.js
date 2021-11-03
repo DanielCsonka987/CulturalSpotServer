@@ -142,7 +142,7 @@ module.exports = {
 
 function userMiniTypeDefine(frnd){
     return { 
-        id: frnd._id,
+        userid: frnd._id,
         username: frnd.username,
         email: frnd.email
     }
@@ -161,7 +161,7 @@ function postTypeDefine(postUnit){
 }
 async function userFractureTypeDefine(actClient, clientUser, dataSources){
     return {
-        id: actClient._id,
+        userid: actClient._id,
         username: actClient.username,
         relation: defineUserConnections(
             actClient._id, clientUser,
