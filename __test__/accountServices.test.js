@@ -7,9 +7,9 @@ const ChatModel = require('../models/ChattingModel')
 const EmailReportModel = require('../models/EmailReportModel')
 const { createTokenToHeader, userTestDatas, userTestRegister, chatTestDatas1 } 
     = require('./helperToTestingServices')
-const { authorizTokenEncoder, createLoginRefreshToken, 
+const { authorizTokenEncoder, createLoginRefreshToken,
     authorizTokenVerify, authorizTokenInputRevise,
-    createSpecTokenToLink } = require('../utils/tokenManager')
+    createResetTokenToLink } = require('../utils/tokenManager')
 const { startTestingServer, exitTestingServer } = require('../server')
 
 const userTesting = new Map()
@@ -65,6 +65,7 @@ beforeAll((done)=>{
                             await item.save()
                         }
                         if(item._id.toString() === userTesting.get('User 5').id){
+                            item.resetPwdMarker = '1636659924221'
                             item.myInvitations.push(userTesting.get('User 1').obj)
                             await item.save()
                         }
@@ -107,11 +108,11 @@ describe('Starter base REST URLs', ()=>{
             
     })
 })
+
 describe('GET ResetPassword step-2 tests', ()=>{
     it('GET URL - no real input', (done)=>{
-
         request(theSrv)
-        .get('/resetpassword/123')
+        .get('/passwordresetting/123')
         .expect("Content-Type", /text\/html/)
         .expect(500)
         .end((err, res)=>{
@@ -126,9 +127,9 @@ describe('GET ResetPassword step-2 tests', ()=>{
     })
     it('GET URL - token, no valid Userid', (done)=>{
 
-        const theToken = createSpecTokenToLink('0123456', 'hashPwd', '012345abcd')
+        const theToken = createResetTokenToLink('0123456', 'hashPwd', '012345abcd')
         request(theSrv)
-        .get(`/resetpassword/${theToken}`)
+        .get(`/passwordresetting/${theToken}`)
         .expect("Content-Type", /text\/html/)
         .expect(500)
         .end((err, res)=>{
@@ -145,9 +146,9 @@ describe('GET ResetPassword step-2 tests', ()=>{
         ProfileModel.find({email: targetUserEmail }, (e, d)=>{
             expect(e).toBe(null)
             expect(d[0]).not.toBe(null)
-            const theToken = createSpecTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
+            const theToken = createResetTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
             request(theSrv)
-            .get(`/resetpassword/${theToken}`)
+            .get(`/passwordresetting/${theToken}`)
             .expect("Content-Type", /text\/html/)
             .expect(500)
             .end((err, res)=>{
@@ -169,9 +170,9 @@ describe('GET ResetPassword step-2 tests', ()=>{
             d[0].resetPwdMarker = '0123456'
             await d[0].save()
 
-            const theToken = createSpecTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
+            const theToken = createResetTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
             request(theSrv)
-            .get(`/resetpassword/${theToken}`)
+            .get(`/passwordresetting/${theToken}`)
             .expect("Content-Type", /text\/html/)
             .expect(500)
             .end( async (err, res)=>{
@@ -198,7 +199,7 @@ describe('GET ResetPassword step-2 tests', ()=>{
                 '0123456' + d[0].pwdHash, { expiresIn: '1ms' }
             )
             request(theSrv)
-            .get(`/resetpassword/${theToken}`)
+            .get(`/passwordresetting/${theToken}`)
             .expect("Content-Type", /text\/html/)
             .expect(200)
             .end(async (err, res)=>{
@@ -225,14 +226,15 @@ describe('GET ResetPassword step-2 tests', ()=>{
                 '0123456' + d[0].pwdHash, { expiresIn: '10min' }
             )
             request(theSrv)
-            .get(`/resetpassword/${theToken}`)
+            .get(`/passwordresetting/${theToken}`)
             .expect("Content-Type", /text\/html/)
             .expect(200)
             .end(async (err, res)=>{
                 expect(err).toBe(null)
                 expect(res.body).toBeInstanceOf(Object);
                 expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Permission granted, here is the form</h3>')).toBeTruthy()
+                expect(res.text.includes('<h3>Permission granted - here is the form!</h3>')).toBeTruthy()
+                
                 d[0].resetPwdMarker = ''
                 await d[0].save()
                 done()
@@ -242,11 +244,12 @@ describe('GET ResetPassword step-2 tests', ()=>{
 
 })
 
+/* OUT OF ORDER - replaced with GQL resolving
 describe('POST ResetPassword step-3 tests',()=>{
 
     it('POST URL - no real url input', (done)=>{
         request(theSrv)
-        .post('/resetpassword/123')
+        .post('/passwordresetting/123')
         .expect("Content-Type", /text\/html/)
         .expect(500)
         .end((err, res)=>{
@@ -261,9 +264,9 @@ describe('POST ResetPassword step-3 tests',()=>{
     })
     it('POST URL - token, no valid Userid', (done)=>{
 
-        const theToken = createSpecTokenToLink('0123456', 'hashPwd', '012345abcd')
+        const theToken = createResetTokenToLink('0123456', 'hashPwd', '012345abcd')
         request(theSrv)
-        .post(`/resetpassword/${theToken}`)
+        .post(`/passwordresetting/${theToken}`)
         .expect("Content-Type", /text\/html/)
         .expect(500)
         .end((err, res)=>{
@@ -280,9 +283,9 @@ describe('POST ResetPassword step-3 tests',()=>{
         ProfileModel.find({email: targetUserEmail }, (e, d)=>{
             expect(e).toBe(null)
             expect(d[0]).not.toBe(null)
-            const theToken = createSpecTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
+            const theToken = createResetTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
             request(theSrv)
-            .post(`/resetpassword/${theToken}`)
+            .post(`/passwordresetting/${theToken}`)
             .expect("Content-Type", /text\/html/)
             .expect(500)
             .end((err, res)=>{
@@ -304,9 +307,9 @@ describe('POST ResetPassword step-3 tests',()=>{
             d[0].resetPwdMarker = '0123456'
             await d[0].save()
 
-            const theToken = createSpecTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
+            const theToken = createResetTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
             request(theSrv)
-            .post(`/resetpassword/${theToken}`)
+            .post(`/passwordresetting/${theToken}`)
             .expect("Content-Type", /text\/html/)
             .expect(500)
             .end( async (err, res)=>{
@@ -333,7 +336,7 @@ describe('POST ResetPassword step-3 tests',()=>{
                 '0123456' + d[0].pwdHash, { expiresIn: '1ms' }
             )
             request(theSrv)
-            .post(`/resetpassword/${theToken}`)
+            .post(`/passwordresetting/${theToken}`)
             .expect("Content-Type", /text\/html/)
             .expect(200)
             .end(async (err, res)=>{
@@ -361,7 +364,7 @@ describe('POST ResetPassword step-3 tests',()=>{
                 '0123456' + d[0].pwdHash, { expiresIn: '10min' }
             )
             request(theSrv)
-            .post(`/resetpassword/${theToken}`)
+            .post(`/passwordresetting/${theToken}`)
             .send('password=Stg&passwordConf=Stg')
             .expect("Content-Type", /text\/html/)
             .expect(200)
@@ -389,7 +392,7 @@ describe('POST ResetPassword step-3 tests',()=>{
                 '0123456' + d[0].pwdHash, { expiresIn: '10min' }
             )
             request(theSrv)
-            .post(`/resetpassword/${theToken}`)
+            .post(`/passwordresetting/${theToken}`)
             .send('password=StgToTesting&passwordConf=Stg')
             .expect("Content-Type", /text\/html/)
             .expect(200)
@@ -417,7 +420,7 @@ describe('POST ResetPassword step-3 tests',()=>{
                 '0123456' + d[0].pwdHash, { expiresIn: '10min' }
             )
             request(theSrv)
-            .post(`/resetpassword/${theToken}`)
+            .post(`/passwordresetting/${theToken}`)
             .send('password=Stg2Test&passwordConf=')
             .expect("Content-Type", /text\/html/)
             .expect(200)
@@ -445,7 +448,7 @@ describe('POST ResetPassword step-3 tests',()=>{
                 '0123456' + d[0].pwdHash, { expiresIn: '10min' }
             )
             request(theSrv)
-            .post(`/resetpassword/${theToken}`)
+            .post(`/passwordresetting/${theToken}`)
             .send('password=StgToTest&passwordConf=StgToTest')
             .expect("Content-Type", /text\/html/)
             .expect(200)
@@ -463,6 +466,7 @@ describe('POST ResetPassword step-3 tests',()=>{
     })
 
 })
+*/
 describe('GrapQL profile queries', ()=>{
     it('Test attempt', (done)=>{
         request(theSrv)
@@ -760,6 +764,52 @@ describe('GrapQL profile queries', ()=>{
         })
         
         
+    })
+
+    it('RenewPassword setp3 - user send new password', (done)=>{
+        const theUserId = userTesting.get('User 5').id;
+        ProfileModel.findOne({ _id: theUserId }, (e1, d1)=>{
+            expect(e1).toBe(null)
+            expect(d1).not.toBe(null)
+            expect(d1.resetPwdMarker).not.toBe(null)
+            expect(d1.resetPwdMarker).not.toBe('')
+            const oldHash = d1.pwdHash
+            const resetToken = createResetTokenToLink(
+                d1.resetPwdMarker, oldHash, d1._id
+            )
+
+            request(theSrv)
+            .post('/graphql')
+            .send({query: `mutation{
+                resetPasswordStep3(newpassword: "testing", newconf: "testing"){
+                    id, username, email, resultText
+                }
+            }`})
+            .set('Accept', 'application/json')
+            .set('Resetting', `${resetToken}`)
+            .expect('Content-Type', 'application/json; charset=utf-8')
+            .expect(200)
+            .end((err, res)=>{
+                expect(err).toBe(null)
+                expect(res.body.errors).toBe(undefined)
+                
+                expect(typeof res.body.data).toBe('object')
+                expect(res.body.data.resetPasswordStep3.resultText).toBe('Password resetting done!')
+                expect(res.body.data.resetPasswordStep3.email).toBe(d1.email)
+
+                setTimeout(()=>{
+                    ProfileModel.findOne({ _id: theUserId }, (e2, d2)=>{
+                        expect(e2).toBe(null)
+                        expect(d2).not.toBe(null)
+    
+                        expect(d2.pwdHash).not.toBe(oldHash)
+                        expect(d2.resetPwdMarker).toBe('')
+                        done()
+                    })
+                }, 500)
+            })
+        })
+
     })
 
     it('Renew authorization token', (done)=>{

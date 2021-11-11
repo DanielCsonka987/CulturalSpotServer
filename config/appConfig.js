@@ -13,6 +13,6 @@ module.exports = {
     BCRYPT_ROUND: 12,
 
     ROUTING: {
-        RESETPWD_REST_GET_ROUTE: '/resetpassword/',
+        RESETPWD_REST_GET_ROUTE: '/passwordresetting/',
     }
 }

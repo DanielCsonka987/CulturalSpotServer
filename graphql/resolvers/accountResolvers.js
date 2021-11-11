@@ -2,17 +2,18 @@ const { AuthenticationError, UserInputError, ApolloError
     } = require('apollo-server-express')
 
 //helper utils, standalone like, models
-const { authorizTokenEncoder, createSpecTokenToLink, createLoginRefreshToken 
+const { authorizTokenEncoder, createResetTokenToLink, createLoginRefreshToken 
     } = require('../../utils/tokenManager')
 const { encryptPwd, matchTextHashPwd } = require('../../utils/bCryptManager')
 const { loginInputRevise, registerInputRevise, 
     changePwdInputRevise, deleteAccInputRevise,
-    updateAccDetInputRevise, resetPwdInputRevise, 
+    updateAccDetInputRevise, resetPwdInputRevise, passwordRenewInputRevise
  } = require('../../utils/inputRevise')
 
-
 // someHelper function in resolving - not standalone, apollo connected!
-const { authorizEvaluation, tokenRefreshmentEvaluation } = require('./resolveHelpers')
+const { 
+    authorizEvaluation, tokenRefreshmentEvaluation, resetTokenEvaluation
+} = require('./resolveHelpers')
 
 async function passwordsMatching(user, pwdText){
     if(!user){
@@ -213,7 +214,7 @@ module.exports = {
                 return new ApolloError('Password reset registring error occured!', err)
             }
 
-            const specIdTokenToPath = createSpecTokenToLink(datingMarker, userToReset.pwdHash, 
+            const specIdTokenToPath = createResetTokenToLink(datingMarker, userToReset.pwdHash, 
                 userToReset._id
             )
 
@@ -221,6 +222,39 @@ module.exports = {
                     userToReset.username, userToReset.email, specIdTokenToPath)
             return {
                 resultText: 'Password reset email is sent!',
+                id: 'none',
+                email: email,
+                username: 'none'
+
+            }
+        },
+        async resetPasswordStep3(_, args, { pwdResetRes, dataSources }){
+            const resetPermission = await resetTokenEvaluation(
+                pwdResetRes, dataSources
+            )
+            
+            if(!passwordRenewInputRevise(args.newpassword, args.newconf)){
+                return new UserInputError('Password and conformation don\'t matches!')
+            }
+
+            //process execution
+            const newPwdHashing = await encryptPwd(args.newpassword);
+            if(newPwdHashing.error){
+                return new ApolloError('Server error occured', { general: 'Pwd encryption error!' })
+            }
+            let email = ''
+            try{
+                const client = await dataSources.profiles.get(resetPermission.userid)
+                client.pwdHash = newPwdHashing.hash
+                client.resetPwdMarker = ""
+                email = client.email
+                await dataSources.profiles.saving(client)
+            }catch(err){
+                return new ApolloError('Server error occured ', err)
+            }
+
+            return {
+                resultText: 'Password resetting done!',
                 id: 'none',
                 email: email,
                 username: 'none'

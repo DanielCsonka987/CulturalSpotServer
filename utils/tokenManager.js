@@ -4,7 +4,7 @@ const { TOKEN_SECRET, TOKEN_ACCESS_EXPIRE, TOKEN_RESET_EXPIRE,
      TOKEN_PREFIX } = require('../config/appConfig')
     
 const { authorizationHeaderExist, refreshingHeaderExist, isolateBearerFromHeader, 
-    isolateTokenFromURL, tokenNormalSchemasFaulty, tokenSpecRevAndSplitting 
+    isolateTokenFromURL, tokenNormalSchemasFaulty, tokenSpecRevAndSplitting, resettingHeaderExist 
     } = require('./inputRevise')
 
 /*
@@ -87,7 +87,7 @@ module.exports = {
      * content is marker = timemark (integer in ms)
      * secret key consists of user id + user pwdhash
     */
-    createSpecTokenToLink: (dateToPayloadAndSecret, pwdHashToSecret, userIdToLink )=>{
+    createResetTokenToLink: (dateToPayloadAndSecret, pwdHashToSecret, userIdToLink )=>{
         const keyToEncript = dateToPayloadAndSecret + pwdHashToSecret;
 
         const theToken = tokenEncoderWithExp({ marker: dateToPayloadAndSecret },
@@ -95,7 +95,7 @@ module.exports = {
 
         return userIdToLink + '.' + theToken
     },
-    specTokenResoluteFromLink: (tokenInput)=>{
+    resetTokenResoluteFromLink: (tokenInput)=>{
         const results = {
             tokenMissing: false,
             takenUserid: null,
@@ -111,7 +111,30 @@ module.exports = {
             + specTokenPartsOrFalsy[2] + '.' + specTokenPartsOrFalsy[3] 
         return results
     },
-    specTokenverifyFromLink: (tokenObj, dateToPayloadAndSecret, pwdHashToSecret)=>{
+    resetTokenInputRevise: (reqToVerif)=>{
+        const results = {
+            tokenMissing: false,
+            takenUserid: null,
+            takenText: null
+        }
+
+        if(!resettingHeaderExist(reqToVerif)){
+            results.tokenMissing = true
+            return results
+        }
+        const tokenInput = reqToVerif.headers.resetting
+
+        const specTokenPartsOrFalsy = tokenSpecRevAndSplitting(tokenInput);
+        if(!specTokenPartsOrFalsy){
+            results.tokenMissing = true
+            return results
+        }
+        results.takenUserid = specTokenPartsOrFalsy[0]
+        results.takenText = specTokenPartsOrFalsy[1] + '.' 
+            + specTokenPartsOrFalsy[2] + '.' + specTokenPartsOrFalsy[3] 
+        return results
+    },
+    resetTokenValidate: (tokenObj, dateToPayloadAndSecret, pwdHashToSecret)=>{
         const results = {
             passResetPermission: false,
             isExpired: false,

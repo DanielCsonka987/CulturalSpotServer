@@ -550,6 +550,13 @@ module.exports.refreshingHeaderExist = (request)=>{
     return true
 }
 
+module.exports.resettingHeaderExist = (request)=>{
+    if(!request){ return false }
+    if(!request.headers){ return false; }
+    if(!request.headers.resetting){  return false;  }
+    return true
+}
+
 module.exports.isolateBearerFromHeader = (headerFullTxt)=>{
     if(typeof headerFullTxt !== 'string'){
         return false

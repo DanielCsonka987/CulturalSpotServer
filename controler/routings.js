@@ -1,28 +1,33 @@
 const router = require('express').Router()
 
-const { specTokenResoluteFromLink, specTokenverifyFromLink
+const { resetTokenResoluteFromLink, resetTokenValidate
      } = require('../utils/tokenManager')
-const { passwordRenewInputRevise, isThisUserIDMayBeFaulty 
-    } = require('../utils/inputRevise')
-const { encryptPwd } = require('../utils/bCryptManager')
-const { EMAIL_TEST_ACCOUNT } = require('../config/emailConfig')
+const { isThisUserIDMayBeFaulty  } = require('../utils/inputRevise')
+//const { encryptPwd } = require('../utils/bCryptManager')
+//const { EMAIL_TEST_ACCOUNT } = require('../config/emailConfig')
+const { RESETPWD_REST_GET_ROUTE } = require('../config/appConfig').ROUTING
 
 const ProfileModel = require('../models/ProfileModel')
 const { emailingServices } = require('../extensions/emailerClientSetup')
 
-router.get("/", (req, res)=>{ res.send("<h1>GET request accepted - frontpage is sent!</h1>")  })
+router.get("/", (req, res)=>{
+    res.send("<h1>GET request accepted - frontpage is sent!</h1>")  
+})
 
-router.get('/resetpassword/:specToken', [
-    resetTokenEvaluation, 
-    (req, res)=>{
+//Reset password step 2
+router.get(`${RESETPWD_REST_GET_ROUTE}:specToken`, [
+    resetTokenEvaluation,  (req, res)=>{
         if(req.permissionToContinue){
-            res.send('<h3>Permission granted, here is the form</h3>')
+            res.header('resetting', req.params.specToken)
+            res.send('<h3>Permission granted - here is the form!</h3>')
         }else{
+            //res.redirect('/403')
             res.send('<h3>Permission denied</h3><p>Token expired!</p>')
         }
     }
 ])
 
+/*
 router.post('/resetpassword/:specToken', [
     resetTokenEvaluation,
     (req, res, next)=>{
@@ -70,10 +75,9 @@ router.post('/resetpassword/:specToken', [
         }
     }
 ])
-
+*/
 async function resetTokenEvaluation(req, res, next){
-    const tokenRevised = specTokenResoluteFromLink(req.params.specToken)
-
+    const tokenRevised = resetTokenResoluteFromLink(req.params.specToken)
     if(tokenRevised.tokenMissing){
         next(new Error('No authroization to use the endpoint!'))
     }
@@ -84,7 +88,7 @@ async function resetTokenEvaluation(req, res, next){
         const clientUser = await  ProfileModel.findById(tokenRevised.takenUserid)
 
         if(!clientUser.resetPwdMarker) { next( new Error('No permission to reset the password!')) }
-        const tokenChargo = await specTokenverifyFromLink(
+        const tokenChargo = await resetTokenValidate(
             tokenRevised, clientUser.resetPwdMarker, clientUser.pwdHash
         )
         if(tokenChargo.error){ next( new Error('Verification error!') ) }

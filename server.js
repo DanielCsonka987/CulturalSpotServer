@@ -10,7 +10,8 @@ const additionalRoutings = require('./controler/routings')
 const typeDefs = require('./graphql/typeDef')
 const resolvers = require('./graphql/resolvers')
 const { authorizTokenInputRevise, authorizTokenVerify, 
-    loginRefreshTokenInputRevise, loginRefreshTokenValidate } 
+    loginRefreshTokenInputRevise, loginRefreshTokenValidate,
+    resetTokenInputRevise } 
     = require('./utils/tokenManager')
     
 
@@ -57,10 +58,21 @@ const apolloSrv = new ApolloServer({
         const refreshRes = await loginRefreshTokenValidate(
             loginRefreshTokenInputRevise(req)
         )
+        /**
+         * for password resetting stp2 - form is sending new password
+         * -> marker, from DB, expire 1h
+         * => contain id of user and token
+         * => encoded with marker + old hashPws
+         * /> not fully processed, decoding is still needed
+         */
+        const pwdResetRes = resetTokenInputRevise(req)
+        
         const domainURL = getDomainURL(req, LOCAL_DOMAIN_URL)
         return {
             authorizRes,
             refreshRes,
+            pwdResetRes,
+
             wsNotifier: residentNotifierService,
             emailingServices,
             domainURL

@@ -223,6 +223,7 @@ module.exports = gql`
         login(email: String!, password: String! ): UserLoggingContent!
         registration(email: String!, username: String!, password: String!, passwordconf: String! ): UserLoggingContent!
         resetPasswordStep1(email: String!): AccountProcess!
+        resetPasswordStep3(newpassword: String!, newconf: String!): AccountProcess!
         changePassword(oldpassword: String!, newpassword: String!, newconf: String!): AccountProcess!
         changeAccountDatas(username: String! ): AccountProcess!
         deleteAccount(password: String!, passwordconf: String!): AccountProcess!

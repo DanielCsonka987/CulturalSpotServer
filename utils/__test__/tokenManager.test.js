@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 
 const { authorizTokenEncoder, authorizTokenInputRevise, authorizTokenVerify, 
-    createSpecTokenToLink, specTokenResoluteFromLink, specTokenverifyFromLink,
+    createResetTokenToLink, resetTokenResoluteFromLink, resetTokenInputRevise, resetTokenValidate,
     createLoginRefreshToken, loginRefreshTokenInputRevise, loginRefreshTokenValidate,
     webSocketAuthenticationRevise } = require('../tokenManager')
 const { TOKEN_SECRET, TOKEN_ACCESS_EXPIRE, 
@@ -185,7 +185,7 @@ describe('Email tokenkey handle, processes', ()=>{
         const token = jwt.sign({ marker: 'abcd' }, '123', { expiresIn: TOKEN_RESET_EXPIRE })
         const url = '12345.'+ token
 
-        const res = specTokenResoluteFromLink(url)
+        const res = resetTokenResoluteFromLink(url)
         expect(typeof res).toBe('object')
         expect(Object.keys(res)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenUserid', 'takenText'])
@@ -212,9 +212,9 @@ describe('Email tokenkey handle, processes', ()=>{
         const shortHash = 'stgtoimmitatehashtext'        
         const actTime = new Date().getTime().toString().slice(0, 10)
         const theTimeSec = new Number(actTime)
-        const theSpecialToken = createSpecTokenToLink('abcde', shortHash, '12345')
+        const theSpecialToken = createResetTokenToLink('abcde', shortHash, '12345')
         //console.log(theSpecialToken)
-        const res = specTokenResoluteFromLink(theSpecialToken)
+        const res = resetTokenResoluteFromLink(theSpecialToken)
 
         expect(typeof res.tokenMissing).toBe('boolean')
         expect(res.tokenMissing).toBeFalsy()
@@ -236,15 +236,15 @@ describe('Email tokenkey handle, processes', ()=>{
 
     it('Full encode and verify token', async ()=>{
         const shortHash = 'stgtoimmitatehashtext'
-        const specToken = createSpecTokenToLink('0123345', shortHash, '123')
+        const specToken = createResetTokenToLink('0123345', shortHash, '123')
         
-        const result = specTokenResoluteFromLink(specToken)
+        const result = resetTokenResoluteFromLink(specToken)
         expect(typeof result).toBe('object')
         expect(result.tokenMissing).toBeFalsy()
         expect(result.takenUserid).toBe('123')
         expect(typeof result.takenText).toBe('string')
         //console.log(result.takenText)
-        const final = await specTokenverifyFromLink(result, '0123345', shortHash)
+        const final = await resetTokenValidate(result, '0123345', shortHash)
         expect(Object.keys(final)).toEqual(
             expect.arrayContaining(['isExpired', 'error', 'passResetPermission'])
         )
@@ -256,9 +256,9 @@ describe('Email tokenkey handle, processes', ()=>{
 
     it('Faulty encoding, no userid', async ()=>{
         const shortHash = 'stgtoimmitatehashtext'        
-        const specToken = createSpecTokenToLink('abcdef', shortHash, '')
+        const specToken = createResetTokenToLink('abcdef', shortHash, '')
 
-        const result = await specTokenResoluteFromLink(specToken)
+        const result = await resetTokenResoluteFromLink(specToken)
         expect(typeof result).toBe('object')
 
         expect(Object.keys(result)).toEqual(
@@ -268,11 +268,11 @@ describe('Email tokenkey handle, processes', ()=>{
     })
     it('Faulty resolution, removed middle', async ()=>{
         const shortHash = 'stgtoimmitatehashtext'
-        const specToken = createSpecTokenToLink('abcdef', shortHash, '123')
+        const specToken = createResetTokenToLink('abcdef', shortHash, '123')
         const parts = specToken.split('.')
         const newUrl = parts[0] + '.' + parts[2] + '.' + parts[3] 
 
-        const result = specTokenResoluteFromLink(newUrl)
+        const result = resetTokenResoluteFromLink(newUrl)
         expect(typeof result).toBe('object')
         expect(Object.keys(result)).toEqual(
             expect.arrayContaining(['tokenMissing', 'takenUserid', 'takenText'])
@@ -282,15 +282,35 @@ describe('Email tokenkey handle, processes', ()=>{
 
     it('Faulty verify, removed passHash', async ()=>{
         const shortHash = 'stgtoimmitatehashtext'
-        const specToken = createSpecTokenToLink('abcdef', shortHash, '123')
+        const specToken = createResetTokenToLink('abcdef', shortHash, '123')
 
-        const result = specTokenResoluteFromLink(specToken)
+        const result = resetTokenResoluteFromLink(specToken)
         expect(result.tokenMissing).toBeFalsy()
         expect(result.takenUserid).toBe('123')
 
-        const final = await specTokenverifyFromLink(result.takenText, result.takenUserid, '')
+        const final = await resetTokenValidate(result.takenText, result.takenUserid, '')
         expect(typeof final.error).toBe('object')
 
+    })
+
+    it('Header reset token input revise, proper setting', ()=>{
+        const shortHash = 'stgtoimmitatehashtext'
+        const specToken = createResetTokenToLink('abcdef', shortHash, '123')
+
+        const reqObj = { headers: { resetting: specToken }}
+        const res = resetTokenInputRevise(reqObj)
+
+        expect(typeof res).toBe('object')
+        expect(res.tokenMissing).toBeFalsy()
+        expect(res.takenUserid).toBe('123')
+        expect(typeof res.takenText).toBe('string')
+        expect(res.takenText.length).toBeGreaterThan(100)
+    })
+    it('Header reset token input revise, empty setting', ()=>{
+        const reqObj = { headers: { }}
+        const res = resetTokenInputRevise(reqObj)
+        expect(typeof res).toBe('object')
+        expect(res.tokenMissing).toBeTruthy()
     })
 })
 

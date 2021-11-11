@@ -1,6 +1,8 @@
 const { AuthenticationError, ApolloError } = require('apollo-server-express')
 const mongooseId = require('mongoose').Types.ObjectId;
 
+const { isThisUserIDMayBeFaulty } = require('../../utils/inputRevise')
+const { resetTokenValidate } = require('../../utils/tokenManager')
 /**
  * for the authorization the token consist 
  * -> subj (user identification), exp (timelimit to use)
@@ -39,6 +41,34 @@ module.exports.tokenRefreshmentEvaluation = (refreshAuthRes)=>{
     if(reasonOfFail){
         throw new AuthenticationError('Token renewal failed! Please, login again!', { general: reasonOfFail })
     } 
+}
+
+module.exports.resetTokenEvaluation = async (resetTokenRes, dataSources)=>{
+    if(resetTokenRes.tokenMissing){
+        throw new AuthenticationError('No permission to reset the password!')
+    }
+    if(isThisUserIDMayBeFaulty(resetTokenRes.takenUserid)){
+        throw new AuthenticationError('No proper user identification!')
+    }
+    const clientUser = await dataSources.profiles.get(resetTokenRes.takenUserid)
+
+    if(!clientUser.resetPwdMarker) { 
+        throw new AuthenticationError('No permission to reset the password!') 
+    }
+    const tokenChargo = await resetTokenValidate(
+        resetTokenRes, clientUser.resetPwdMarker, clientUser.pwdHash
+    )
+    if(tokenChargo.error){ 
+        throw new AuthenticationError('Verification error!') 
+    }
+    if(tokenChargo.isExpired ){ 
+        throw new AuthenticationError('Too old reset request!')
+    }
+    if(!tokenChargo.passResetPermission){ 
+        throw new AuthenticationError('Too old reset request!') 
+    }else{
+        return { ...tokenChargo, userid: resetTokenRes.takenUserid }
+    }
 }
 
 module.exports.countTheAmountOfFriends = async (userUnderProc, userClientToCompare, dataSources)=>{
