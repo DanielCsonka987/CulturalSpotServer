@@ -8,9 +8,9 @@
     "testChat": "jest chatService.test.js",
     "testPost": "jest postServices.test.js",
     "testWs": "jest wsServices.test.js",
+    
     "testRep": "jest repository.test.js",
     "testUtil": "jest ./utils/",
-    "testMail": "jest emailerTesting.test.js",
 
     "testEmailE": "jest emailerServEther.test.js",
     "testEmailS": "jest emailerServSendin.test.js",

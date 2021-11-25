@@ -303,15 +303,15 @@ describe('Query of chatting', ()=>{
                 listOfMessagesFromChatting(chatid: "${chats[0].id}", 
                     dating: "${messages[4].date}", amount: 3){
                         chatid, partners{
-                            id, username, relation   
+                            userid, username, relation   
                         }, title, owner{
-                            id, username, relation
+                            userid, username, relation
                         }, startedAt, messages{
                             messageid, sentAt, content, owner{
-                                id, username, relation
+                                userid, username, relation
                             }, sentiments {
                                 sentimentid, createdAt, updatedAt, content, owner{
-                                    id, username, relation
+                                    userid, username, relation
                                 }
                             }
                         }
@@ -330,11 +330,11 @@ describe('Query of chatting', ()=>{
                 .toBe('object')
             expect(res.body.data.listOfMessagesFromChatting.chatid)
                 .toBe(chats[0].id)
-            expect(res.body.data.listOfMessagesFromChatting.owner.id)
+            expect(res.body.data.listOfMessagesFromChatting.owner.userid)
                 .toBe(profiles[0].id)
             expect(res.body.data.listOfMessagesFromChatting.partners)
                 .toHaveLength(1)
-            expect(res.body.data.listOfMessagesFromChatting.partners[0].id)
+            expect(res.body.data.listOfMessagesFromChatting.partners[0].userid)
                 .toBe(profiles[1].id)
             expect(res.body.data.listOfMessagesFromChatting.title)
                 .toBe('Chatroom 1')
@@ -362,15 +362,15 @@ describe('Query of chatting', ()=>{
                     title: "${chatTestDatas2[0].title}", 
                     firstContent: "${messageTestDatas2[0].content}"){
                         chatid, partners{
-                            id, username, relation   
+                            userid, username, relation   
                         }, title, owner{
-                            id, username, relation
+                            userid, username, relation
                         }, startedAt, messages{
                             messageid, sentAt, content, owner{
-                                id, username, relation
+                                userid, username, relation
                             }, sentiments {
                                 sentimentid, createdAt, updatedAt, content, owner{
-                                    id, username, relation
+                                    userid, username, relation
                                 }
                             }
                         }
@@ -390,11 +390,11 @@ describe('Query of chatting', ()=>{
 
             expect(typeof res.body.data.createChatRoom.chatid)
                 .toBe('string')
-            expect(res.body.data.createChatRoom.owner.id)
+            expect(res.body.data.createChatRoom.owner.userid)
                 .toBe(profiles[0].id)
             expect(res.body.data.createChatRoom.partners)
                 .toHaveLength(1)
-            expect(res.body.data.createChatRoom.partners[0].id)
+            expect(res.body.data.createChatRoom.partners[0].userid)
                 .toBe(profiles[1].id)
             expect(res.body.data.createChatRoom.title)
                 .toBe(chatTestDatas2[0].title)
@@ -420,7 +420,7 @@ describe('Query of chatting', ()=>{
                 addPartnersToChatRoom(partners: ["${profiles[2].id}"], 
                     chatid: "${chats[1].id}"){
                         chatid, resultText, alterationType, addedUsers{
-                            id, username, relation
+                            userid, username, relation
                         },removedUsers, updatedTitle
                     }
             }
@@ -459,7 +459,7 @@ describe('Query of chatting', ()=>{
                 removePartnersFromChatRoom(partners: ["${profiles[2].id}"], 
                     chatid: "${chats[1].id}"){
                         chatid, resultText, alterationType, addedUsers{
-                            id, username, relation
+                            userid, username, relation
                         },
                         removedUsers, updatedTitle
                     }
@@ -501,7 +501,7 @@ describe('Query of chatting', ()=>{
             mutation{
                 updateChatRoom(chatid: "${chats[1].id}" title: "${chatTestDatas2[1].title}"){
                         chatid, resultText, alterationType, addedUsers{
-                            id, username, relation
+                            userid, username, relation
                         },
                         removedUsers, updatedTitle
                     }
@@ -543,7 +543,7 @@ describe('Query of chatting', ()=>{
             mutation{
                 deleteChatRoom(chatid: "${chats[1].id}"){
                         chatid, resultText, alterationType, addedUsers{
-                            id, username, relation
+                            userid, username, relation
                         },
                         removedUsers, updatedTitle
                     }
@@ -582,11 +582,11 @@ describe('Query of chatting', ()=>{
             mutation{
                 sendNewMessage(chatid: "${chats[0].id}", content: "${messageTestDatas2[1].content}"){
                         chatid, messageid, content, owner{
-                            id, username, relation
+                            userid, username, relation
                         },
                         sentAt, sentiments{
                             sentimentid, owner{
-                                id, username, relation
+                                userid, username, relation
                             }, content, createdAt, updatedAt
                         }
                     }
@@ -604,7 +604,7 @@ describe('Query of chatting', ()=>{
             expect(typeof res.body.data.sendNewMessage.messageid).toBe('string')
             expect(res.body.data.sendNewMessage.chatid).toBe(chats[0].id)
             expect(res.body.data.sendNewMessage.content).toBe(messageTestDatas2[1].content)
-            expect(res.body.data.sendNewMessage.owner.id).toBe(profiles[0].id)
+            expect(res.body.data.sendNewMessage.owner.userid).toBe(profiles[0].id)
             expect(res.body.data.sendNewMessage.sentiments).toHaveLength(0)
 
             messages.push({ 
@@ -621,11 +621,11 @@ describe('Query of chatting', ()=>{
             mutation{
                 updateThisMessage(messageid: "${messages[6].id}", content: "${messageTestDatas2[2].content}"){
                         chatid, messageid, content, owner{
-                            id, username, relation
+                            userid, username, relation
                         },
                         sentAt, sentiments{
                             sentimentid, owner{
-                                id, username, relation
+                                userid, username, relation
                             }, content, createdAt, updatedAt
                         }
                     }
@@ -643,7 +643,7 @@ describe('Query of chatting', ()=>{
             expect(res.body.data.updateThisMessage.messageid).toBe(messages[6].id)
             expect(res.body.data.updateThisMessage.chatid).toBe(chats[0].id)
             expect(res.body.data.updateThisMessage.content).toBe(messageTestDatas2[2].content)
-            expect(res.body.data.updateThisMessage.owner.id).toBe(profiles[0].id)
+            expect(res.body.data.updateThisMessage.owner.userid).toBe(profiles[0].id)
             expect(res.body.data.updateThisMessage.sentiments).toHaveLength(0)
 
             done()
@@ -692,7 +692,7 @@ describe('Query of chatting', ()=>{
                     createSentimentToHere(targeted: MESSAGE, 
                         id:"${messages[2].id}", content:${sentimentTestDatas[2].content}){
                             sentimentid, owner{
-                                id, username, relation
+                                userid, username, relation
                             }, content, createdAt, updatedAt
                         }
                 }
@@ -707,7 +707,7 @@ describe('Query of chatting', ()=>{
     
                 expect(typeof res.body.data.createSentimentToHere).toBe('object')
                 expect(typeof res.body.data.createSentimentToHere.sentimentid).toBe('string')
-                expect(res.body.data.createSentimentToHere.owner.id).toBe(profiles[0].id)
+                expect(res.body.data.createSentimentToHere.owner.userid).toBe(profiles[0].id)
                 expect(res.body.data.createSentimentToHere.content)
                     .toBe(sentimentTestDatas[2].content)
 
@@ -743,7 +743,7 @@ describe('Query of chatting', ()=>{
                         sentimentid: "${sentiments[0].toString()}", 
                         content:${sentimentTestDatas[3].content}){
                             sentimentid, owner{
-                                id, username, relation
+                                userid, username, relation
                             }, content, createdAt, updatedAt
                         }
                 }
@@ -758,7 +758,7 @@ describe('Query of chatting', ()=>{
     
                 expect(typeof res.body.data.updateSentimentContent).toBe('object')
                 expect(res.body.data.updateSentimentContent.sentimentid).toBe(sentiments[0].toString())
-                expect(res.body.data.updateSentimentContent.owner.id).toBe(profiles[0].id)
+                expect(res.body.data.updateSentimentContent.owner.userid).toBe(profiles[0].id)
                 expect(res.body.data.updateSentimentContent.content)
                     .toBe(sentimentTestDatas[3].content)
 

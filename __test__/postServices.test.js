@@ -278,15 +278,15 @@ describe('GQL Post query processes', ()=>{
         .send({query: `query{
             listOfMySentPosts{
                 postid, owner{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 dedicatedTo{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 content, comments,
                 sentiments {
                     sentimentid, owner{
-                        id, username, mutualFriendCount, relation
+                        userid, username, mutualFriendCount, relation
                     }, content
                 }
             }
@@ -305,7 +305,7 @@ describe('GQL Post query processes', ()=>{
                 .toBe(postIds[1])
             expect(res.body.data.listOfMySentPosts[0].content)
                 .toBe('Post content 1')
-            expect(res.body.data.listOfMySentPosts[0].owner.id)
+            expect(res.body.data.listOfMySentPosts[0].owner.userid)
                 .toBe(actualUser.userid)
             expect(res.body.data.listOfMySentPosts[0].comments).toBe(1)
             expect(res.body.data.listOfMySentPosts[0].sentiments).toHaveLength(0)
@@ -324,15 +324,15 @@ describe('GQL Post query processes', ()=>{
             listOfMySentPosts(dating: "${new Date('30 May 2020 23:04 UTC').toISOString()}", 
                 amount: 1){
                 postid, owner{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 dedicatedTo{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 content, comments, 
                 sentiments {
                     sentimentid, owner{
-                        id, username, mutualFriendCount, relation
+                        userid, username, mutualFriendCount, relation
                     }, content
                 }
             }
@@ -353,7 +353,7 @@ describe('GQL Post query processes', ()=>{
                 .toBe('Post content 5')
             expect(res.body.data.listOfMySentPosts[0].postid)
                 .toBe(postIds[5])
-            expect(res.body.data.listOfMySentPosts[0].owner.id)
+            expect(res.body.data.listOfMySentPosts[0].owner.userid)
                 .toBe(usersToTest[3].userid)
             expect(res.body.data.listOfMySentPosts[0].dedicatedTo)
                 .toBe(null)
@@ -374,15 +374,15 @@ describe('GQL Post query processes', ()=>{
         .send({query: `query{
             listOfMyRecievedPosts{
                 postid, owner{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 dedicatedTo{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 content, comments, 
                 sentiments {
                     sentimentid, owner{
-                        id, username, mutualFriendCount, relation
+                        userid, username, mutualFriendCount, relation
                     }, content
                 }
             }
@@ -403,9 +403,9 @@ describe('GQL Post query processes', ()=>{
                 .toBe('Post content 0')
             expect(res.body.data.listOfMyRecievedPosts[0].postid)
                 .toBe(postIds[0])
-            expect(res.body.data.listOfMyRecievedPosts[0].owner.id)
+            expect(res.body.data.listOfMyRecievedPosts[0].owner.userid)
                 .toBe(usersToTest[0].userid)
-            expect(res.body.data.listOfMyRecievedPosts[0].dedicatedTo.id)
+            expect(res.body.data.listOfMyRecievedPosts[0].dedicatedTo.userid)
                 .toBe(actualUser.userid)
             expect(res.body.data.listOfMyRecievedPosts[0].comments).toBe(0)
             expect(res.body.data.listOfMyRecievedPosts[0].sentiments).toHaveLength(0)
@@ -424,15 +424,15 @@ describe('GQL Post query processes', ()=>{
         .send({query: `query{
             listOfMyRecievedPosts(dating: "${dating}"){
                 postid, owner{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 dedicatedTo{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 content, comments, 
                 sentiments {
                     sentimentid, owner{
-                        id, username, mutualFriendCount, relation
+                        userid, username, mutualFriendCount, relation
                     }, content
                 }
             }
@@ -453,9 +453,9 @@ describe('GQL Post query processes', ()=>{
                 .toBe('Post content 0')
             expect(res.body.data.listOfMyRecievedPosts[0].postid)
                 .toBe(postIds[0])
-            expect(res.body.data.listOfMyRecievedPosts[0].owner.id)
+            expect(res.body.data.listOfMyRecievedPosts[0].owner.userid)
                 .toBe(usersToTest[0].userid)
-            expect(res.body.data.listOfMyRecievedPosts[0].dedicatedTo.id)
+            expect(res.body.data.listOfMyRecievedPosts[0].dedicatedTo.userid)
                 .toBe(actualUser.userid)
             expect(res.body.data.listOfMyRecievedPosts[0].comments).toBe(0)
             expect(res.body.data.listOfMyRecievedPosts[0].sentiments).toHaveLength(0)
@@ -474,14 +474,14 @@ describe('GQL Post query processes', ()=>{
         .send({query: `query{
             listOfAllPosts{
                 postid, owner{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 dedicatedTo{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 content, comments, sentiments{
                     sentimentid, owner{
-                        id, username, mutualFriendCount, relation
+                        userid, username, mutualFriendCount, relation
                     }, content
                 }, createdAt, updatedAt
             }
@@ -500,7 +500,7 @@ describe('GQL Post query processes', ()=>{
             .toBe('Post content 1')
             expect(res.body.data.listOfAllPosts[0].postid)
             .toBe(postIds[1])
-            expect(res.body.data.listOfAllPosts[0].owner.id)
+            expect(res.body.data.listOfAllPosts[0].owner.userid)
             .toBe(usersToTest[1].userid)
             expect(res.body.data.listOfAllPosts[0].comments).toBe(1)
             expect(res.body.data.listOfAllPosts[0].sentiments).toHaveLength(0)
@@ -509,14 +509,14 @@ describe('GQL Post query processes', ()=>{
                 .toBe('Post content 3')
             expect(res.body.data.listOfAllPosts[1].postid)
                 .toBe(postIds[3])
-            expect(res.body.data.listOfAllPosts[1].owner.id)
+            expect(res.body.data.listOfAllPosts[1].owner.userid)
                 .toBe(usersToTest[0].userid)
             expect(res.body.data.listOfAllPosts[1].comments).toBe(0)
 
             expect(res.body.data.listOfAllPosts[1].sentiments).toHaveLength(1)
             expect(res.body.data.listOfAllPosts[1].sentiments[0].sentimentid)
                 .toBe(sentimentIds.get(0))
-            expect(res.body.data.listOfAllPosts[1].sentiments[0].owner.id)
+            expect(res.body.data.listOfAllPosts[1].sentiments[0].owner.userid)
                 .toBe(usersToTest[2].userid)
             expect(res.body.data.listOfAllPosts[1].sentiments[0].owner.relation)
                 .toBe('FRIEND')
@@ -526,9 +526,9 @@ describe('GQL Post query processes', ()=>{
             expect(res.body.data.listOfAllPosts[2].content).toBe('Post content 0')
             expect(res.body.data.listOfAllPosts[2].postid)
                 .toBe(postIds[0])
-            expect(res.body.data.listOfAllPosts[2].owner.id)
+            expect(res.body.data.listOfAllPosts[2].owner.userid)
                 .toBe(usersToTest[0].userid)
-            expect(res.body.data.listOfAllPosts[2].dedicatedTo.id)
+            expect(res.body.data.listOfAllPosts[2].dedicatedTo.userid)
                 .toBe(usersToTest[2].userid)
             expect(res.body.data.listOfAllPosts[2].comments).toBe(0)
             expect(res.body.data.listOfAllPosts[2].sentiments).toHaveLength(0)
@@ -537,7 +537,7 @@ describe('GQL Post query processes', ()=>{
                 .toBe('Post content 4')
             expect(res.body.data.listOfAllPosts[3].postid)
                 .toBe(postIds[4])
-            expect(res.body.data.listOfAllPosts[3].owner.id)
+            expect(res.body.data.listOfAllPosts[3].owner.userid)
                 .toBe(usersToTest[2].userid)
             expect(res.body.data.listOfAllPosts[3].comments).toBe(1)
             expect(res.body.data.listOfAllPosts[3].sentiments).toHaveLength(2)
@@ -559,14 +559,14 @@ describe('GQL Post query processes', ()=>{
         .send({query: `query{
             listOfAllPosts(dating: "${dating}" ){
                 postid, owner{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 dedicatedTo{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 content, comments, sentiments{
                     sentimentid, owner{
-                        id, username, mutualFriendCount, relation
+                        userid, username, mutualFriendCount, relation
                     }, content
                 }, createdAt, updatedAt
             }
@@ -585,14 +585,14 @@ describe('GQL Post query processes', ()=>{
                 .toBe('Post content 3')
             expect(res.body.data.listOfAllPosts[0].postid)
                 .toBe(postIds[3])
-            expect(res.body.data.listOfAllPosts[0].owner.id)
+            expect(res.body.data.listOfAllPosts[0].owner.userid)
                 .toBe(usersToTest[0].userid)
             expect(res.body.data.listOfAllPosts[0].comments).toBe(0)
 
             expect(res.body.data.listOfAllPosts[0].sentiments).toHaveLength(1)
             expect(res.body.data.listOfAllPosts[0].sentiments[0].sentimentid)
                 .toBe(sentimentIds.get(0))
-            expect(res.body.data.listOfAllPosts[0].sentiments[0].owner.id)
+            expect(res.body.data.listOfAllPosts[0].sentiments[0].owner.userid)
                 .toBe(usersToTest[2].userid)
             expect(res.body.data.listOfAllPosts[0].sentiments[0].owner.relation)
                 .toBe('FRIEND')
@@ -603,9 +603,9 @@ describe('GQL Post query processes', ()=>{
             expect(res.body.data.listOfAllPosts[1].content).toBe('Post content 0')
             expect(res.body.data.listOfAllPosts[1].postid)
                 .toBe(postIds[0])
-            expect(res.body.data.listOfAllPosts[1].owner.id)
+            expect(res.body.data.listOfAllPosts[1].owner.userid)
                 .toBe(usersToTest[0].userid)
-            expect(res.body.data.listOfAllPosts[1].dedicatedTo.id)
+            expect(res.body.data.listOfAllPosts[1].dedicatedTo.userid)
                 .toBe(usersToTest[2].userid)
             expect(res.body.data.listOfAllPosts[1].comments).toBe(0)
             expect(res.body.data.listOfAllPosts[1].sentiments).toHaveLength(0)
@@ -614,7 +614,7 @@ describe('GQL Post query processes', ()=>{
                 .toBe('Post content 4')
             expect(res.body.data.listOfAllPosts[2].postid)
                 .toBe(postIds[4])
-            expect(res.body.data.listOfAllPosts[2].owner.id)
+            expect(res.body.data.listOfAllPosts[2].owner.userid)
                 .toBe(usersToTest[2].userid)
             expect(res.body.data.listOfAllPosts[2].comments).toBe(1)
             expect(res.body.data.listOfAllPosts[2].sentiments).toHaveLength(2)
@@ -639,14 +639,14 @@ describe('GQL Post mutation processes', ()=>{
         .send({query: `mutation{
             makeAPost(content: "${newContent}"){
                 postid, owner{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 dedicatedTo{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 content, comments, sentiments{
                     sentimentid, owner{
-                        id, username, mutualFriendCount, relation
+                        userid, username, mutualFriendCount, relation
                     }
                 }
             }
@@ -667,7 +667,7 @@ describe('GQL Post mutation processes', ()=>{
 
                 expect(res.body.data.makeAPost.postid)
                     .toBe(d._id.toString())
-                expect(res.body.data.makeAPost.owner.id)
+                expect(res.body.data.makeAPost.owner.userid)
                     .toBe(usersToTest[1].userid)
                 expect(res.body.data.makeAPost.dedicatedTo)
                     .toBe(null)
@@ -686,14 +686,14 @@ describe('GQL Post mutation processes', ()=>{
             makeAPost(content: "${newContent}", 
                 dedication: "${usersToTest[0].userid}"){
                 postid, owner{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 dedicatedTo{
-                    id, username, mutualFriendCount, relation
+                    userid, username, mutualFriendCount, relation
                 }, 
                 content, comments, sentiments{
                     sentimentid, owner{
-                        id, username, mutualFriendCount, relation
+                        userid, username, mutualFriendCount, relation
                     }
                 }
             }
@@ -714,9 +714,9 @@ describe('GQL Post mutation processes', ()=>{
 
                 expect(res.body.data.makeAPost.postid)
                     .toBe(d._id.toString())
-                expect(res.body.data.makeAPost.owner.id)
+                expect(res.body.data.makeAPost.owner.userid)
                     .toBe(usersToTest[2].userid)
-                expect(res.body.data.makeAPost.dedicatedTo.id)
+                expect(res.body.data.makeAPost.dedicatedTo.userid)
                     .toBe(usersToTest[0].userid)
                 done()
             })
@@ -741,14 +741,14 @@ describe('GQL Post mutation processes', ()=>{
                     newcontent: "${newContent}", 
                     newdedication: "${usersToTest[0].userid}"){
                         postid, owner{
-                            id, username, mutualFriendCount, relation
+                            userid, username, mutualFriendCount, relation
                         }, 
                         dedicatedTo{
-                            id, username, mutualFriendCount, relation
+                            userid, username, mutualFriendCount, relation
                         }, 
                         content, comments, sentiments{
                             sentimentid, owner{
-                                id, username, mutualFriendCount, relation
+                                userid, username, mutualFriendCount, relation
                             }
                         }
                 }
@@ -772,9 +772,9 @@ describe('GQL Post mutation processes', ()=>{
 
                     expect(res.body.data.updateThisPost.postid)
                         .toBe(d._id.toString())
-                    expect(res.body.data.updateThisPost.owner.id)
+                    expect(res.body.data.updateThisPost.owner.userid)
                         .toBe(usersToTest[1].userid)
-                    expect(res.body.data.updateThisPost.dedicatedTo.id)
+                    expect(res.body.data.updateThisPost.dedicatedTo.userid)
                         .toBe(usersToTest[0].userid)
                     done()
                 
@@ -843,10 +843,10 @@ describe('GQL Comments query processes', ()=>{
             .send({query: `query{
                 listOfTheseComments(targeted: POST, id: "${thePostID}"){
                     commentid, owner{
-                        id, username, relation, mutualFriendCount
+                        userid, username, relation, mutualFriendCount
                     }, content, sentiments {
                         sentimentid, owner{
-                            id, username, relation, mutualFriendCount
+                            userid, username, relation, mutualFriendCount
                         }, content
                     }, comments
                 }
@@ -896,10 +896,10 @@ describe('GQL Comments query processes', ()=>{
             .send({query: `query{
                 listOfTheseComments(targeted: POST, id: "${thePostID}", amount: 1){
                     commentid, owner{
-                        id, username, relation, mutualFriendCount
+                        userid, username, relation, mutualFriendCount
                     }, content, sentiments {
                         sentimentid, owner{
-                            id, username, relation, mutualFriendCount
+                            userid, username, relation, mutualFriendCount
                         }, content
                     }, comments
                 }
@@ -947,10 +947,10 @@ describe('GQL Comments mutation processes', ()=>{
                 createCommentToHere(targeted: POST, id: "${thePostID}"
                     content: "${newCommentContent}"){
                     commentid, owner{
-                        id, username, relation, mutualFriendCount
+                        userid, username, relation, mutualFriendCount
                     }, content, sentiments {
                         sentimentid, owner{
-                            id, username, relation, mutualFriendCount
+                            userid, username, relation, mutualFriendCount
                         }, content
                     }, comments
                 }
@@ -965,7 +965,7 @@ describe('GQL Comments mutation processes', ()=>{
                 expect(typeof res.body.data.createCommentToHere).toBe('object')
                 expect(res.body.data.createCommentToHere.content)
                     .toBe(newCommentContent)
-                expect(res.body.data.createCommentToHere.owner.id)
+                expect(res.body.data.createCommentToHere.owner.userid)
                     .toBe(usersToTest[2].userid)
                 expect(res.body.data.createCommentToHere.comments).toBe(0)
 
@@ -1001,10 +1001,10 @@ describe('GQL Comments mutation processes', ()=>{
                 createCommentToHere(targeted: COMMENT, id: "${theCommID}"
                     content: "${newCommentContent}"){
                     commentid, owner{
-                        id, username, relation, mutualFriendCount
+                        userid, username, relation, mutualFriendCount
                     }, content, sentiments {
                         sentimentid, owner{
-                            id, username, relation, mutualFriendCount
+                            userid, username, relation, mutualFriendCount
                         }, content
                     }, comments
                 }
@@ -1020,7 +1020,7 @@ describe('GQL Comments mutation processes', ()=>{
                 expect(typeof res.body.data.createCommentToHere).toBe('object')
                 expect(res.body.data.createCommentToHere.content)
                     .toBe(newCommentContent)
-                expect(res.body.data.createCommentToHere.owner.id)
+                expect(res.body.data.createCommentToHere.owner.userid)
                     .toBe(usersToTest[2].userid)
                 expect(res.body.data.createCommentToHere.comments).toBe(0)
 
@@ -1058,7 +1058,7 @@ describe('GQL Comments mutation processes', ()=>{
                 createSentimentToHere(targeted: POST, id: "${thePostID}"
                     content: ${newSentimentContent}){
                         sentimentid, owner{
-                        id, username, relation, mutualFriendCount
+                            userid, username, relation, mutualFriendCount
                     }, content
                 }
             }`})
@@ -1072,7 +1072,7 @@ describe('GQL Comments mutation processes', ()=>{
                 expect(typeof res.body.data.createSentimentToHere).toBe('object')
                 expect(res.body.data.createSentimentToHere.content)
                     .toBe(newSentimentContent)
-                expect(res.body.data.createSentimentToHere.owner.id)
+                expect(res.body.data.createSentimentToHere.owner.userid)
                     .toBe(usersToTest[2].userid)
 
                 PostModel.findById(post2ID, (e2, d2)=>{
@@ -1109,7 +1109,7 @@ describe('GQL Comments mutation processes', ()=>{
                 createSentimentToHere(targeted: COMMENT, id: "${theCommID}"
                     content: ${newSentimContent}){
                     sentimentid, owner{
-                        id, username, relation, mutualFriendCount
+                        userid, username, relation, mutualFriendCount
                     }, content
                 }
             }`})
@@ -1124,7 +1124,7 @@ describe('GQL Comments mutation processes', ()=>{
                 expect(typeof res.body.data.createSentimentToHere).toBe('object')
                 expect(res.body.data.createSentimentToHere.content)
                     .toBe(newSentimContent)
-                expect(res.body.data.createSentimentToHere.owner.id)
+                expect(res.body.data.createSentimentToHere.owner.userid)
                     .toBe(usersToTest[2].userid)
 
                 CommentModel.findById(comm3ID, (e2, d2)=>{
@@ -1158,10 +1158,10 @@ describe('GQL Comments mutation processes', ()=>{
                 updateCommentContent(commentid: "${comm0ID}" content: "${newContent}")
                 {
                     commentid, owner{
-                        id, username, relation, mutualFriendCount
+                        userid, username, relation, mutualFriendCount
                     }, content, sentiments {
                         sentimentid, owner{
-                            id, username, relation, mutualFriendCount
+                            userid, username, relation, mutualFriendCount
                         }, content
                     }, comments
                 }
@@ -1217,7 +1217,7 @@ describe('GQL Comments mutation processes', ()=>{
                     sentimentid: "${sentimID}" content: ${newContent})
                 {
                     sentimentid, owner{
-                        id, username, relation, mutualFriendCount
+                        userid, username, relation, mutualFriendCount
                     }, content
                 }
             }`})
@@ -1270,7 +1270,7 @@ describe('GQL Comments mutation processes', ()=>{
                     sentimentid: "${sentimID}" content: ${newContent})
                 {
                     sentimentid, owner{
-                        id, username, relation, mutualFriendCount
+                        userid, username, relation, mutualFriendCount
                     }, content
                 }
             }`})

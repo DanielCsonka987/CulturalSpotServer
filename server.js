@@ -1,6 +1,6 @@
 const { ApolloServer } = require('apollo-server-express')
 const express = require('express')
-const mongoose = require('mongoose')
+const path = require('path')
 
 const PORT_REST = process.env.PORT || 4040;
 const LOCAL_DOMAIN_URL = { apolloUrl: '' }
@@ -93,9 +93,16 @@ const startServer = async (testPurpose, emailerTesting)=>{
     apolloSrv.applyMiddleware({ app, path: '/graphql' })
 
     app.use(express.urlencoded({extended: true}))
+    app.use(express.static(path.join(__dirname, 'public', 'frontapp')))
     app.use("/", additionalRoutings)
+    
     app.use((err, req, res, next)=>{
-        res.status(500).send('Server Internal error occured! ' + err)
+        //console.log(res.getHeader('Set-Cookie'))
+        if(res.getHeader('Set-Cookie')){
+            res.end()
+        }else{
+            res.status(500).send('Server Internal error occured! ' + err.message)
+        }
     })
 
     if(!testPurpose){    //it makes to SUPERTEST double configurate the PORT

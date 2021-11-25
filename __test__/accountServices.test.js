@@ -99,10 +99,10 @@ describe('Starter base REST URLs', ()=>{
             expect(res.body).toBeInstanceOf(Object);
             expect(res.body.errors).toBe(undefined)
 
-            expect(res.text.includes('GET request accepted - frontpage is sent!'))
+            expect(res.text.includes('Web site created using create-react-app'))
                 .toBeTruthy()
-            expect(res.text.includes('<h1>')).toBeTruthy()
-            expect(res.text.includes('</h1>')).toBeTruthy()
+            expect(res.text.includes('<noscript>')).toBeTruthy()
+            expect(res.text.includes('You need to enable JavaScript to run this app.')).toBeTruthy()
             done()
         })
             
@@ -114,14 +114,20 @@ describe('GET ResetPassword step-2 tests', ()=>{
         request(theSrv)
         .get('/passwordresetting/123')
         .expect("Content-Type", /text\/html/)
-        .expect(500)
+        .expect(200)
         .end((err, res)=>{
             expect(err).toBe(null)
             expect(res.body).toBeInstanceOf(Object);
             expect(res.body.errors).toBe(undefined)
-            expect(res.text.includes('<h3>Some error at router</h3>')).toBeTruthy()
-            expect(res.text.includes('<p>No authroization to use the endpoint!</p>')).toBeTruthy()
 
+            const cookies = res.header['set-cookie']
+            expect(cookies[0].includes('srverror=No_authroization_to_use_this_service!_Please_repeat_the_resetting_process_from_the_begining!;' + 
+                ' Max-Age=10; Path=/passwordresetting/123;') ).toBeTruthy()
+
+            expect(res.text.includes('Web site created using create-react-app'))
+                .toBeTruthy()
+            expect(res.text.includes('<noscript>')).toBeTruthy()
+            expect(res.text.includes('You need to enable JavaScript to run this app.')).toBeTruthy()
             done()
         })
     })
@@ -131,13 +137,20 @@ describe('GET ResetPassword step-2 tests', ()=>{
         request(theSrv)
         .get(`/passwordresetting/${theToken}`)
         .expect("Content-Type", /text\/html/)
-        .expect(500)
+        .expect(200)
         .end((err, res)=>{
             expect(err).toBe(null)
             expect(res.body).toBeInstanceOf(Object);
             expect(res.body.errors).toBe(undefined)
-            expect(res.text.includes('<h3>Some error at router</h3>')).toBeTruthy()
-            expect(res.text.includes('<p>No proper user identification!</p>')).toBeTruthy()
+
+            const cookies = res.header['set-cookie']
+            expect(cookies[0].includes('srverror=The_system_connot_find_the_pointed_account!_Please_repeat_the_resetting_process_from_the_begining!;' + 
+                ' Max-Age=10; Path=/passwordresetting/' + theToken + ';') ).toBeTruthy()
+
+            expect(res.text.includes('Web site created using create-react-app'))
+                .toBeTruthy()
+            expect(res.text.includes('<noscript>')).toBeTruthy()
+            expect(res.text.includes('You need to enable JavaScript to run this app.')).toBeTruthy()
             done()
         })
     })
@@ -150,18 +163,26 @@ describe('GET ResetPassword step-2 tests', ()=>{
             request(theSrv)
             .get(`/passwordresetting/${theToken}`)
             .expect("Content-Type", /text\/html/)
-            .expect(500)
+            .expect(200)
             .end((err, res)=>{
                 expect(err).toBe(null)
                 expect(res.body).toBeInstanceOf(Object);
                 expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Some error at router</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>No permission to reset the password!</p>')).toBeTruthy()
+
+                const cookies = res.header['set-cookie']
+                expect(cookies[0].includes('srverror=No_permission_to_reset_this_account_password!_Please_repeat_the_resetting_process_from_the_begining!;' + 
+                    ' Max-Age=10; Path=/passwordresetting/' + theToken + ';') ).toBeTruthy()
+
+                expect(res.text.includes('Web site created using create-react-app'))
+                    .toBeTruthy()
+                expect(res.text.includes('<noscript>')).toBeTruthy()
+                expect(res.text.includes('You need to enable JavaScript to run this app.')).toBeTruthy()
                 done()
             })
 
         })
     })
+    
     it('GET URL - token, valid Userid and marker in DB, encryption not proper', (done)=>{
         const targetUserEmail = userTesting.get('User 6').email
         ProfileModel.find({email: targetUserEmail }, async (e, d)=>{
@@ -174,13 +195,21 @@ describe('GET ResetPassword step-2 tests', ()=>{
             request(theSrv)
             .get(`/passwordresetting/${theToken}`)
             .expect("Content-Type", /text\/html/)
-            .expect(500)
+            .expect(200)
             .end( async (err, res)=>{
                 expect(err).toBe(null)
                 expect(res.body).toBeInstanceOf(Object);
                 expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Some error at router</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>Verification error!</p>')).toBeTruthy()
+
+                const cookies = res.header['set-cookie']
+                expect(cookies[0].includes('srverror=Identifing_you_is_failed!_Please_repeat_the_resetting_process_from_the_begining!;' + 
+                    ' Max-Age=10; Path=/passwordresetting/' + theToken + ';') ).toBeTruthy()
+
+                expect(res.text.includes('Web site created using create-react-app'))
+                    .toBeTruthy()
+                expect(res.text.includes('<noscript>')).toBeTruthy()
+                expect(res.text.includes('You need to enable JavaScript to run this app.')).toBeTruthy()
+
                 d[0].resetPwdMarker = ''
                 await d[0].save()
                 done()
@@ -206,8 +235,16 @@ describe('GET ResetPassword step-2 tests', ()=>{
                 expect(err).toBe(null)
                 expect(res.body).toBeInstanceOf(Object);
                 expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Permission denied</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>Token expired!</p>')).toBeTruthy()
+
+                const cookies = res.header['set-cookie']
+                expect(cookies[0].includes('srverror=Password_resetting_request_is_already_expired!_Please_repeat_the_resetting_process_from_the_begining!;' + 
+                    ' Max-Age=10; Path=/passwordresetting/' + theToken + ';') ).toBeTruthy()
+
+                expect(res.text.includes('Web site created using create-react-app'))
+                    .toBeTruthy()
+                expect(res.text.includes('<noscript>')).toBeTruthy()
+                expect(res.text.includes('You need to enable JavaScript to run this app.')).toBeTruthy()
+
                 d[0].resetPwdMarker = ''
                 await d[0].save()
                 done()
@@ -233,7 +270,13 @@ describe('GET ResetPassword step-2 tests', ()=>{
                 expect(err).toBe(null)
                 expect(res.body).toBeInstanceOf(Object);
                 expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Permission granted - here is the form!</h3>')).toBeTruthy()
+
+                expect(res.header['set-cookie']).toBe(undefined)
+
+                expect(res.text.includes('Web site created using create-react-app'))
+                    .toBeTruthy()
+                expect(res.text.includes('<noscript>')).toBeTruthy()
+                expect(res.text.includes('You need to enable JavaScript to run this app.')).toBeTruthy()
                 
                 d[0].resetPwdMarker = ''
                 await d[0].save()
@@ -244,229 +287,6 @@ describe('GET ResetPassword step-2 tests', ()=>{
 
 })
 
-/* OUT OF ORDER - replaced with GQL resolving
-describe('POST ResetPassword step-3 tests',()=>{
-
-    it('POST URL - no real url input', (done)=>{
-        request(theSrv)
-        .post('/passwordresetting/123')
-        .expect("Content-Type", /text\/html/)
-        .expect(500)
-        .end((err, res)=>{
-            expect(err).toBe(null)
-            expect(res.body).toBeInstanceOf(Object);
-            expect(res.body.errors).toBe(undefined)
-            expect(res.text.includes('<h3>Some error at router</h3>')).toBeTruthy()
-            expect(res.text.includes('<p>No authroization to use the endpoint!</p>')).toBeTruthy()
-
-            done()
-        })
-    })
-    it('POST URL - token, no valid Userid', (done)=>{
-
-        const theToken = createResetTokenToLink('0123456', 'hashPwd', '012345abcd')
-        request(theSrv)
-        .post(`/passwordresetting/${theToken}`)
-        .expect("Content-Type", /text\/html/)
-        .expect(500)
-        .end((err, res)=>{
-            expect(err).toBe(null)
-            expect(res.body).toBeInstanceOf(Object);
-            expect(res.body.errors).toBe(undefined)
-            expect(res.text.includes('<h3>Some error at router</h3>')).toBeTruthy()
-            //dtabase error occured
-            done()
-        })
-    })
-    it('POST URL - token, valid Userid, no marker in DB', (done)=>{
-        const targetUserEmail = userTesting.get('User 6').email
-        ProfileModel.find({email: targetUserEmail }, (e, d)=>{
-            expect(e).toBe(null)
-            expect(d[0]).not.toBe(null)
-            const theToken = createResetTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
-            request(theSrv)
-            .post(`/passwordresetting/${theToken}`)
-            .expect("Content-Type", /text\/html/)
-            .expect(500)
-            .end((err, res)=>{
-                expect(err).toBe(null)
-                expect(res.body).toBeInstanceOf(Object);
-                expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Some error at router</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>No permission to reset the password!</p>')).toBeTruthy()
-                done()
-            })
-
-        })
-    })
-    it('POST URL - token, valid Userid and marker in DB, encryption not proper', (done)=>{
-        const targetUserEmail = userTesting.get('User 6').email
-        ProfileModel.find({email: targetUserEmail }, async (e, d)=>{
-            expect(e).toBe(null)
-            expect(d[0]).not.toBe(null)
-            d[0].resetPwdMarker = '0123456'
-            await d[0].save()
-
-            const theToken = createResetTokenToLink('0123456', 'hashPwd', d[0]._id.toString() )
-            request(theSrv)
-            .post(`/passwordresetting/${theToken}`)
-            .expect("Content-Type", /text\/html/)
-            .expect(500)
-            .end( async (err, res)=>{
-                expect(err).toBe(null)
-                expect(res.body).toBeInstanceOf(Object);
-                expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Some error at router</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>Verification error!</p>')).toBeTruthy()
-                d[0].resetPwdMarker = ''
-                await d[0].save()
-                done()
-            })
-        })
-    })
-    it('POST URL - token, expired', (done)=>{
-        const targetUserEmail = userTesting.get('User 6').email
-        ProfileModel.find({email: targetUserEmail }, async (e, d)=>{
-            expect(e).toBe(null)
-            expect(d[0]).not.toBe(null)
-            d[0].resetPwdMarker = '0123456'
-            await d[0].save()
-
-            const theToken = d[0]._id.toString() + '.' + jwt.sign({marker: '0123456'}, 
-                '0123456' + d[0].pwdHash, { expiresIn: '1ms' }
-            )
-            request(theSrv)
-            .post(`/passwordresetting/${theToken}`)
-            .expect("Content-Type", /text\/html/)
-            .expect(200)
-            .end(async (err, res)=>{
-                expect(err).toBe(null)
-                expect(res.body).toBeInstanceOf(Object);
-                expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Permission denied</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>Token expired!</p>')).toBeTruthy()
-                d[0].resetPwdMarker = ''
-                await d[0].save()
-                done()
-            })
-        })
-    })
-
-    it('POST URL - token proper, POST input false 1', (done)=>{
-        const targetUserEmail = userTesting.get('User 6').email
-        ProfileModel.find({email: targetUserEmail }, async (e, d)=>{
-            expect(e).toBe(null)
-            expect(d[0]).not.toBe(null)
-            d[0].resetPwdMarker = '0123456'
-            await d[0].save()
-
-            const theToken = d[0]._id.toString() + '.' + jwt.sign({marker: '0123456'}, 
-                '0123456' + d[0].pwdHash, { expiresIn: '10min' }
-            )
-            request(theSrv)
-            .post(`/passwordresetting/${theToken}`)
-            .send('password=Stg&passwordConf=Stg')
-            .expect("Content-Type", /text\/html/)
-            .expect(200)
-            .end(async (err, res)=>{
-                expect(err).toBe(null)
-                expect(res.body).toBeInstanceOf(Object);
-                expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Passwords are incorrect!</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>Please revise them!</p>')).toBeTruthy()
-                d[0].resetPwdMarker = ''
-                await d[0].save()
-                done()
-            })
-        })
-    })
-    it('POST URL - token proper, POST input false 2', (done)=>{
-        const targetUserEmail = userTesting.get('User 6').email
-        ProfileModel.find({email: targetUserEmail }, async (e, d)=>{
-            expect(e).toBe(null)
-            expect(d[0]).not.toBe(null)
-            d[0].resetPwdMarker = '0123456'
-            await d[0].save()
-
-            const theToken = d[0]._id.toString() + '.' + jwt.sign({marker: '0123456'}, 
-                '0123456' + d[0].pwdHash, { expiresIn: '10min' }
-            )
-            request(theSrv)
-            .post(`/passwordresetting/${theToken}`)
-            .send('password=StgToTesting&passwordConf=Stg')
-            .expect("Content-Type", /text\/html/)
-            .expect(200)
-            .end(async (err, res)=>{
-                expect(err).toBe(null)
-                expect(res.body).toBeInstanceOf(Object);
-                expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Passwords are incorrect!</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>Please revise them!</p>')).toBeTruthy()
-                d[0].resetPwdMarker = ''
-                await d[0].save()
-                done()
-            })
-        })
-    })
-    it('POST URL - token proper, POST input false 3', (done)=>{
-        const targetUserEmail = userTesting.get('User 6').email
-        ProfileModel.find({email: targetUserEmail }, async (e, d)=>{
-            expect(e).toBe(null)
-            expect(d[0]).not.toBe(null)
-            d[0].resetPwdMarker = '0123456'
-            await d[0].save()
-
-            const theToken = d[0]._id.toString() + '.' + jwt.sign({marker: '0123456'}, 
-                '0123456' + d[0].pwdHash, { expiresIn: '10min' }
-            )
-            request(theSrv)
-            .post(`/passwordresetting/${theToken}`)
-            .send('password=Stg2Test&passwordConf=')
-            .expect("Content-Type", /text\/html/)
-            .expect(200)
-            .end(async (err, res)=>{
-                expect(err).toBe(null)
-                expect(res.body).toBeInstanceOf(Object);
-                expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Passwords are incorrect!</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>Please revise them!</p>')).toBeTruthy()
-                d[0].resetPwdMarker = ''
-                await d[0].save()
-                done()
-            })
-        })
-    })
-    it('POST URL - token, all proper', (done)=>{
-        const targetUserEmail = userTesting.get('User 6').email
-        ProfileModel.find({email: targetUserEmail }, async (e, d)=>{
-            expect(e).toBe(null)
-            expect(d[0]).not.toBe(null)
-            d[0].resetPwdMarker = '0123456'
-            await d[0].save()
-
-            const theToken = d[0]._id.toString() + '.' + jwt.sign({marker: '0123456'}, 
-                '0123456' + d[0].pwdHash, { expiresIn: '10min' }
-            )
-            request(theSrv)
-            .post(`/passwordresetting/${theToken}`)
-            .send('password=StgToTest&passwordConf=StgToTest')
-            .expect("Content-Type", /text\/html/)
-            .expect(200)
-            .end(async (err, res)=>{
-                expect(err).toBe(null)
-                expect(res.body).toBeInstanceOf(Object);
-                expect(res.body.errors).toBe(undefined)
-                expect(res.text.includes('<h3>Your password changed!</h3>')).toBeTruthy()
-                expect(res.text.includes('<p>You can login with that!</p>')).toBeTruthy()
-                d[0].resetPwdMarker = ''
-                await d[0].save()
-                done()
-            })
-        })
-    })
-
-})
-*/
 describe('GrapQL profile queries', ()=>{
     it('Test attempt', (done)=>{
         request(theSrv)

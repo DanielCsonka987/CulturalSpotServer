@@ -1,4 +1,6 @@
 const router = require('express').Router()
+const path = require('path')
+const fs = require('fs')
 
 const { resetTokenResoluteFromLink, resetTokenValidate
      } = require('../utils/tokenManager')
@@ -10,96 +12,73 @@ const { RESETPWD_REST_GET_ROUTE } = require('../config/appConfig').ROUTING
 const ProfileModel = require('../models/ProfileModel')
 const { emailingServices } = require('../extensions/emailerClientSetup')
 
-router.get("/", (req, res)=>{
-    res.send("<h1>GET request accepted - frontpage is sent!</h1>")  
+//Reset password step 2
+router.get(`${RESETPWD_REST_GET_ROUTE}:specToken`,[
+    resetTokenEvaluation,
+    (req, res)=>{
+        if(req.srvError){
+            const msg = req.srvError.split(' ').join('_') 
+                + '_Please_repeat_the_resetting_process_from_the_begining!'
+            res.cookie('srverror', msg, { 
+                maxAge: 10000, 
+                path: RESETPWD_REST_GET_ROUTE + req.params.specToken
+            } ) 
+        }
+        res.sendFile(path.join(__dirname, '..', 'public', 'frontapp', 'index.html'))
+
+    }]
+)
+
+router.get("/*", (req, res)=>{
+    res.sendFile(path.join(__dirname, '..', 'public', 'frontapp', 'index.html'))
+
+    //res.send("<h1>GET request accepted - frontpage is sent!</h1>")  
 })
 
-//Reset password step 2
-router.get(`${RESETPWD_REST_GET_ROUTE}:specToken`, [
-    resetTokenEvaluation,  (req, res)=>{
-        if(req.permissionToContinue){
-            res.header('resetting', req.params.specToken)
-            res.send('<h3>Permission granted - here is the form!</h3>')
-        }else{
-            //res.redirect('/403')
-            res.send('<h3>Permission denied</h3><p>Token expired!</p>')
-        }
-    }
-])
-
-/*
-router.post('/resetpassword/:specToken', [
-    resetTokenEvaluation,
-    (req, res, next)=>{
-        if(req.permissionToContinue){
-            const correction = passwordRenewInputRevise(req.body.password, 
-                req.body.passwordConf
-            ) 
-            if(correction){
-                req.permissionToChange = true
-            }
-        }
-        next()
-    },
-    async (req, res, next)=>{
-        if(req.permissionToContinue && req.permissionToChange){
-            const encryptRes = await encryptPwd(req.body.password)
-            if(!encryptRes.error){
-                try{
-                    req.theClientObj.pwdHash = encryptRes.hash
-                    req.theClientObj.resetPwdMarker = ''
-                    await req.theClientObj.save()
-
-                    req.changingDone = true
-                }catch(err){
-                    //no need for that here, now
-                }
-            }
-        }
-        delete req.theClientObj
-        next()
-    },
-    (req, res)=>{
-        if(req.permissionToContinue){
-            if(req.permissionToChange){
-                if(req.changingDone){
-                    res.send('<h3>Your password changed!</h3><p>You can login with that!</p>')
-                }else{
-                    res.send('<h3>Password change error!</h3><p>Please try again!</p>')
-                }
-            }else{
-                res.send('<h3>Passwords are incorrect!</h3><p>Please revise them!</p>')
-            }
-        }else{
-            res.send('<h3>Permission denied</h3><p>Token expired!</p>')
-        }
-    }
-])
-*/
 async function resetTokenEvaluation(req, res, next){
-    const tokenRevised = resetTokenResoluteFromLink(req.params.specToken)
-    if(tokenRevised.tokenMissing){
-        next(new Error('No authroization to use the endpoint!'))
-    }
     try{
+        const tokenRevised = resetTokenResoluteFromLink(req.params.specToken)
+        if(tokenRevised.tokenMissing){
+            req.srvError = 'No authroization to use this service!'; next();
+        }
         if(isThisUserIDMayBeFaulty(tokenRevised.takenUserid)){
-            next( new Error('No proper user identification!'))
+            req.srvError =  'The system connot find the pointed account!'; 
+            next();
+        }else{
+            const clientUser = await  ProfileModel.findById(tokenRevised.takenUserid)
+            if(clientUser === null){
+                req.srvError =  'The system connot find the pointed email!'; next();
+            }
+            if(!clientUser.resetPwdMarker ){
+                req.srvError = 'No permission to reset this account password!'; next();
+            }
+    
+            const tokenChargo = await resetTokenValidate(
+                tokenRevised, clientUser.resetPwdMarker, clientUser.pwdHash
+            )
+    
+            if(tokenChargo.error){ 
+                req.srvError = 'Identifing you is failed!'; next();
+            }
+            if(tokenChargo.isExpired){ 
+                req.srvError = 'Password resetting request is already expired!'; next();
+            }
+            if(tokenChargo.passResetPermission){
+                req.permissionToContinue = true
+            }
+            next()
         }
-        const clientUser = await  ProfileModel.findById(tokenRevised.takenUserid)
-
-        if(!clientUser.resetPwdMarker) { next( new Error('No permission to reset the password!')) }
-        const tokenChargo = await resetTokenValidate(
-            tokenRevised, clientUser.resetPwdMarker, clientUser.pwdHash
-        )
-        if(tokenChargo.error){ next( new Error('Verification error!') ) }
-        if(tokenChargo.isExpired){ next() }
-        if(tokenChargo.passResetPermission){
-            req.permissionToContinue = true
-            req.theClientObj = clientUser
-        }
-        next()
+        
     }catch(err){
-        next(err)
+        throw err
+        //res.set({ 'content-type': 'text/html; charset=utf-8' })
+        /*
+        fs.readFile(path.join(__dirname, '..', 'public', 'frontapp', 'index.html'), 'utf8', (err, data)=>{
+            res.status(200).send(data)
+        })
+        res.send(err.message)
+        res.end()
+        */
     }
 }
 
@@ -115,6 +94,14 @@ router.get('/emailtesting', async (req, res)=>{
 })
 
 router.use((err, req, res, next)=>{
-    res.status(500).send('<h3>Some error at router</h3><p>' + err.message + '</p>')
+    /*
+    const msg = err.split(' ').join('_')
+    res.cookie('srverror', msg)
+    fs.readFile(path.join(__dirname, '..', 'public', 'frontapp', 'index.html'), 'utf8', (err, data)=>{
+        res.status(200).send(data)
+    })*/
+    //res.sendFile(path.join(__dirname, '..', 'public', 'frontapp', 'index.html'))
+    res.status(500).send('<h3>Some error at server router!</h3><p>' + err.message + '</p>')
+    //res.end()
 })
 module.exports = router
