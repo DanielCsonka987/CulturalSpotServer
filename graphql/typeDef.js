@@ -3,6 +3,7 @@ const { gql } = require('apollo-server-express')
 module.exports = gql`
 
     ## for account matters
+        ##rregister or login user data content
     type UserLoggingContent {
         id: String!
         email: String!
@@ -13,10 +14,13 @@ module.exports = gql`
         registeredAt: String!
         lastLoggedAt: String!
 
-        friends: [UserMini]!
+        friends: Int!
+        invitations: Int!
+        requests: Int!
         allPosts: [Post]!
         allChats: [ChatRoomMini]!
     }
+        ##at client reload user data replacement
     type UserPrivateContent {
         id: String!
         email: String!
@@ -24,7 +28,9 @@ module.exports = gql`
         registeredAt: String!
         lastLoggedAt: String!
 
-        friends: [UserMini]!
+        friends: Int!
+        invitations: Int!
+        requests: Int!
         allPosts: [Post]!
         allChats: [ChatRoomMini]!
     }
@@ -32,11 +38,6 @@ module.exports = gql`
         id: String!
         newToken: String!
         tokenExpire: Int!
-    }
-    type UserMini {
-        userid: String!,
-        username: String!,
-        email: String!
     }
     type AccountProcess {
         resultText: String!
@@ -46,6 +47,7 @@ module.exports = gql`
     }
 
     ## for friends managing, not account datas approach
+        ##for searches
     type UserPublicContent {
         userid: String!
         email: String!
@@ -56,11 +58,18 @@ module.exports = gql`
 
         friends: [UserFracture]!
     }
+        ##for other cases - no connection
     type UserFracture {
         userid: String!
         username: String!
         relation: Connection!
         mutualFriendCount: Int
+    }
+        ##for friends - approved relation
+    type UserMini {
+        userid: String!,
+        username: String!,
+        email: String!
     }
     type FriendProcess {
         resultText: String!

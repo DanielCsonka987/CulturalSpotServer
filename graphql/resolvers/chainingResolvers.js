@@ -4,8 +4,10 @@ const { countTheAmountOfFriends, defineUserConnections, filterPostsByDateAndAmou
 module.exports = {
     UserLoggingContent: {
         friends: async (parent, _, { dataSources })=>{     //UserMini type return
+            /*
             const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
-            return friendsArray.map(userMiniTypeDefine)
+            return friendsArray.map(userMiniTypeDefine)*/
+            return parent.friends.length
         },
         allPosts: async (parent, _, { dataSources })=>{    //Post type return
             const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
@@ -13,7 +15,6 @@ module.exports = {
 
             const allPostsIDs = filterPostsByDateAndAmount_Stamps(parent.posts, groupsOfPostIDs)
             const finalPosts = await dataSources.posts.getAllOfThese(allPostsIDs)
-
             return finalPosts.map(postTypeDefine)
         },
         allChats: async (parent, _, { dataSources })=>{
@@ -23,8 +24,10 @@ module.exports = {
     },
     UserPrivateContent: {
         friends: async (parent, _, { dataSources })=>{     //UserMini type return
+            /*
             const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
-            return friendsArray.map(userMiniTypeDefine)
+            return friendsArray.map(userMiniTypeDefine)*/
+            return parent.friends.length
         },
         allPosts: async (parent, _, { dataSources })=>{    //Post type return
             const friendsArray = await dataSources.profiles.getAllOfThese(parent.friends)
@@ -151,10 +154,12 @@ function postTypeDefine(postUnit){
     return {
         postid: postUnit._id,
         owner: postUnit.owner,
+        createdAt: postUnit.createdAt,
+        updatedAt: postUnit.updatedAt? postUnit.updatedAt.toISOString(): '',
         addressee: postUnit.addressee,
         content: postUnit.content,
 
-        comments: postUnit.comments,        //array of commmentid-s
+        comments: postUnit.comments.length,        //array of commmentid-s
         sentiments: postUnit.sentiments     //Sentiment type array
     }
     

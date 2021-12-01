@@ -49,7 +49,7 @@ module.exports = {
             return {
                 id: clientUser._id.toString(),
                 newToken: authorizTokenEncoder({subj: clientUser._id.toString(), email: clientUser.email}),
-                tokenExpire: 3600
+                tokenExpire: 900
             }
         },
         async requireClientContent(_, __, { dataSources, authorizRes }){
@@ -103,7 +103,7 @@ module.exports = {
             }
             return userToLogin.getUserLoginDatas(
                 authorizTokenEncoder({subj: userToLogin._id.toString(), email: userToLogin.email}),
-                refreshTokenStr, 3600, lastLoggedTime)
+                refreshTokenStr, 900, lastLoggedTime)
             /*
             return {
                 id: userToLogin._id,
@@ -171,7 +171,7 @@ module.exports = {
 
             return newUser.getUserLoginDatas(
                 authorizTokenEncoder({subj: newUser._id.toString(), email: newUser.email}),
-                refreshToken, 3600)
+                refreshToken, 900)
                 /*
             return {
                 id: newUser._id,

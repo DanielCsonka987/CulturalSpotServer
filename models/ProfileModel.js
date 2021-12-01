@@ -76,7 +76,9 @@ ProfileSchema.virtual('getUserPrivateData').get(function(){
         registeredAt: this.registeredAt.toISOString(),
         lastLoggedAt: this.lastLoggedAt.toISOString(),
         friends: this.friends,
-        posts: this.myPosts.map(item=>{ return item.postid}),
+        invitations: this.myInvitations.length,
+        requests: this.myFriendRequests.length,
+        posts: this.myPosts,
         chats: this.myChats
     }
 })
@@ -91,10 +93,12 @@ ProfileSchema.methods.getUserLoginDatas = function(
         refreshToken: refreshToken,
         registeredAt: this.registeredAt.toISOString(),
         lastLoggedAt: lastLoggedTime?
-            lastLoggedTime : this.lastLoggedAt.toISOString(),
+            this.lastLoggedAt.toISOString() : '',
 
         friends: this.friends,
-        posts: this.myPosts.map(item=>{ return item.postid}),
+        invitations: this.myInvitations.length,
+        requests: this.myFriendRequests.length,
+        posts: this.myPosts,
         chats: this.myChats
     }
 }

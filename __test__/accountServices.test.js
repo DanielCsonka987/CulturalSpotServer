@@ -314,9 +314,7 @@ describe('GrapQL profile queries', ()=>{
         .send({'query':` query{
             requireClientContent{
                 id, username, email, registeredAt, lastLoggedAt,
-                friends{
-                    id: username, email
-                }, allPosts{
+                friends, invitations, requests, allPosts{
                     postid, content
                 }, allChats{
                     chatid, title
@@ -334,7 +332,7 @@ describe('GrapQL profile queries', ()=>{
 
             expect(res.body.data.requireClientContent.username).toMatch('User 2')
             expect(res.body.data.requireClientContent.email).toMatch(userEmailTarget)
-            expect(res.body.data.requireClientContent.friends).toHaveLength(2)
+            expect(res.body.data.requireClientContent.friends).toBe(2)
             expect(res.body.data.requireClientContent.allChats).toHaveLength(1)
             done()
         })
