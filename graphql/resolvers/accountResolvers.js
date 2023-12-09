@@ -266,7 +266,7 @@ module.exports = {
                 args.oldpassword, args.newpassword, args.newconf
             )
             if(error){
-                return new UserInputError('Password changing', { field, issue })
+                return new UserInputError('Password changing inputs failed!', { field, issue })
             }
             authorizEvaluation(authorizRes)
 

@@ -214,6 +214,8 @@ module.exports.posts = [
             { 
                 id: 1,
                 owner: userids[1],
+                createdAt: new Date('15 April 2021 13:12 UTC'),
+                updatedAt: null,
                 content: 'LOVE'
             }
         ]
@@ -245,6 +247,8 @@ module.exports.posts = [
             { 
                 id: 1,
                 owner: userids[1],
+                createdAt: new Date('10 May 2021 13:47 UTC'),
+                updatedAt: new Date('10 May 2021 13:49 UTC'),
                 content: 'LIKE'
             }
         ]
@@ -273,11 +277,15 @@ module.exports.posts = [
             { 
                 id: 1,
                 owner: userids[0],
+                createdAt: new Date('12 June 2021 15:23 UTC'),
+                updatedAt: null,
                 content: 'DISLIKE'
             }, 
             { 
                 id: 2,
                 owner: userids[2],
+                createdAt: new Date('12 June 2021 18:11 UTC'),
+                updatedAt: null,
                 content: 'SAD'
             }
         ]
@@ -351,6 +359,8 @@ module.exports.comments = [
             {
                 id: 1,
                 owner: userids[7],
+                createdAt: new Date('24 November 2021 21:32 UTC'),
+                updatedAt: null,
                 content: 'FUNNY'
             }
         ]

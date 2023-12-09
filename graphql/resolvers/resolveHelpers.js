@@ -148,7 +148,7 @@ module.exports.filterPostsByDateAndAmount_Posts = function(posts, dating, amount
     let resultPosts = []
     if(dating){
         resultPosts = posts.filter(pst=>{
-            if(pst.createdAt <= dating) {  return pst  }
+            if(pst.createdAt < dating) {  return pst  }
         })
     }else{
         resultPosts = posts
@@ -169,7 +169,7 @@ module.exports.filterPostsByDateAndAmount_Stamps = function(clienPosts, friendPo
     let resultIDs = []
     if(dating){
         resultIDs = allPostsStamp.filter(pstIdent=> { 
-            if(pstIdent.createdAt <= dating){ return pstIdent } 
+            if(pstIdent.createdAt < dating){ return pstIdent } 
         })
         resultIDs = resultIDs.map(pstIdent=> pstIdent.postid)
     }else{
@@ -184,7 +184,7 @@ module.exports.filterCommentByDateAmount_Stamps = function(comentStaps, dating, 
     let resultIDs = []
     if(dating){
         resultIDs = sortedContent.filter(cmmnt=> { 
-            if(cmmnt.createdAt <= dating){ return cmmnt } 
+            if(cmmnt.createdAt < dating){ return cmmnt } 
         })
         resultIDs = resultIDs.map(cmmnt=> cmmnt.commentid)
     }else{

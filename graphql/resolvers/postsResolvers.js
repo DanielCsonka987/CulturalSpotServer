@@ -104,8 +104,8 @@ module.exports = {
                     owner: postUnit.owner,
                     dedicatedTo: postUnit.dedicatedTo,
                     content: postUnit.content,
-                    createdAt: postUnit.createdAt,
-                    updatedAt: postUnit.updatedAt? postUnit.updatedAt : '',
+                    createdAt: postUnit.createdAt.toISOString(),
+                    updatedAt: postUnit.updatedAt? postUnit.updatedAt.toISOString() : '',
 
                     sentiments: postUnit.sentiments,
                     comments: postUnit.comments.length

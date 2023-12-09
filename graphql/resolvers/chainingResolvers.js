@@ -154,7 +154,7 @@ function postTypeDefine(postUnit){
     return {
         postid: postUnit._id,
         owner: postUnit.owner,
-        createdAt: postUnit.createdAt,
+        createdAt: postUnit.createdAt.toISOString(),
         updatedAt: postUnit.updatedAt? postUnit.updatedAt.toISOString(): '',
         addressee: postUnit.addressee,
         content: postUnit.content,
